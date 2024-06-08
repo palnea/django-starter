@@ -2,6 +2,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -19,7 +20,7 @@ from .serializers import (
     UserRegisterSerializer,
     UpdatePasswordSerializer,
     CustomTokenRefreshSerializer,
-    ResetPasswordSerializer,
+    ResetPasswordSerializer, GoogleSocialAuthSerializer, FacebookSocialAuthSerializer, AppleSocialAuthSerializer,
 )
 from .services import RegistrationService, PasswordService
 
@@ -142,3 +143,80 @@ class UpdatePasswordViewSet(GenericViewSet):
 
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
+
+class GoogleSocialAuthView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = GoogleSocialAuthSerializer
+
+    def post(self, request):
+        """
+
+        POST with "auth_token"
+
+        Send an idtoken as from google to get user information
+
+        """
+        status_code = status.HTTP_200_OK
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response_body = (serializer.validated_data)["auth_token"]
+
+        view_response = ViewResponse(
+            response_body=response_body,
+            response_status=status_code,
+            is_successful=True,
+            response_information_code=MessageCode.BASE_LOGIN_SUCCESS,
+        )
+        return view_response.rest_response
+
+
+class FacebookSocialAuthView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = FacebookSocialAuthSerializer
+
+    def post(self, request):
+        """
+
+        POST with "auth_token"
+
+        Send an access token as from facebook to get user information
+
+        """
+
+        status_code = status.HTTP_200_OK
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response_body = (serializer.validated_data)["auth_token"]
+        view_response = ViewResponse(
+            response_body=response_body,
+            response_status=status_code,
+            is_successful=True,
+            response_information_code=MessageCode.BASE_LOGIN_SUCCESS,
+        )
+        return view_response.rest_response
+
+
+class AppleSocialAuthView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = AppleSocialAuthSerializer
+
+    def post(self, request):
+        """
+
+        POST with "auth_token"
+
+        Send an access token as from facebook to get user information
+
+        """
+
+        status_code = status.HTTP_200_OK
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response_body = (serializer.validated_data)["code"]
+        view_response = ViewResponse(
+            response_body=response_body,
+            response_status=status_code,
+            is_successful=True,
+            response_information_code=MessageCode.BASE_LOGIN_SUCCESS,
+        )
+        return view_response.rest_response

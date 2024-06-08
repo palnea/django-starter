@@ -9,7 +9,7 @@ from rest_framework import status
 
 from authy.helpers.token_helper import (
     set_token_parameters,
-    get_token_subscription_for_user,
+    get_token_subscription_for_user, authenticate_user,
 )
 from authy.models import Account
 from authy.serializers import CustomTokenObtainPairSerializer
@@ -46,33 +46,7 @@ class RegistrationService:
         )
 
         # Authenticate
-        account = authenticate(id=user.account_id, password=data["password"])
-        if account is None:
-            # return response without token create a log for this impossibility
-            print("Account created but authentication failed")
-            return {**user.to_dict(fields=["fullname", "role"])}
-
-        token = CustomTokenObtainPairSerializer.get_token(account, user)
-        refresh_token = token
-        access_token = token.access_token
-        subscription = get_token_subscription_for_user(user)
-        access_token = set_token_parameters(
-            access_token,
-            {
-                "subscription": (
-                    subscription.safe_json() if subscription is not None else None
-                ),
-                "locale_code": user.locale.code,
-            },
-        )
-
-        update_last_login(None, account)
-
-        validation = {
-            "access": str(access_token),
-            "refresh": str(refresh_token),
-            "user": user.to_dict(exclude=["phone", "products"]),
-        }
+        validation = authenticate_user(user, data["password"])
 
         try:
             if user.email:

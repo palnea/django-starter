@@ -1,4 +1,5 @@
 import jwt
+from django.test import override_settings
 from django.urls import reverse
 from mock import patch
 from model_bakery import baker
@@ -150,3 +151,57 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
 
     def test_update_password(self):
         data = {"email": self.email_user.email}
+
+
+class SocialAuthenticationTestCase(CustomIntegrationTestCase):
+    def setUp(self):
+        super().setUp()
+        self.create_common_models()
+        self.email_password = "123"
+        self.email_account = baker.make(
+            Account, id="381c8642-6135-4efe-a487-4b93a4217c06"
+        )
+        self.email_account.set_password(self.email_password)
+        self.email_account.save()
+        self.email_user = baker.make(
+            User,
+            id="381c8642-6135-4efe-a487-4b93a4217c06",
+            account=self.email_account,
+            email="myapp@yopmail.com"
+        )
+
+    @override_settings(GOOGLE_CLIENT_ID="google")
+    @patch("authy.social_auth.google.Google.validate")
+    def test_google_social_auth(self, mock_google_validate):
+        mock_google_validate.return_value = {
+            "sub": "abcdef",
+            "aud": "",
+            "email": self.email_user.email,
+            "name": self.email_user.fullname
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("google_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("authy.social_auth.facebook.Facebook.validate")
+    def test_facebook_social_auth(self, mock_facebook_validate):
+        mock_facebook_validate.return_value = {
+            "id": "123456",
+            "email": self.email_user.email,
+            "name": self.email_user.fullname
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("facebook_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    @patch("authy.social_auth.apple.Apple.validate")
+    def test_apple_social_auth(self, mock_apple_validate):
+        mock_apple_validate.return_value = {
+            "email": self.email_user.email
+        }
+        data = {"auth_token": "auth_token", "code": "code"}
+        url = reverse("apple_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)

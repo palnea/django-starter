@@ -131,7 +131,7 @@ class Translation(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translations",
-        default=Locale.get_default_id,
+        default=Locale.get_default,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -264,7 +264,7 @@ class TranslatedFile(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translated_files",
-        default=Locale.get_default_id,
+        default=Locale.get_default,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)

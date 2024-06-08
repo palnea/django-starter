@@ -10,12 +10,16 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from django_softdelete.models import SoftDeleteModel
 from phonenumber_field.modelfields import PhoneNumberField
+from rest_framework import status
 
 from authy.models import Account
+from common.custom_exceptions.custom_exception import CustomException
 from common.models import Locale
+from common.response.response_information_codes.error_code import ErrorCode
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
 from user.types import UserRole
+from user.validators import UserValidator
 from utils.converters import ModelConverter
 from utils.fields import DateTimeWithoutTZField
 
@@ -60,7 +64,7 @@ class User(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="users",
-        default=Locale.get_default_id,
+        default=Locale.get_default,
     )
     creation_type = models.CharField(
         max_length=16, choices=CREATION_TYPE, null=False, blank=False
@@ -85,20 +89,20 @@ class User(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=["phone"],
                 condition=Q(deleted_at__isnull=True)
-                & Q(phone__isnull=False)
-                & ~Q(phone=""),
+                          & Q(phone__isnull=False)
+                          & ~Q(phone=""),
                 name="user_unique_phone",
             ),
             models.UniqueConstraint(
                 fields=["email"],
                 condition=Q(deleted_at__isnull=True)
-                & Q(email__isnull=False)
-                & ~Q(email=""),
+                          & Q(email__isnull=False)
+                          & ~Q(email=""),
                 name="user_unique_email",
             ),
             models.CheckConstraint(
                 check=(Q(email__isnull=False) & ~Q(email__exact=""))
-                | (Q(phone__isnull=False) & ~Q(phone__exact="")),
+                      | (Q(phone__isnull=False) & ~Q(phone__exact="")),
                 name="user_at_least_email_or_phone_not_null",
             ),
         ]
@@ -140,11 +144,11 @@ class User(SoftDeleteModel):
         return self.active_subscription is not None
 
     def to_dict(
-        self,
-        fields: List = None,
-        exclude: List = None,
-        detailed_fields: Dict = None,
-        fields_as: Dict = None,
+            self,
+            fields: List = None,
+            exclude: List = None,
+            detailed_fields: Dict = None,
+            fields_as: Dict = None,
     ):
         user_dict = ModelConverter.model_to_dict(
             self,
@@ -157,6 +161,30 @@ class User(SoftDeleteModel):
         if user_dict.get("phone"):
             user_dict["phone"] = user_dict["phone"].as_international.replace(" ", "")
         return user_dict
+
+    @staticmethod
+    def create_with_account(data: Dict[str, any]):
+        """
+        Creates a user with an account
+        """
+        errors, validated_data = UserValidator(data).validate_create()
+        if errors:
+            raise CustomException(
+                detail=errors,
+                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message=_("Validation error occured. Please check the fields."),
+            )
+
+        account = Account.objects.create()
+        account.set_password(validated_data["password"])
+        account.save()
+        user = User.objects.create(
+            **validated_data,
+            account=account,
+            creation_type=User.PERSONAL,
+        )
+        return user
 
 
 class Avatar(models.Model):
