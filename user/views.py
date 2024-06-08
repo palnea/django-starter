@@ -1,5 +1,5 @@
 from django.http import Http404
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from structlog import get_logger

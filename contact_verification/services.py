@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import transaction
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
 from common.custom_exceptions.custom_exception import CustomException

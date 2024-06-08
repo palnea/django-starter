@@ -1,7 +1,7 @@
 from typing import Dict, List
 
 from rest_framework import serializers, status
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Translation, TranslatedFile

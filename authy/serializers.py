@@ -1,43 +1,31 @@
-from typing import Dict, Union
+import time
+from typing import Dict, Union, TYPE_CHECKING
 
+import jwt
 from django.conf import settings
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import update_last_login
-from django.core.exceptions import ObjectDoesNotExist
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, status
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, Token
+from structlog import get_logger
 
+from authy.helpers.social_auth import login_social_user
 from authy.helpers.token_helper import (
     get_token_subscription_for_user,
-    set_token_parameters,
+    authenticate_user,
 )
+from authy.social_auth.apple import Apple
+from authy.social_auth.facebook import Facebook
+from authy.social_auth.google import Google
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from subscription.models import UserSubscription
-from user.models import User
 
+if TYPE_CHECKING:
+    from user.models import User
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def create(self, validated_date):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
-
-    @classmethod
-    def get_token(cls, account, user):
-        token = super().get_token(account)
-
-        token["email"] = user.email
-        token["phone"] = user.phone and user.phone.as_international.replace(" ", "")
-        token["user_id"] = str(user.id)
-        token["role"] = user.role
-        token["school_id"] = str(user.school_id) if user.school_id else None
-
-        return token
+log = get_logger(__name__)
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -103,49 +91,8 @@ class UserLoginSerializer(serializers.Serializer):
                     else _("User with this phone doesn't exist")
                 ),
             )
-        account = authenticate(id=user.account_id, password=password)
 
-        if account is None:
-            raise CustomException(
-                detail={
-                    "email": ["Invalid email or password"],
-                    "password": ["Invalid email or password"],
-                },
-                code=ErrorCode.AUTHENTICATION_FAILED,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Incorrect password"),
-            )
-
-        try:
-            token = CustomTokenObtainPairSerializer.get_token(account, user)
-            refresh_token = token
-            access_token = token.access_token
-            subscription = get_token_subscription_for_user(user)
-            access_token = set_token_parameters(
-                access_token,
-                {
-                    "subscription": (
-                        subscription.safe_json() if subscription is not None else None
-                    ),
-                    "locale_code": user.locale.code,
-                },
-            )
-
-            update_last_login(None, account)
-
-            validation = {
-                "access": str(access_token),
-                "refresh": str(refresh_token),
-                "user": user.to_dict(),
-            }
-            return validation
-        except ObjectDoesNotExist:
-            raise CustomException(
-                "Invalid login credentials",
-                ErrorCode.AUTHENTICATION_FAILED,
-                status.HTTP_400_BAD_REQUEST,
-                message=_("Invalid login credentials"),
-            )
+        return authenticate_user(user, password)
 
 
 class UserRegisterSerializer(serializers.Serializer):
@@ -289,7 +236,7 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
         return token
 
     def get_user_subscription_from_token(
-        self, token: Token
+            self, token: Token
     ) -> Union[UserSubscription, None]:
         payload = token.payload
         user_id = payload.get("user_id", None)
@@ -299,3 +246,134 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
 
         else:
             return None
+
+
+class GoogleSocialAuthSerializer(serializers.Serializer):
+    auth_token = serializers.CharField()
+
+    def validate_auth_token(self, auth_token):
+        user_data = Google.validate(auth_token)
+        request = self.context.get("request", None)
+        contact_permission = False
+        if request and request.data:
+            contact_permission = request.data.get("contact_permission", False)
+        try:
+            user_data["sub"]
+        except:
+            raise serializers.ValidationError(
+                "The token is invalid or expired. Please login again."
+            )
+
+        if user_data["aud"] != settings.GOOGLE_CLIENT_ID:
+            raise CustomException(
+                detail=f"Google client id doesn't match with system's client id. \nServer ClientId: **{settings.GOOGLE_CLIENT_ID.split('.')[0][-10:]} \nUser Client Id: **{user_data['aud'].split('.')[0][-10:]}",
+                code=ErrorCode.AUTHENTICATION_FAILED,
+                status_code=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        try:
+            user_id = user_data["sub"]
+            email = user_data["email"]
+            name = user_data["name"]
+            provider = "google"
+
+            return login_social_user(
+                provider=provider,
+                user_id=user_id,
+                email=email,
+                name=name,
+                contact_permission=contact_permission,
+            )
+        except Exception as exp:
+            log.warning("Google authentication failed", exception=exp)
+            raise serializers.ValidationError(
+                "The token  is invalid or expired. Please login again."
+            )
+
+
+class FacebookSocialAuthSerializer(serializers.Serializer):
+    """Handles serialization of facebook related data"""
+
+    auth_token = serializers.CharField()
+
+    def validate_auth_token(self, auth_token):
+        user_data = Facebook.validate(auth_token)
+        request = self.context.get("request", None)
+        contact_permission = False
+        if request and request.data:
+            contact_permission = request.data.get("contact_permission", False)
+
+        try:
+            user_id = user_data["id"]
+            email = user_data["email"]
+            name = user_data["name"]
+            provider = "facebook"
+            return login_social_user(
+                provider=provider,
+                user_id=user_id,
+                email=email,
+                name=name,
+                contact_permission=contact_permission,
+            )
+        except Exception as exp:
+            log.warning("Facebook authentication failed", exception=exp)
+            raise serializers.ValidationError(
+                "The token  is invalid or expired. Please login again."
+            )
+
+
+class AppleSocialAuthSerializer(serializers.Serializer):
+    """Handles serialization of apple related data"""
+
+    auth_token = serializers.CharField()
+    code = serializers.CharField()
+
+    def validate_code(self, code):
+        user_data = Apple.validate(code)
+        request = self.context.get("request", None)
+        contact_permission = False
+        if request and request.data:
+            contact_permission = request.data.get("contact_permission", False)
+
+        try:
+            user_id = None
+            email = user_data["email"]
+            name = None
+            provider = "apple"
+            return login_social_user(
+                provider=provider,
+                user_id=user_id,
+                email=email,
+                name=None,
+                contact_permission=contact_permission,
+            )
+        except Exception as exp:
+            log.warning("Apple authentication failed", exception=exp)
+            raise serializers.ValidationError(
+                "The token  is invalid or expired. Please login again."
+            )
+
+    def validate_auth_token(self, auth_token):
+        # Decode the Apple Sign In JWT token without signature verification (PyJWT does not support ES256)
+        decoded_token = jwt.decode(
+            auth_token, algorithms=["RS256"], options={"verify_signature": False}
+        )
+
+        iss = decoded_token.get("iss", None)
+        aud = decoded_token.get("aud", None)
+        exp = decoded_token.get("exp", None)
+
+        if settings.SOCIAL_AUTH_APPLE_ID_URL not in iss:
+            raise serializers.ValidationError(
+                f"iss is not correct. Given: {iss}, Required: {settings.SOCIAL_AUTH_APPLE_ID_URL}"
+            )
+
+        if aud != settings.APPLE_BUNDLE_ID:
+            raise serializers.ValidationError(
+                f"aud is not correct. Given: {aud}, Required: {settings.APPLE_BUNDLE_ID}"
+            )
+
+        if exp is None or exp < time.time():
+            raise serializers.ValidationError(
+                f"aud is invalid. Given: {exp}, Required: >{time.time()}"
+            )

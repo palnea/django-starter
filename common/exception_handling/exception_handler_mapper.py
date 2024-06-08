@@ -14,7 +14,7 @@ from django.core.exceptions import (
 from django.db import IntegrityError
 from django.db.transaction import TransactionManagementError
 from django.http import UnreadablePostError, Http404
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import (
     APIException,

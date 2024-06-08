@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from structlog import get_logger
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Translation

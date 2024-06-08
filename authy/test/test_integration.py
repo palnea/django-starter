@@ -1,4 +1,5 @@
 import jwt
+from django.test import override_settings
 from django.urls import reverse
 from mock import patch
 from model_bakery import baker
@@ -150,3 +151,111 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
 
     def test_update_password(self):
         data = {"email": self.email_user.email}
+
+
+class SocialAuthenticationTestCase(CustomIntegrationTestCase):
+    def setUp(self):
+        super().setUp()
+        self.create_common_models()
+        self.email_password = "123"
+        self.email_account = baker.make(
+            Account, id="381c8642-6135-4efe-a487-4b93a4217c06"
+        )
+        self.email_account.set_password(self.email_password)
+        self.email_account.save()
+        self.email_user = baker.make(
+            User,
+            id="381c8642-6135-4efe-a487-4b93a4217c06",
+            account=self.email_account,
+            email="myapp@yopmail.com"
+        )
+
+    @override_settings(GOOGLE_CLIENT_ID="google")
+    @override_settings(SOCIAL_SECRET="social")
+    @patch("authy.social_auth.google.Google.validate")
+    def test_google_social_auth(self, mock_google_validate):
+        mock_google_validate.return_value = {
+            "sub": "abcdef",
+            "aud": "google",
+            "email": self.email_user.email,
+            "name": self.email_user.fullname
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("google_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(GOOGLE_CLIENT_ID="google")
+    @override_settings(SOCIAL_SECRET="social")
+    @patch("authy.social_auth.google.Google.validate")
+    def test_google_social_auth_new_user(self, mock_google_validate):
+        mock_google_validate.return_value = {
+            "sub": "abcdef",
+            "aud": "google",
+            "email": "new_google_user@yopmail.com",
+            "name": "New User"
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("google_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(email="new_google_user@yopmail.com").exists())
+
+    @override_settings(SOCIAL_SECRET="social")
+    @patch("authy.social_auth.facebook.Facebook.validate")
+    def test_facebook_social_auth(self, mock_facebook_validate):
+        mock_facebook_validate.return_value = {
+            "id": "123456",
+            "email": self.email_user.email,
+            "name": self.email_user.fullname
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("facebook_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(SOCIAL_SECRET="social")
+    @patch("authy.social_auth.facebook.Facebook.validate")
+    def test_facebook_social_auth_new_user(self, mock_facebook_validate):
+        mock_facebook_validate.return_value = {
+            "id": "123456",
+            "email": "new_facebook_user@yopmail.com",
+            "name": "New User"
+        }
+        data = {"auth_token": "auth_token"}
+        url = reverse("facebook_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(email="new_facebook_user@yopmail.com").exists())
+
+    @override_settings(SOCIAL_SECRET="social")
+    @override_settings(APPLE_BUNDLE_ID="com.myapp.mobile")
+    @patch("authy.social_auth.apple.Apple.validate")
+    def test_apple_social_auth(self, mock_apple_validate):
+        mock_apple_validate.return_value = {
+            "email": self.email_user.email
+        }
+        data = {
+            "auth_token": "eyJraWQiOiJZdXlYb1kiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLm15YXBwLm1vYmlsZSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNjk0NTYxNjA3LCJzdWIiOiIwMDEyMDEuNjJkNjkzZWE0NDZkNDMwNzgzNWQzOGM1YmMwNDkyNDEuMDgyMiIsImNfaGFzaCI6ImstZU5rcXhpMnRTbm1iV1BfaXJkUUEiLCJlbWFpbCI6Im15YXBwQHlvcG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOiJ0cnVlIiwiYXV0aF90aW1lIjoxNjk0NTYxNjA3LCJub25jZV9zdXBwb3J0ZWQiOnRydWV9.Rf50uJ1u8zF5MiGGMueGCk_Im_Cc4rWERIaRPLsQpvFUYcP4yc7sHvIZ3Yk7rmXgWC_fWCX7imm5PVg9mKlW3Q",
+            "code": "code"
+        }
+        url = reverse("apple_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+    @override_settings(SOCIAL_SECRET="social")
+    @override_settings(APPLE_BUNDLE_ID="com.myapp.mobile")
+    @patch("authy.social_auth.apple.Apple.validate")
+    def test_apple_social_auth_new_user(self, mock_apple_validate):
+        mock_apple_validate.return_value = {
+            "email": "new_apple_user@yopmail.com",
+        }
+        data = {
+            "auth_token": "eyJraWQiOiJZdXlYb1kiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLm15YXBwLm1vYmlsZSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNjk0NTYxNjA3LCJzdWIiOiIwMDEyMDEuNjJkNjkzZWE0NDZkNDMwNzgzNWQzOGM1YmMwNDkyNDEuMDgyMiIsImNfaGFzaCI6ImstZU5rcXhpMnRTbm1iV1BfaXJkUUEiLCJlbWFpbCI6Im15YXBwQHlvcG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOiJ0cnVlIiwiYXV0aF90aW1lIjoxNjk0NTYxNjA3LCJub25jZV9zdXBwb3J0ZWQiOnRydWV9.Rf50uJ1u8zF5MiGGMueGCk_Im_Cc4rWERIaRPLsQpvFUYcP4yc7sHvIZ3Yk7rmXgWC_fWCX7imm5PVg9mKlW3Q",
+            "code": "code"
+        }
+
+        url = reverse("apple_social_auth")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(email="new_apple_user@yopmail.com").exists())

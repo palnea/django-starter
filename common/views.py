@@ -27,7 +27,7 @@ from common.serializers import (
 )
 from common.services import TranslationService, TranslatedFileService
 from utils.converters import ValueConverter
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 log = get_logger(__name__)
 

@@ -33,6 +33,10 @@ pyOpenSSL = "^24.1.0"
 drf-yasg = "^1.21.7"
 gunicorn = "^21.2.0"
 whitenoise = "^6.6.0"
+langcodes = "^3.4.0"
+pycountry = "^24.6.1"
+google = "^3.0.0"
+facebook-sdk = "^3.1.0"
 
 
 [build-system]

@@ -1,6 +1,8 @@
 from typing import Dict, List
 
+import pycountry
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, Subquery, F, Prefetch
 from django_softdelete.models import SoftDeleteModel
@@ -17,17 +19,51 @@ from cloud_storage.idrive_client import CloudRequest
 from common.types import FileType, LocaleCode
 from utils.converters import ModelConverter
 from utils.fields import DateTimeWithoutTZField
+from django.utils.translation import gettext_lazy as _
+
+
+def validate_ietf_code(value):
+    from langcodes import Language  # Import here to avoid circular imports
+
+    try:
+        # Attempt to create a Language object for the code
+        Language.get(value)
+    except LookupError:
+        raise ValidationError(
+            _("%(value)s is not a valid IETF language code."),
+            params={"value": value},
+        )
 
 
 class Locale(models.Model):
     name = models.CharField(max_length=150, blank=False, null=False, unique=True)
     code = models.CharField(
         max_length=16,
-        choices=LocaleCode.choices,
         blank=False,
         null=False,
         unique=True,
-        default=LocaleCode.EN.value,
+        default="tr-TR",
+    )
+    territory = models.CharField(
+        max_length=2,
+        choices=[(country.alpha_2, country.name) for country in pycountry.countries],
+        verbose_name=_("Territory"),
+        default="TR",
+    )
+    date_format = models.CharField(
+        max_length=10, verbose_name=_("Date Format"), default="DD/MM/YYYY"
+    )
+    time_format = models.CharField(
+        max_length=3, verbose_name=_("Time Format"), default="24h"
+    )
+    currency_code = models.CharField(
+        max_length=3, verbose_name=_("Default Currency"), default="TRY"
+    )
+    charset = models.CharField(
+        max_length=25, default="UTF-8", verbose_name=_("Character Encoding")
+    )
+    direction = models.CharField(
+        max_length=3, verbose_name=_("Writing Direction"), default="ltr"
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False, null=True)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False, null=True)
@@ -35,27 +71,44 @@ class Locale(models.Model):
     class Meta:
         db_table = "locale"
 
+    def __str__(self):
+        return f"{self.code} ({self.name})"
+
+    def clean_fields(self, exclude=None):
+        """
+        Custom validation to ensure IETF code before saving the model.
+        """
+        super().clean_fields(exclude=exclude)
+        validate_ietf_code(self.code)
+
+    def save(self, *args, **kwargs):
+        """
+        Override save method to perform custom validation before saving.
+        """
+        self.full_clean()  # Call clean_fields for validation
+        super().save(*args, **kwargs)
+
     @classmethod
     def get_default(cls) -> "Locale":
         locale, created = cls.objects.get_or_create(
-            name="Turkey",
-            code="tr",
+            name="Turkish (Türkiye)",
+            code="tr-TR",
+            territory="TR",
+            date_format="DD/MM/YYYY",
+            time_format="24h",
+            currency_code="TRY",
         )
         return locale
 
     @classmethod
-    def get_default_id(cls) -> "Locale":
-        locale, created = cls.objects.get_or_create(
-            name="Turkey",
-            code="tr",
-        )
-        return locale.id
-
-    @classmethod
     def get_default_english(cls) -> "Locale":
         locale, created = cls.objects.get_or_create(
-            name="England",
-            code="en",
+            name="English (USA)",
+            code="en-US",
+            territory="US",
+            date_format="MM/DD/YYYY",
+            time_format="12h",
+            currency_code="USD",
         )
         return locale
 
@@ -78,7 +131,7 @@ class Translation(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translations",
-        default=Locale.get_default_id,
+        default=Locale.get_default,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -211,7 +264,7 @@ class TranslatedFile(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translated_files",
-        default=Locale.get_default_id,
+        default=Locale.get_default,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)

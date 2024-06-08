@@ -1,11 +1,21 @@
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import update_last_login
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
+from rest_framework import status
 from rest_framework_simplejwt.tokens import Token
 
-from user.models import User
+from authy.custom.token_serializer import CustomTokenObtainPairSerializer
+from common.custom_exceptions.custom_exception import CustomException
+from common.response.response_information_codes.error_code import ErrorCode
+
+if TYPE_CHECKING:
+    from user.models import User
 
 
-def get_token_subscription_for_user(user: User):
+def get_token_subscription_for_user(user: "User"):
     subscription = user.last_or_active_subscription
     return subscription
 
@@ -15,3 +25,53 @@ def set_token_parameters(token: Token, parameters: Dict[str, any]) -> Token:
         token.payload[key] = parameters[key]
 
     return token
+
+
+def authenticate_response(user: "User"):
+    account = user.account
+
+    try:
+        token = CustomTokenObtainPairSerializer.get_token(account, user)
+        refresh_token = token
+        access_token = token.access_token
+        subscription = get_token_subscription_for_user(user)
+        access_token = set_token_parameters(
+            access_token,
+            {
+                "subscription": (
+                    subscription.safe_json() if subscription is not None else None
+                ),
+                "locale_code": user.locale.code,
+            },
+        )
+
+        update_last_login(None, account)
+
+        validation = {
+            "access": str(access_token),
+            "refresh": str(refresh_token),
+            "user": user.to_dict(exclude=["phone", "products"]),
+        }
+        return validation
+    except ObjectDoesNotExist:
+        raise CustomException(
+            "Invalid login credentials",
+            ErrorCode.AUTHENTICATION_FAILED,
+            status.HTTP_400_BAD_REQUEST,
+            message=_("Invalid login credentials")
+        )
+
+
+def authenticate_user(user: "User", password: str):
+    auth_user = authenticate(id=user.account_id, password=password)
+    if auth_user is None:
+        raise CustomException(
+            "Invalid login credentials",
+            ErrorCode.AUTHENTICATION_FAILED,
+            status.HTTP_400_BAD_REQUEST,
+        )
+    return authenticate_response(user)
+
+
+def social_auth_authenticate_user(user: "User"):
+    return authenticate_response(user)
