@@ -177,7 +177,7 @@ class User(SoftDeleteModel):
             )
 
         account = Account.objects.create()
-        account.set_password(validated_data["password"])
+        account.set_password(validated_data.pop("password"))
         account.save()
         user = User.objects.create(
             **validated_data,

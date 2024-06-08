@@ -7,7 +7,6 @@ from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, status
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken, Token
 from structlog import get_logger
 
@@ -22,31 +21,11 @@ from authy.social_auth.google import Google
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from subscription.models import UserSubscription
-from user.models import User
 
 if TYPE_CHECKING:
-    from user.models import User, Account
+    from user.models import User
 
 log = get_logger(__name__)
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def create(self, validated_date):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
-
-    @classmethod
-    def get_token(cls, account: "Account", user: "User"):
-        token = super().get_token(account)
-
-        token["email"] = user.email
-        token["phone"] = user.phone and user.phone.as_international.replace(" ", "")
-        token["user_id"] = str(user.id)
-        token["role"] = user.role
-
-        return token
 
 
 class UserLoginSerializer(serializers.Serializer):

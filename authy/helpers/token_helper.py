@@ -7,7 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework_simplejwt.tokens import Token
 
-from authy.serializers import CustomTokenObtainPairSerializer
+from authy.custom.token_serializer import CustomTokenObtainPairSerializer
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 

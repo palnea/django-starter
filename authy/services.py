@@ -1,18 +1,14 @@
 from typing import Dict
 
 from django.conf import settings
-from django.contrib.auth import authenticate
-from django.contrib.auth.models import update_last_login
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
 from authy.helpers.token_helper import (
-    set_token_parameters,
-    get_token_subscription_for_user, authenticate_user,
+    authenticate_user,
 )
 from authy.models import Account
-from authy.serializers import CustomTokenObtainPairSerializer
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from communications.clients.email import DjangoEmailClient
