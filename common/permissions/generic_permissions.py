@@ -108,7 +108,7 @@ class AdminOrOwnerOrReadonly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if view.action in ["list", "retrieve"]:
+        if request.method in ["GET"]:
             return True
 
         auth = request.auth
@@ -154,7 +154,7 @@ class EditorAndUpOrOwnerOrReadonly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if view.action in ["list", "retrieve"]:
+        if request.method in ["GET"]:
             return True
 
         auth = request.auth
@@ -204,7 +204,7 @@ class ContentPermission(permissions.BasePermission):
         Allow authenticated users if request is list with progress
         Allow write operations only if the role is higher or equal to Editor level
         """
-        if view.action in ["list", "retrieve"]:
+        if request.method in ["GET"]:
             return True
 
         auth = request.auth
