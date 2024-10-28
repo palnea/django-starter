@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AnonymousUser
 from rest_framework import permissions
 
+from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from user.types import UserRole
 
 
@@ -98,6 +99,14 @@ class AdminOrOwner(permissions.BasePermission):
             ]
             if str(user_id_to_filter) == str(user.id) or writing_own_component:
                 return True
+        return False
+
+    def has_object_permission(self, request, view, obj):
+        user_id = GlobalContextMiddleware.get_global_context().user_id
+        obj_user_id = obj.user_id if hasattr(obj, "user_id") else None
+        if obj_user_id and str(obj_user_id) == user_id:
+            return True
+
         return False
 
 
