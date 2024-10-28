@@ -145,11 +145,6 @@ class Translation(SoftDeleteModel):
                 condition=Q(deleted_at__isnull=True),
                 name="unique_root_id_locale_id_if_not_deleted",
             ),
-            models.UniqueConstraint(
-                fields=["locale", "text"],
-                condition=Q(deleted_at__isnull=True),
-                name="unique_locale_id_text_if_not_deleted",
-            ),
         ]
 
     @transaction.atomic
