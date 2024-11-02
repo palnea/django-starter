@@ -1,4 +1,5 @@
-﻿from django.urls import reverse
+﻿from django.test import override_settings
+from django.urls import reverse
 from mock import patch
 from mock.mock import Mock
 
@@ -7,6 +8,7 @@ from custom_test.base_test import CustomIntegrationTestCase
 
 
 class ContactVerificationTestCase(CustomIntegrationTestCase):
+    @override_settings(SMS_HEADER="MyApp")
     @patch("communications.clients.sms.NetgsmSMSClient.send_sms")
     def test_contact_verification(self, m_sms_response):
         phone = "+905553330000"
