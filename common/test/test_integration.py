@@ -86,7 +86,7 @@ class TranslationTestCase(CustomIntegrationTestCase):
     def setUp(self):
         super().setUp()
         self.create_common_models()
-        self.eng_locale = baker.make("user.Locale", name="English", code="en")
+        self.eng_locale = baker.make("common.Locale", name="English", code="en")
         self.root_translation = baker.make(
             Translation, text="Merhaba Dünya", root=None, locale=self.locale
         )
@@ -168,7 +168,7 @@ class TranslatedFileTestCase(CustomIntegrationTestCase):
     def setUp(self):
         super().setUp()
         self.create_common_models()
-        self.eng_locale = baker.make("user.Locale", name="English", code="en")
+        self.eng_locale = baker.make("common.Locale", name="English", code="en")
         self.root_translated_file = baker.make(
             TranslatedFile,
             name="File1",

@@ -1,13 +1,13 @@
 from typing import Dict, List
 
-from rest_framework import serializers, status
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers, status
 
 from common.custom_exceptions.custom_exception import CustomException
+from common.models import Locale
 from common.models import Translation, TranslatedFile
 from common.response.response_information_codes.error_code import ErrorCode
 from common.types import FileType
-from common.models import Locale
 
 
 class TranslationBulkCreateItemSerializer(serializers.Serializer):

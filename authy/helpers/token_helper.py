@@ -58,7 +58,7 @@ def authenticate_response(user: "User"):
             "Invalid login credentials",
             ErrorCode.AUTHENTICATION_FAILED,
             status.HTTP_400_BAD_REQUEST,
-            message=_("Invalid login credentials")
+            message=_("Invalid login credentials"),
         )
 
 

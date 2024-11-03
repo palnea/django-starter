@@ -209,16 +209,16 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
     def test_partial_update_user(self):
         created_user = User.objects.first()
         url = reverse("user-detail-viewset", kwargs={"user_id": created_user.id})
-        role = "teacher"
+        fullname = "teacher"
         response = self.client.patch(
             url,
-            {"role": role},
+            {"fullname": fullname},
             content_type="application/json",
             format="json",
             HTTP_AUTHORIZATION=f"Bearer {self.access_token}",
         )
         updated_user = User.objects.get(id=created_user.id)
-        self.assertEqual(role, updated_user.role)
+        self.assertEqual(fullname, updated_user.fullname)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_user(self):

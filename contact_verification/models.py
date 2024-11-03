@@ -9,6 +9,7 @@ from django.db.models import UniqueConstraint, Q
 
 from communications.services import CommunicationMedium, get_communication_service
 from utils.fields import DateTimeWithoutTZField
+from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -76,11 +77,9 @@ class ContactVerification(models.Model):
         if self.code:
             sender = self.get_sender()
 
-            message = (
-                f"Uygulama giriş kodu: {self.code} " f"Lütfen kimseyle paylaşmayınız."
-            )
+            message = _("Verification code message")
             header = (
-                "Uygulama Giriş Kodu"
+                _("Verification code header")
                 if self.medium == CommunicationMedium.EMAIL
                 else settings.SMS_HEADER
             )

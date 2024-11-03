@@ -1,18 +1,17 @@
 import uuid
 
+from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
 from django.test import TestCase
 from django.urls import reverse
-
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
 from authy.models import Account
-from common.models import Translation
 from common.models import Locale
+from common.models import Translation
 from payment.models import Buyable
 from user.models import User
-from user.types import UserRole
 
 
 class CustomIntegrationTestCase(TestCase):
@@ -24,6 +23,12 @@ class CustomIntegrationTestCase(TestCase):
         self._phone_end += 1
         return f"+90{phone}"
 
+    def create_user_group(self, name="test_group", **kwargs):
+        return baker.make(Group, name=name, **kwargs)
+
+    def create_user_permission(self, name="test_permission", **kwargs):
+        return baker.make(Permission, name=name, **kwargs)
+
     def create_user(self, password="123", **kwargs):
         if kwargs.get("phone", None) is None:
             phone = self.generate_valid_phone_number()
@@ -32,6 +37,13 @@ class CustomIntegrationTestCase(TestCase):
         account.set_password(password)
         account.save()
         return baker.make(User, id=uuid.uuid4(), account=account, **kwargs), password
+
+    def create_admin_user(self, password="123", **kwargs):
+        user, password = self.create_user(password, **kwargs)
+        user.account.groups.add(Group.objects.filter(name="Admin").first())
+        user.account.save()
+
+        return user, password
 
     def login_user(self, user: User, password: str):
         data = {"phone": user.phone, "password": password}
@@ -96,10 +108,10 @@ class CustomIntegrationTestCase(TestCase):
 
     def create_common_models(self):
         self.user, self.user_password = self.create_user()
-        self.admin, self.admin_password = self.create_user(role=UserRole.ADMIN.value)
+        self.admin, self.admin_password = self.create_admin_user()
         self.get_locale()
-        self.translation = self.create_translation()
         self.create_product()
+        self.translation = self.create_translation()
 
 
 class CustomAPITestCase(CustomIntegrationTestCase, APITestCase):

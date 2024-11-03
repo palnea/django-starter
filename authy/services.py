@@ -16,7 +16,6 @@ from communications.clients.sms import get_sms_client
 from communications.services.communication_services import EmailService, SMSService
 from contact_verification.services import ContactVerificationService
 from user.models import User
-from user.types import UserRole
 from utils.generators import random_numeric_string
 
 
@@ -37,7 +36,6 @@ class RegistrationService:
         }
         user = User.objects.create(
             **user_data,
-            role=UserRole.STUDENT,
             account=account,
         )
 
@@ -54,7 +52,7 @@ class RegistrationService:
                     [user.email],
                     _("email verification message").format(code=code),
                     _("Email Verification Code"),
-                    from_email="info@myapp.com",
+                    from_email=settings.EMAIL_HOST_USER,
                 )
             elif user.phone:
                 code = ContactVerificationService.create_contact_verification(
@@ -122,14 +120,14 @@ class PasswordService:
         if data.get("email"):
             EmailService(DjangoEmailClient()).send_async(
                 [user.email],
-                f"MyApp için şifre güncelleme talebinizi aldık.\n\nYeni şifreniz: {password} \n\nGiriş yaptıktan sonra şifrenizi değiştirmenizi öneririz.",
-                "MyApp Şifre Güncelleme",
-                from_email="info@myapp.com",
+                _("Reset password email message").format(password=password),
+                _("Reset password title"),
+                from_email=settings.EMAIL_HOST_USER,
             )
         elif data.get("phone"):
             SMSService(get_sms_client()).send(
                 [user.phone.as_international.replace(" ", "").replace("+", "00")],
-                f"Application için şifre güncelleme talebinizi aldık. Yeni şifreniz: {password} Giriş yaptıktan sonra şifrenizi değiştirmenizi öneririz.",
+                _("Reset password sms message").format(password=password),
                 settings.SMS_HEADER,
             )
         return

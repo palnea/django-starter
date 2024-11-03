@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-import environ
 from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -180,6 +180,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "EXCEPTION_HANDLER": "common.exception_handling.custom_exception_handler.custom_exception_handler",
     "PAGE_SIZE": 100,
+    "DEFAULT_PAGINATION_CLASS": "common.pagination.CustomPageNumberPagination",
 }
 
 SWAGGER_SETTINGS = {

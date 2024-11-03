@@ -11,7 +11,6 @@ import settings
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
-from user.types import UserRole
 
 
 class ViewResponse:
@@ -174,7 +173,6 @@ def log_view_response(
     )
 
     request_user_id = GlobalContextMiddleware.get_global_context().user_id
-    request_user_role = GlobalContextMiddleware.get_global_context().user_role
     log_function(
         f"{view_name}.{method_name}"
         f'{" has succeeded." if view_response.is_successful else ""}'
@@ -185,11 +183,7 @@ def log_view_response(
         exception_name=view_response.exception_name,
         exception_detail=view_response.exception_stack_trace,
         exception_stack_trace=exception_stack_trace,
-        request_body=(
-            None
-            if view_response.is_successful and request_user_role < UserRole.STAFF
-            else request_body
-        ),
+        request_body=request_body,
         request_path=request_path,
         request_method=request_method,
         is_successful=view_response.is_successful,

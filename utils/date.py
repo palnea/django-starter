@@ -1,6 +1,6 @@
+from calendar import monthrange
 from datetime import datetime, timedelta
 from typing import Union
-from calendar import monthrange
 
 import pytz
 from dateutil.relativedelta import relativedelta

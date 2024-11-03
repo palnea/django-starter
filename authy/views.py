@@ -20,7 +20,10 @@ from .serializers import (
     UserRegisterSerializer,
     UpdatePasswordSerializer,
     CustomTokenRefreshSerializer,
-    ResetPasswordSerializer, GoogleSocialAuthSerializer, FacebookSocialAuthSerializer, AppleSocialAuthSerializer,
+    ResetPasswordSerializer,
+    GoogleSocialAuthSerializer,
+    FacebookSocialAuthSerializer,
+    AppleSocialAuthSerializer,
 )
 from .services import RegistrationService, PasswordService
 
@@ -143,6 +146,7 @@ class UpdatePasswordViewSet(GenericViewSet):
 
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
+
 
 class GoogleSocialAuthView(GenericAPIView):
     permission_classes = [AllowAny]

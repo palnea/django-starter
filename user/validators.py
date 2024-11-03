@@ -29,19 +29,14 @@ class UserValidator(BaseValidator):
         if password is None:
             errors.append("Password should be provided")
 
-
         if len(errors) > 0 and raise_exception:
             raise CustomException(
                 detail=str(errors),
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Validation error occured. Please check the fields.")
+                message=_("Validation error occured. Please check the fields."),
             )
 
-        validated_data = {
-            "email": email,
-            "phone": phone,
-            "password": password
-        }
+        validated_data = {"email": email, "phone": phone, "password": password}
 
         return errors, validated_data

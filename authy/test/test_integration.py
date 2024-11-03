@@ -1,4 +1,5 @@
 import jwt
+from django.contrib.auth.models import Group, Permission
 from django.test import override_settings
 from django.urls import reverse
 from mock import patch
@@ -26,6 +27,14 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
             account=self.email_account,
             email="myapp@yopmail.com",
         )
+
+    def test_admin_group_exists(self):
+        """
+        This test checks if the admin group exists and has all permissions
+        """
+
+        admin_group_query = Group.objects.filter(name="Admin")
+        self.assertTrue(admin_group_query.exists())
 
     @patch("communications.clients.sms.NetgsmSMSClient.send_sms")
     @patch("communications.clients.email.DjangoEmailClient.send_email")
@@ -167,7 +176,7 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
             User,
             id="381c8642-6135-4efe-a487-4b93a4217c06",
             account=self.email_account,
-            email="myapp@yopmail.com"
+            email="myapp@yopmail.com",
         )
 
     @override_settings(GOOGLE_CLIENT_ID="google")
@@ -178,7 +187,7 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
             "sub": "abcdef",
             "aud": "google",
             "email": self.email_user.email,
-            "name": self.email_user.fullname
+            "name": self.email_user.fullname,
         }
         data = {"auth_token": "auth_token"}
         url = reverse("google_social_auth")
@@ -193,13 +202,15 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
             "sub": "abcdef",
             "aud": "google",
             "email": "new_google_user@yopmail.com",
-            "name": "New User"
+            "name": "New User",
         }
         data = {"auth_token": "auth_token"}
         url = reverse("google_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(User.objects.filter(email="new_google_user@yopmail.com").exists())
+        self.assertTrue(
+            User.objects.filter(email="new_google_user@yopmail.com").exists()
+        )
 
     @override_settings(SOCIAL_SECRET="social")
     @patch("authy.social_auth.facebook.Facebook.validate")
@@ -207,7 +218,7 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
         mock_facebook_validate.return_value = {
             "id": "123456",
             "email": self.email_user.email,
-            "name": self.email_user.fullname
+            "name": self.email_user.fullname,
         }
         data = {"auth_token": "auth_token"}
         url = reverse("facebook_social_auth")
@@ -220,24 +231,24 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
         mock_facebook_validate.return_value = {
             "id": "123456",
             "email": "new_facebook_user@yopmail.com",
-            "name": "New User"
+            "name": "New User",
         }
         data = {"auth_token": "auth_token"}
         url = reverse("facebook_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(User.objects.filter(email="new_facebook_user@yopmail.com").exists())
+        self.assertTrue(
+            User.objects.filter(email="new_facebook_user@yopmail.com").exists()
+        )
 
     @override_settings(SOCIAL_SECRET="social")
     @override_settings(APPLE_BUNDLE_ID="com.myapp.mobile")
     @patch("authy.social_auth.apple.Apple.validate")
     def test_apple_social_auth(self, mock_apple_validate):
-        mock_apple_validate.return_value = {
-            "email": self.email_user.email
-        }
+        mock_apple_validate.return_value = {"email": self.email_user.email}
         data = {
             "auth_token": "eyJraWQiOiJZdXlYb1kiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLm15YXBwLm1vYmlsZSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNjk0NTYxNjA3LCJzdWIiOiIwMDEyMDEuNjJkNjkzZWE0NDZkNDMwNzgzNWQzOGM1YmMwNDkyNDEuMDgyMiIsImNfaGFzaCI6ImstZU5rcXhpMnRTbm1iV1BfaXJkUUEiLCJlbWFpbCI6Im15YXBwQHlvcG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOiJ0cnVlIiwiYXV0aF90aW1lIjoxNjk0NTYxNjA3LCJub25jZV9zdXBwb3J0ZWQiOnRydWV9.Rf50uJ1u8zF5MiGGMueGCk_Im_Cc4rWERIaRPLsQpvFUYcP4yc7sHvIZ3Yk7rmXgWC_fWCX7imm5PVg9mKlW3Q",
-            "code": "code"
+            "code": "code",
         }
         url = reverse("apple_social_auth")
         response = self.client.post(url, data, format="json")
@@ -252,10 +263,12 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
         }
         data = {
             "auth_token": "eyJraWQiOiJZdXlYb1kiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLm15YXBwLm1vYmlsZSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNjk0NTYxNjA3LCJzdWIiOiIwMDEyMDEuNjJkNjkzZWE0NDZkNDMwNzgzNWQzOGM1YmMwNDkyNDEuMDgyMiIsImNfaGFzaCI6ImstZU5rcXhpMnRTbm1iV1BfaXJkUUEiLCJlbWFpbCI6Im15YXBwQHlvcG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOiJ0cnVlIiwiYXV0aF90aW1lIjoxNjk0NTYxNjA3LCJub25jZV9zdXBwb3J0ZWQiOnRydWV9.Rf50uJ1u8zF5MiGGMueGCk_Im_Cc4rWERIaRPLsQpvFUYcP4yc7sHvIZ3Yk7rmXgWC_fWCX7imm5PVg9mKlW3Q",
-            "code": "code"
+            "code": "code",
         }
 
         url = reverse("apple_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(User.objects.filter(email="new_apple_user@yopmail.com").exists())
+        self.assertTrue(
+            User.objects.filter(email="new_apple_user@yopmail.com").exists()
+        )

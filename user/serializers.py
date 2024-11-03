@@ -1,11 +1,7 @@
-from django.utils.translation import gettext_lazy as _
-from rest_framework import serializers, status
+from rest_framework import serializers
 
-from common.custom_exceptions.custom_exception import CustomException
 from common.models import Translation
-from common.response.response_information_codes.error_code import ErrorCode
 from user.models import User, School, Class
-from user.types import UserRole
 from utils.converters import FileConverter
 
 
@@ -44,12 +40,11 @@ class UserSerializer(serializers.ModelSerializer):
 class UserPartialUpdateSerializer(serializers.ModelSerializer):
     fullname = serializers.CharField(required=False, max_length=50)
     avatar_id = serializers.IntegerField(required=False, allow_null=False)
-    role = serializers.ChoiceField(choices=UserRole.choices, required=False)
     school_id = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ["fullname", "avatar_id", "role", "school_id"]
+        fields = ["fullname", "avatar_id", "school_id"]
 
     def validate(self, attrs):
         validated_data = attrs
@@ -59,24 +54,6 @@ class UserPartialUpdateSerializer(serializers.ModelSerializer):
         user = User.objects.filter(pk=user_id).first()
         if user is None:
             raise serializers.ValidationError("User not found!")
-
-        user_role = (
-            self.context.get("request").auth.payload.get("role", "none")
-            if self.context.get("request") and self.context.get("request").auth
-            else "none"
-        )
-
-        if attrs.get("role", None) and (
-            UserRole(user_role) < UserRole.EDITOR
-            or UserRole(attrs.get("role", "none")) > UserRole(user_role)
-            or UserRole(user.role) > UserRole(user_role)
-        ):
-            raise CustomException(
-                detail={"error": "You do not have permission to edit"},
-                code=ErrorCode.PERMISSION_DENIED,
-                status_code=status.HTTP_403_FORBIDDEN,
-                message=_("You don't have permission for this action!"),
-            )
 
         validated_data.update({"user": user})
         return validated_data

@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Union, TYPE_CHECKING
+from typing import Dict, Union
 
 import jwt
 from django.conf import settings
@@ -21,9 +21,7 @@ from authy.social_auth.google import Google
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from subscription.models import UserSubscription
-
-if TYPE_CHECKING:
-    from user.models import User
+from user.models import User
 
 log = get_logger(__name__)
 
@@ -236,7 +234,7 @@ class CustomTokenRefreshSerializer(serializers.Serializer):
         return token
 
     def get_user_subscription_from_token(
-            self, token: Token
+        self, token: Token
     ) -> Union[UserSubscription, None]:
         payload = token.payload
         user_id = payload.get("user_id", None)

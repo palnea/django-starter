@@ -5,6 +5,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 if TYPE_CHECKING:
     from user.models import Account, User
 
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def create(self, validated_date):
         pass
@@ -19,6 +20,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["email"] = user.email
         token["phone"] = user.phone and user.phone.as_international.replace(" ", "")
         token["user_id"] = str(user.id)
-        token["role"] = user.role
+        token["groups"] = list(account.groups.values_list("name", flat=True))
+        token["permissions"] = list(
+            account.user_permissions.values_list("codename", flat=True)
+        )
 
         return token

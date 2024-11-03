@@ -2,7 +2,7 @@ from django.urls import path
 
 from common.views import (
     TranslationViewSet,
-    TranslatedFileViewSet,
+    TranslatedFileViewSet, LocaleViewSet,
 )
 
 translation_viewset = TranslationViewSet.as_view({"get": "list", "post": "create"})
@@ -23,6 +23,11 @@ translated_file_detail_viewset = TranslatedFileViewSet.as_view(
 
 translated_file_bulk_create_view = TranslatedFileViewSet.as_view(
     {"post": "bulk_create"}
+)
+
+locale_list_view = LocaleViewSet.as_view({"get": "list", "post": "create"})
+locale_details_view = LocaleViewSet.as_view(
+    {"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}
 )
 
 urlpatterns = [
@@ -48,4 +53,6 @@ urlpatterns = [
         translated_file_bulk_create_view,
         name="translated-file-bulk-create-view",
     ),
+    path("locale/", locale_list_view, name="locale-viewset"),
+    path("locale/<int:id>/", locale_details_view, name="locale-detail-viewset"),
 ]

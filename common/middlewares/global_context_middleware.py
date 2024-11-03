@@ -8,7 +8,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from common.types import LocaleCode
-from user.types import UserRole
 from utils.date import timezone_with_fallback
 
 if TYPE_CHECKING:
@@ -23,16 +22,26 @@ class GlobalContext:
     def user_id(self) -> int:
         return (
             self.request.auth.payload.get("user_id")
-            if self.request.auth and self.request.auth.payload
+            if hasattr(self.request, "auth")
+            and self.request.auth
+            and self.request.auth.payload
             else None
         )
 
     @cached_property
-    def user_role(self) -> UserRole:
+    def user_groups(self) -> [str]:
         return (
-            UserRole(self.request.auth.payload.get("role", UserRole.NONE.value))
+            self.request.auth.payload.get("groups", [])
             if self.request.auth and self.request.auth.payload
-            else UserRole.NONE
+            else []
+        )
+
+    @cached_property
+    def user_permissions(self) -> [str]:
+        return (
+            self.request.auth.payload.get("permissions", [])
+            if self.request.auth and self.request.auth.payload
+            else []
         )
 
     @cached_property
@@ -63,9 +72,9 @@ class GlobalContext:
         Else if user is logged in return user locale_code
         """
         language_code = (
-                self.request.META.get("HTTP_ACCEPT_LANGUAGE")
-                or self.request.GET.get("language", None)
-                or self.request.GET.get("locale_code", None)
+            self.request.META.get("HTTP_ACCEPT_LANGUAGE")
+            or self.request.GET.get("language", None)
+            or self.request.GET.get("locale_code", None)
         )
         if language_code in [choice.value for choice in LocaleCode]:
             return language_code

@@ -1,9 +1,7 @@
 import uuid
-from datetime import datetime
 from typing import List, Dict
 
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Q, Case, When, Value, CharField
 from django.utils.functional import cached_property
@@ -18,7 +16,7 @@ from common.models import Locale
 from common.response.response_information_codes.error_code import ErrorCode
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
-from user.types import UserRole
+from user.types import UserCreationType
 from user.validators import UserValidator
 from utils.converters import ModelConverter
 from utils.fields import DateTimeWithoutTZField
@@ -26,15 +24,6 @@ from utils.fields import DateTimeWithoutTZField
 
 class User(SoftDeleteModel):
     username_validator = UnicodeUsernameValidator()
-
-    PERSONAL = "PERSONAL"
-    BUSINESS = "BUSINESS"
-    INTERNAL = "INTERNAL"
-    CREATION_TYPE = [
-        (PERSONAL, _("Personal")),
-        (BUSINESS, _("Business")),
-        (INTERNAL, _("Internal")),
-    ]
 
     id = models.UUIDField(
         unique=True, primary_key=True, default=uuid.uuid4, editable=False
@@ -44,9 +33,6 @@ class User(SoftDeleteModel):
     email = models.EmailField(null=True, blank=True)
     email_verified = models.BooleanField(null=False, blank=False, default=False)
     fullname = models.CharField(max_length=255, blank=True)
-    role = models.CharField(
-        max_length=64, choices=UserRole.choices, default=UserRole.STUDENT.value
-    )
     student_class = models.ForeignKey(
         "user.Class",
         on_delete=models.SET_NULL,
@@ -67,7 +53,7 @@ class User(SoftDeleteModel):
         default=Locale.get_default,
     )
     creation_type = models.CharField(
-        max_length=16, choices=CREATION_TYPE, null=False, blank=False
+        max_length=16, choices=UserCreationType.choices, null=False, blank=False
     )
     avatar = models.ForeignKey(
         "user.Avatar",
@@ -89,20 +75,20 @@ class User(SoftDeleteModel):
             models.UniqueConstraint(
                 fields=["phone"],
                 condition=Q(deleted_at__isnull=True)
-                          & Q(phone__isnull=False)
-                          & ~Q(phone=""),
+                & Q(phone__isnull=False)
+                & ~Q(phone=""),
                 name="user_unique_phone",
             ),
             models.UniqueConstraint(
                 fields=["email"],
                 condition=Q(deleted_at__isnull=True)
-                          & Q(email__isnull=False)
-                          & ~Q(email=""),
+                & Q(email__isnull=False)
+                & ~Q(email=""),
                 name="user_unique_email",
             ),
             models.CheckConstraint(
                 check=(Q(email__isnull=False) & ~Q(email__exact=""))
-                      | (Q(phone__isnull=False) & ~Q(phone__exact="")),
+                | (Q(phone__isnull=False) & ~Q(phone__exact="")),
                 name="user_at_least_email_or_phone_not_null",
             ),
         ]
@@ -144,11 +130,11 @@ class User(SoftDeleteModel):
         return self.active_subscription is not None
 
     def to_dict(
-            self,
-            fields: List = None,
-            exclude: List = None,
-            detailed_fields: Dict = None,
-            fields_as: Dict = None,
+        self,
+        fields: List = None,
+        exclude: List = None,
+        detailed_fields: Dict = None,
+        fields_as: Dict = None,
     ):
         user_dict = ModelConverter.model_to_dict(
             self,
@@ -182,7 +168,7 @@ class User(SoftDeleteModel):
         user = User.objects.create(
             **validated_data,
             account=account,
-            creation_type=User.PERSONAL,
+            creation_type=UserCreationType.PERSONAL,
         )
         return user
 

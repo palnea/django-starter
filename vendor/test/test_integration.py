@@ -8,9 +8,9 @@ from dateutil.relativedelta import relativedelta
 from mock.mock import patch, call
 from model_bakery import baker
 
+from custom_test.base_test import CustomIntegrationTestCase
 from payment.models import Purchase, PaymentTransaction, Buyable
 from payment.types import PaymentStatus, PaymentVendor
-from custom_test.base_test import CustomIntegrationTestCase
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
 from user.models import User

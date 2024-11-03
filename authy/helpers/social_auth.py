@@ -19,4 +19,3 @@ def login_social_user(provider, user_id, email, name, contact_permission=False):
         }
         user = User.create_with_account(data=data)
     return social_auth_authenticate_user(user)
-

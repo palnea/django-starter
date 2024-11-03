@@ -1,16 +1,16 @@
-from django.db import IntegrityError
 from django.db.models import Q, Count
 from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from structlog import get_logger
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Translation, TranslatedFile, Locale
-from common.permissions.generic_permissions import EditorAndUp, EditorAndUpOrReadOnly
+from common.permissions.generic_permissions import IsAdmin, IsReadonly
 from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
@@ -27,13 +27,12 @@ from common.serializers import (
 )
 from common.services import TranslationService, TranslatedFileService
 from utils.converters import ValueConverter
-from django.utils.translation import gettext_lazy as _
 
 log = get_logger(__name__)
 
 
 class TranslationViewSet(ModelViewSet):
-    permission_classes = [EditorAndUp]
+    permission_classes = [IsAdmin | IsReadonly]
     serializer_class = TranslationSerializer
     lookup_field = "id"
 
@@ -117,7 +116,7 @@ class TranslationViewSet(ModelViewSet):
         )
 
     def handle_locale_text_duplication(
-            self, request: Request, create_exception: Exception
+        self, request: Request, create_exception: Exception
     ):
         try:
             return self.handle_duplicate_locale_text_index(request)
@@ -229,7 +228,7 @@ class TranslationViewSet(ModelViewSet):
 
 
 class TranslatedFileViewSet(ModelViewSet):
-    permission_classes = [EditorAndUp]
+    permission_classes = [IsAdmin | IsReadonly]
     serializer_class = TranslatedFileSerializer
     lookup_field = "id"
 
@@ -384,7 +383,7 @@ class TranslatedFileViewSet(ModelViewSet):
 
 
 class LocaleViewSet(ModelViewSet):
-    permission_classes = [EditorAndUpOrReadOnly]
+    permission_classes = [IsAdmin | IsReadonly]
     serializer_class = LocaleSerializer
     queryset = Locale.objects.all()
     lookup_field = "id"

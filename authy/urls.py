@@ -5,7 +5,10 @@ from .views import (
     UserRegisterView,
     PasswordViewSet,
     UpdatePasswordViewSet,
-    CustomTokenRefreshView, GoogleSocialAuthView, FacebookSocialAuthView, AppleSocialAuthView,
+    CustomTokenRefreshView,
+    GoogleSocialAuthView,
+    FacebookSocialAuthView,
+    AppleSocialAuthView,
 )
 
 password_view_set = PasswordViewSet.as_view({"post": "reset_password"})

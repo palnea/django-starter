@@ -1,5 +1,4 @@
 import json
-import time
 from decimal import Decimal
 from typing import Dict
 
@@ -17,7 +16,7 @@ from payment.models import Buyable, Purchase, PaymentTransaction
 from payment.signals import purchase_for_subscription_created
 from payment.types import BuyableType, PaymentVendor, PlatformType, PaymentStatus
 from payment.verifiers.errors import InAppPyValidationError
-from payment.verifiers.googleplay import GooglePlayVerifier, GooglePlayValidator
+from payment.verifiers.googleplay import GooglePlayValidator
 from subscription.models import UserSubscription
 from user.models import User
 from utils.converters import ValueConverter

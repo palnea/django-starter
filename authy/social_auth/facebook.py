@@ -1,5 +1,6 @@
-import facebook
 from structlog import get_logger
+
+import facebook
 
 log = get_logger(__name__)
 

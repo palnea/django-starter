@@ -4,10 +4,9 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
 
+from custom_test.base_test import CustomIntegrationTestCase
 from payment.models import Buyable
 from payment.types import SubscriptionPeriod, BuyableType
-from custom_test.base_test import CustomIntegrationTestCase
-from user.types import UserRole
 
 
 class PurchaseTestCase(CustomIntegrationTestCase):

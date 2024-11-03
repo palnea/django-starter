@@ -2,8 +2,7 @@ from typing import List, TYPE_CHECKING
 
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q, F
-from django.utils import timezone
+from django.db.models import Q
 from django.utils.functional import cached_property
 from django_softdelete.models import SoftDeleteModel
 from moneyed import Money, list_all_currencies
@@ -13,7 +12,6 @@ from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from payment.types import PaymentStatus, SubscriptionPeriod, BuyableType
 from user.models import User
-from user.types import UserRole
 from utils.fields import DateTimeWithoutTZField
 
 if TYPE_CHECKING:

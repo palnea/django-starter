@@ -1,8 +1,9 @@
+from django.db import models
+
 import settings
 from communications.clients.email import DjangoEmailClient
 from communications.clients.sms import get_sms_client
 from communications.services.communication_services import EmailService, SMSService
-from django.db import models
 
 
 class CommunicationMedium(models.TextChoices):

@@ -1,14 +1,14 @@
 from django.http import Http404
+from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from structlog import get_logger
-from django.utils.translation import gettext_lazy as _
 
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Translation
-from common.permissions.generic_permissions import ContentPermission
+from common.permissions.generic_permissions import IsReadonly, IsAdmin
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
@@ -57,7 +57,7 @@ class PaymentViewSet(GenericViewSet):
 
 
 class BuyableViewSet(ModelViewSet):
-    permission_classes = [ContentPermission]
+    permission_classes = [IsAdmin | IsReadonly]
     serializer_class = BuyableSerializer
     queryset = (
         Buyable.objects.all().select_related("title").select_related("description")
@@ -127,7 +127,7 @@ class BuyableViewSet(ModelViewSet):
                     else None
                 ),
             ],
-            response.data,
+            response.data.get("results"),
         )
         translation_id_text_map = Translation.get_list_of_texts_from_id_list(
             translations, GlobalContextMiddleware.get_global_context().language_code
@@ -153,10 +153,13 @@ class BuyableViewSet(ModelViewSet):
                     buyable.get("description_id")
                 ),
             }
-            for buyable in response.data
+            for buyable in response.data.get("results")
         ]
         view_response = ViewResponse(
-            response_body=result,
+            response_body={
+                **response.data,
+                "results": result,
+            },
             response_status=response.status_code,
             is_successful=True,
             response_information_code=MessageCode.LIST_CONTENT_SUCCESS,

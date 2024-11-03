@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-15 14:55+0300\n"
+"POT-Creation-Date: 2024-11-03 13:23+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: authy/managers.py:24 authy/managers.py:26
+#: authy/helpers/token_helper.py:61
+msgid "Invalid login credentials"
+msgstr "Invalid login credentials"
+
+#: authy/managers.py:23 authy/managers.py:25
 msgid "The password must be set"
 msgstr "The password must be set"
 
-#: authy/models.py:17
+#: authy/models.py:18
 msgid "active"
 msgstr "active"
 
-#: authy/models.py:20
+#: authy/models.py:21
 msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
@@ -34,59 +38,72 @@ msgstr ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 
-#: authy/serializers.py:74 authy/serializers.py:183 authy/services.py:123
+#: authy/serializers.py:60 authy/serializers.py:128 authy/services.py:91
 #: contact_verification/serializers.py:26
 msgid "Email or phone should be provided"
 msgstr "Email or phone should be provided"
 
-#: authy/serializers.py:85 authy/services.py:131
+#: authy/serializers.py:71 authy/services.py:99
 #: contact_verification/serializers.py:37
 msgid "Enter email or phone not both"
 msgstr "Enter email or phone not both"
 
-#: authy/serializers.py:101
+#: authy/serializers.py:87
 msgid "User with this email doesn't exist"
 msgstr "User with this email doesn't exist"
 
-#: authy/serializers.py:103
+#: authy/serializers.py:89
 msgid "User with this phone doesn't exist"
 msgstr "User with this phone doesn't exist"
 
-#: authy/serializers.py:116
-msgid "Incorrect password"
-msgstr "Incorrect password"
-
-#: authy/serializers.py:147
-msgid "Invalid login credentials"
-msgstr "Invalid login credentials"
-
-#: authy/serializers.py:191
+#: authy/serializers.py:136
 msgid "Passwords doesn't match"
 msgstr "Passwords doesn't match"
 
-#: authy/services.py:85
+#: authy/services.py:53
 msgid "email verification message"
 msgstr "Email verification code for MyApp: {code}"
 
-#: authy/services.py:86
+#: authy/services.py:54
 msgid "Email Verification Code"
 msgstr "Email Verification Code"
 
-#: authy/services.py:96
+#: authy/services.py:64
 msgid "phone verification message"
 msgstr "Phone verification code for MyApp: {code}"
 
-#: authy/views.py:48
+#: authy/services.py:123
+#, fuzzy
+#| msgid "The password must be set"
+msgid "Reset password email message"
+msgstr ""
+"We have received your password reset request for MyApp.\n"
+"\n"
+"Your new password: {password} \n"
+"\n"
+"We recommend you to change your password after logging in."
+
+#: authy/services.py:124
+msgid "Reset password title"
+msgstr "MyApp Reset Password"
+
+#: authy/services.py:130
+#, fuzzy
+#| msgid "The password must be set"
+msgid "Reset password sms message"
+msgstr "The password must be set"
+
+#: authy/views.py:52
 msgid "Logged in successfully."
 msgstr "Logged in successfully."
 
-#: authy/views.py:82
+#: authy/views.py:86
 msgid "Registered successfully."
 msgstr "Registered successfully."
 
 #: common/custom_exceptions/custom_exception.py:15
 #: common/custom_exceptions/custom_exception.py:17
-#: common/response/view_response.py:148
+#: common/response/view_response.py:147
 msgid "A server error occurred."
 msgstr "A server error occurred."
 
@@ -101,7 +118,7 @@ msgstr "A server error occurred."
 #: common/exception_handling/exception_handler_mapper.py:167
 #: common/exception_handling/exception_handler_mapper.py:173
 #: common/exception_handling/exception_handler_mapper.py:197
-#: common/response/view_response.py:107
+#: common/response/view_response.py:106
 msgid "An error occured!"
 msgstr "An error occured!"
 
@@ -120,13 +137,12 @@ msgstr "Content not found!"
 #: common/exception_handling/exception_handler_mapper.py:182
 #: common/exception_handling/exception_handler_mapper.py:188
 #: common/exception_handling/exception_handler_mapper.py:191
-#: user/serializers.py:78
 msgid "You don't have permission for this action!"
 msgstr "You don't have permission for this action!"
 
 #: common/exception_handling/exception_handler_mapper.py:122
 #: common/exception_handling/exception_handler_mapper.py:170
-#: common/response/view_response.py:130
+#: common/response/view_response.py:129
 msgid "Request parameters are not valid!"
 msgstr "Request parameters are not valid!"
 
@@ -159,7 +175,36 @@ msgstr "Not authenticated!"
 msgid "Unsupported media type!"
 msgstr "Unsupported media type!"
 
-#: common/response/view_response.py:76 contact_verification/views.py:77
+#: common/models.py:33
+#, python-format
+msgid "%(value)s is not a valid IETF language code."
+msgstr "%(value)s is not a valid IETF language code."
+
+#: common/models.py:50
+msgid "Territory"
+msgstr "Territory"
+
+#: common/models.py:54
+msgid "Date Format"
+msgstr "Date Format"
+
+#: common/models.py:57
+msgid "Time Format"
+msgstr "Time Format"
+
+#: common/models.py:60
+msgid "Default Currency"
+msgstr "Default Currency"
+
+#: common/models.py:63
+msgid "Character Encoding"
+msgstr "Character Encoding"
+
+#: common/models.py:66
+msgid "Writing Direction"
+msgstr "Writing Direction"
+
+#: common/response/view_response.py:75 contact_verification/views.py:77
 #: contact_verification/views.py:108
 msgid "Success"
 msgstr "Success"
@@ -186,23 +231,36 @@ msgstr ""
 msgid "Root must be provided"
 msgstr "Root must be provided"
 
-#: common/views.py:137 common/views.py:206 common/views.py:295
-#: common/views.py:361 payment/views.py:182 user/views.py:185 user/views.py:288
-#: user/views.py:406
+#: common/views.py:147 common/views.py:216 common/views.py:305
+#: common/views.py:371 common/views.py:418 payment/views.py:185
+#: user/views.py:182 user/views.py:285 user/views.py:403
 msgid "Created successfully!"
 msgstr "Created successfully!"
 
-#: common/views.py:157 common/views.py:315 payment/views.py:202
-#: user/views.py:132 user/views.py:308 user/views.py:426
+#: common/views.py:167 common/views.py:325 common/views.py:438
+#: payment/views.py:205 user/views.py:129 user/views.py:305 user/views.py:423
 msgid "Updated successfully!"
 msgstr "Updated successfully!"
 
-#: common/views.py:174 common/views.py:178 common/views.py:332
-#: common/views.py:336 payment/views.py:219 payment/views.py:223
-#: user/views.py:151 user/views.py:155 user/views.py:325 user/views.py:329
-#: user/views.py:443 user/views.py:447
+#: common/views.py:184 common/views.py:188 common/views.py:342
+#: common/views.py:346 common/views.py:454 common/views.py:456
+#: payment/views.py:222 payment/views.py:226 user/views.py:148
+#: user/views.py:152 user/views.py:322 user/views.py:326 user/views.py:440
+#: user/views.py:444
 msgid "Deleted successfully!"
 msgstr "Deleted successfully!"
+
+#: contact_verification/models.py:80
+#, fuzzy
+#| msgid "email verification message"
+msgid "Verification code message"
+msgstr "Verification code for MyApp: {code}"
+
+#: contact_verification/models.py:82
+#, fuzzy
+#| msgid "Email Verification Code"
+msgid "Verification code header"
+msgstr "MyApp Verification Code"
 
 #: contact_verification/services.py:45
 msgid "Code is sent. Check your email."
@@ -216,22 +274,26 @@ msgstr "Code is sent. Check your messages."
 msgid "Code is invalid or expired"
 msgstr "Code is invalid or expired"
 
-#: user/models.py:57
-msgid "Personal"
-msgstr "Personal"
+#: user/models.py:162 user/validators.py:37
+msgid "Validation error occured. Please check the fields."
+msgstr "Validation error occured. Please check the fields."
 
-#: user/models.py:58
-msgid "Business"
-msgstr "Business"
-
-#: user/models.py:59
-msgid "Internal"
-msgstr "Internal"
-
-#: user/models.py:218
+#: user/models.py:205
 msgid "Public"
 msgstr "Public"
 
-#: user/models.py:219
+#: user/models.py:206
 msgid "Private"
 msgstr "Private"
+
+msgid "Incorrect password"
+msgstr "Incorrect password"
+
+msgid "Personal"
+msgstr "Personal"
+
+msgid "Business"
+msgstr "Business"
+
+msgid "Internal"
+msgstr "Internal"

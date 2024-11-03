@@ -1,8 +1,8 @@
 import base64
+from datetime import timedelta
 
 import jwt
 import requests
-from datetime import timedelta
 from django.conf import settings
 from django.utils import timezone
 from structlog import get_logger
@@ -58,9 +58,11 @@ class Apple:
             decoded = jwt.decode(
                 id_token, algorithms=["RS256"], options={"verify_signature": False}
             )
-            response_data.update(
-                {"email": decoded["email"]}
-            ) if "email" in decoded else None
+            (
+                response_data.update({"email": decoded["email"]})
+                if "email" in decoded
+                else None
+            )
             response_data.update({"uid": decoded["sub"]}) if "sub" in decoded else None
             return response_data
         log.warning(
