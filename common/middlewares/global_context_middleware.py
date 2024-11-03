@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from common.types import LocaleCode
 from utils.date import timezone_with_fallback
+from django.core.cache import cache
 
 if TYPE_CHECKING:
     from user.models import User
@@ -37,12 +38,22 @@ class GlobalContext:
         )
 
     @cached_property
-    def user_permissions(self) -> [str]:
+    def user_specific_permissions(self) -> [str]:
         return (
             self.request.auth.payload.get("permissions", [])
             if self.request.auth and self.request.auth.payload
             else []
         )
+
+    @cached_property
+    def user_all_permissions(self) -> [str]:
+        cache_key = f"user_{self.user_id}_perms"
+        permissions = cache.get(cache_key)
+        if permissions is None:
+            account = self.account
+            permissions = set(account.get_all_permissions()) if account.is_authenticated else set()
+            cache.set(cache_key, permissions, timeout=3600)
+        return permissions
 
     @cached_property
     def user_school_id(self) -> str:
@@ -63,6 +74,10 @@ class GlobalContext:
         if str(account.__class__.__name__) == "Account":
             return account.user
         return None
+
+    @cached_property
+    def account(self) -> Union["Account", None]:
+        return self.request.user
 
     @cached_property
     def language_code(self) -> str:

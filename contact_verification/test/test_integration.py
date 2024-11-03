@@ -27,6 +27,6 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         m_sms_response.assert_called_once_with(
             receiver=phone.replace("+", "00"),
             language="en",
-            message=f"Uygulama giriş kodu: {ContactVerification.objects.get(pk=id).code} Lütfen kimseyle paylaşmayınız.",
+            message=f"Verification code message",
             header="MyApp",
         )

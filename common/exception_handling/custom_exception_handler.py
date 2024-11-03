@@ -1,7 +1,7 @@
 from django.conf import settings
 from rest_framework.exceptions import APIException
 from structlog import get_logger
-
+from django.utils.translation import gettext_lazy as _
 from common.custom_exceptions.custom_exception import CustomException
 from common.exception_handling.exception_handler_mapper import (
     EXCEPTION_HANDLER_MAPPER,
@@ -22,15 +22,15 @@ def custom_exception_handler(exc, context):
             response_message=exc.message,
         )
     elif isinstance(exc, APIException):
+        exception_parameters = API_EXCEPTION_HANDLER_MAPPER.get(
+            exc.__class__, API_EXCEPTION_HANDLER_MAPPER.get(APIException)
+        )
         view_response = ViewFailResponse(
             exception=exc,
             error_msg=exc.detail,
             response_status=exc.status_code,
-            **vars(
-                API_EXCEPTION_HANDLER_MAPPER.get(
-                    exc.__class__, API_EXCEPTION_HANDLER_MAPPER.get(APIException)
-                )
-            )
+            response_information_code=exception_parameters.response_information_code,
+            response_message=_(exception_parameters.response_message),
         )
     else:
         exception_handling_parameters = EXCEPTION_HANDLER_MAPPER.get(
@@ -39,7 +39,11 @@ def custom_exception_handler(exc, context):
         if settings.DEBUG:
             exception_handling_parameters.error_msg += " Exception: " + str(exc)
         view_response = ViewFailResponse(
-            exception=exc, **vars(exception_handling_parameters)
+            exception=exc,
+            error_msg=exception_handling_parameters.error_msg,
+            response_status=exception_handling_parameters.response_status,
+            response_information_code=exception_handling_parameters.response_information_code,
+            response_message=_(exception_handling_parameters.response_message),
         )
 
     view_class = (

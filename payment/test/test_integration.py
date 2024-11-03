@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
@@ -61,6 +62,13 @@ class BuyableTestCase(CustomIntegrationTestCase):
             type=BuyableType.PERSONAL_SUBSCRIPTION.value,
             trial_days=30,
             is_active=True,
+        )
+        self.assign_permissions_to_admin_group()
+
+    def assign_permissions_to_admin_group(self):
+        group = Group.objects.get(name="Admin")
+        group.permissions.add(
+            Permission.objects.get(codename="can_write_buyable", content_type__app_label="payment"),
         )
 
     def test_list_buyables(self):

@@ -7,7 +7,7 @@ from structlog import get_logger
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Translation
 from common.pagination import CustomPageNumberPagination
-from common.permissions.generic_permissions import IsAdmin, IsOwner, IsReadonly
+from common.permissions.generic_permissions import IsOwner, IsReadonly, HasWritePermission
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
@@ -33,7 +33,7 @@ log = get_logger(__name__)
 
 # Create your views here.
 class UserViewSet(ModelViewSet):
-    permission_classes = [IsAdmin | IsOwner]
+    permission_classes = [HasWritePermission | IsOwner]
     pagination_class = CustomPageNumberPagination
     queryset = User.objects.all().select_related("school")
     lookup_url_kwarg = "user_id"
@@ -164,7 +164,7 @@ class UserViewSet(ModelViewSet):
 
 
 class AvatarViewSet(GenericViewSet):
-    permission_classes = [IsAdmin | IsReadonly]
+    permission_classes = [HasWritePermission | IsReadonly]
     serializer_class = AvatarSerializer
     queryset = Avatar.objects.all()
 
@@ -218,7 +218,7 @@ class AvatarViewSet(GenericViewSet):
 
 
 class SchoolViewSet(ModelViewSet):
-    permission_classes = [IsAdmin | IsReadonly]
+    permission_classes = [HasWritePermission | IsReadonly]
     queryset = School.objects.all()
     lookup_field = "id"
 
@@ -338,7 +338,7 @@ class SchoolViewSet(ModelViewSet):
 
 
 class ClassViewSet(ModelViewSet):
-    permission_classes = [IsAdmin | IsReadonly]
+    permission_classes = [HasWritePermission | IsReadonly]
     serializer_class = ClassSerializer
     queryset = Class.objects.all()
     lookup_field = "id"

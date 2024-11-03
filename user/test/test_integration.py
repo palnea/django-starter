@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
 from mock.mock import patch
 from model_bakery import baker
@@ -11,6 +12,13 @@ class AvatarViewSetTestCase(CustomIntegrationTestCase):
     def setUp(self):
         super().setUp()
         self.create_common_models()
+        self.assign_permissions_to_admin_group()
+
+    def assign_permissions_to_admin_group(self):
+        group = Group.objects.get(name="Admin")
+        group.permissions.add(
+            Permission.objects.get(codename="can_write_avatar", content_type__app_label="user"),
+        )
 
     def test_list_avatars(self):
         url = reverse("avatar-viewset")
@@ -54,6 +62,13 @@ class SchoolViewSetTestCase(CustomIntegrationTestCase):
 
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
+        self.assign_permissions_to_admin_group()
+
+    def assign_permissions_to_admin_group(self):
+        group = Group.objects.get(name="Admin")
+        group.permissions.add(
+            Permission.objects.get(codename="can_write_school", content_type__app_label="user"),
+        )
 
     def test_list_schools(self):
         url = reverse("school-viewset")
@@ -123,6 +138,13 @@ class ClassViewSetTestCase(CustomIntegrationTestCase):
 
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
+        self.assign_permissions_to_admin_group()
+
+    def assign_permissions_to_admin_group(self):
+        group = Group.objects.get(name="Admin")
+        group.permissions.add(
+            Permission.objects.get(codename="can_write_class", content_type__app_label="user"),
+        )
 
     def test_list_classes(self):
         url = reverse("class-viewset")
@@ -186,6 +208,13 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         self.create_common_models()
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
+        self.assign_permissions_to_admin_group()
+
+    def assign_permissions_to_admin_group(self):
+        group = Group.objects.get(name="Admin")
+        group.permissions.add(
+            Permission.objects.get(codename="can_write_user", content_type__app_label="user"),
+        )
 
     def test_list_users(self):
         url = reverse("user-viewset")

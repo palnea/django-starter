@@ -76,127 +76,125 @@ EXCEPTION_HANDLER_MAPPER = {
         "Unknown error!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.UNKNOWN_ERROR,
-        _("An error occured!"),
+        "An error occured!",
     ),
     IntegrityError: get_integrity_error_parameters,
     ObjectDoesNotExist: lambda x: ExceptionHandlingParameters(
         "Object doesn't exist!",
         status.HTTP_404_NOT_FOUND,
         ErrorCode.NOT_FOUND_ERROR,
-        _("Content not found!"),
+        "Content not found!",
     ),
     PermissionDenied: lambda x: ExceptionHandlingParameters(
         "This operations is not permitted!",
         status.HTTP_403_FORBIDDEN,
         ErrorCode.PERMISSION_DENIED,
-        _("You don't have permission for this action!"),
+        "You don't have permission for this action!",
     ),
     ViewDoesNotExist: lambda x: ExceptionHandlingParameters(
         "View doesn't exist!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.VIEW_DOESNT_EXIST,
-        _("An error occured!"),
+        "An error occured!",
     ),
     MiddlewareNotUsed: lambda x: ExceptionHandlingParameters(
         "Middleware not used!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.MIDDLEWARE_NOT_USED,
-        _("An error occured!"),
+        "An error occured!",
     ),
     ImproperlyConfigured: lambda x: ExceptionHandlingParameters(
         "Improperly configured!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.IMPROPERLY_CONFIGURED,
-        _("An error occured!"),
+        "An error occured!",
     ),
     FieldError: lambda x: ExceptionHandlingParameters(
         "Field Error!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.FIELD_ERROR,
-        _("An error occured!"),
+        "An error occured!",
     ),
     CoreValidationError: lambda x: ExceptionHandlingParameters(
         "Data is not valid!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.INVALID_INPUT,
-        _("Request parameters are not valid!"),
+        "Request parameters are not valid!",
     ),
     BadRequest: lambda x: ExceptionHandlingParameters(
         "Bad request!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.BAD_REQUEST,
-        _("Bad request!"),
+        "Bad request!",
     ),
     RequestAborted: lambda x: ExceptionHandlingParameters(
-        "Request aborted!", 499, ErrorCode.REQUEST_ABORTED, _("Request aborted!")
+        "Request aborted!", 499, ErrorCode.REQUEST_ABORTED, "Request aborted!"
     ),
     SynchronousOnlyOperation: lambda x: ExceptionHandlingParameters(
         "SynchronousOnlyOperation!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.INTERNAL_SERVER_ERROR,
-        _("An error occured!"),
+        "An error occured!",
     ),
     UnreadablePostError: lambda x: ExceptionHandlingParameters(
         "Upload is aborted!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.FILE_UNREADABLE,
-        _("Upload is aborted!"),
+        "Upload is aborted!",
     ),
     SessionInterrupted: lambda x: ExceptionHandlingParameters(
         "Session interrupted!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.SESSION_INTERRUPTED,
-        _("Session interrupted!"),
+        "Session interrupted!",
     ),
     TransactionManagementError: lambda x: ExceptionHandlingParameters(
         "Something bad occurred on transaction management!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.TRANSACTION_MANAGEMENT_ERROR,
-        _("An error occured!"),
+        "An error occured!",
     ),
     Http404: lambda x: ExceptionHandlingParameters(
         "No content!",
         status.HTTP_404_NOT_FOUND,
         ErrorCode.NOT_FOUND_ERROR,
-        _("Content not found!"),
+        "Content not found!",
     ),
 }
 
 API_EXCEPTION_HANDLER_MAPPER = {
     APIException: APIExceptionHandlingParameters(
-        ErrorCode.UNKNOWN_ERROR, _("An error occured!")
+        ErrorCode.UNKNOWN_ERROR, "An error occured!"
     ),
     ValidationError: APIExceptionHandlingParameters(
-        ErrorCode.INVALID_INPUT, _("Request parameters are not valid!")
+        ErrorCode.INVALID_INPUT, "Request parameters are not valid!"
     ),
     ParseError: APIExceptionHandlingParameters(
-        ErrorCode.PARSE_ERROR, _("An error occured!")
+        ErrorCode.PARSE_ERROR, "An error occured!"
     ),
     AuthenticationFailed: APIExceptionHandlingParameters(
-        ErrorCode.AUTHENTICATION_FAILED, _("Authentication failed!")
+        ErrorCode.AUTHENTICATION_FAILED, "Authentication failed!"
     ),
     NotAuthenticated: APIExceptionHandlingParameters(
-        ErrorCode.NOT_AUTHENTICATED, _("Not authenticated!")
+        ErrorCode.NOT_AUTHENTICATED, "Not authenticated!"
     ),
     APIPermissionDenied: APIExceptionHandlingParameters(
-        ErrorCode.PERMISSION_DENIED, _("You don't have permission for this action!")
+        ErrorCode.PERMISSION_DENIED, "You don't have permission for this action!"
     ),
     NotFound: APIExceptionHandlingParameters(
-        ErrorCode.NOT_FOUND_ERROR, _("Content not found!")
+        ErrorCode.NOT_FOUND_ERROR, "Content not found!"
     ),
     MethodNotAllowed: APIExceptionHandlingParameters(
-        ErrorCode.METHOD_NOT_ALLOWED, _("You don't have permission for this action!")
+        ErrorCode.METHOD_NOT_ALLOWED, "You don't have permission for this action!"
     ),
     NotAcceptable: APIExceptionHandlingParameters(
-        ErrorCode.NOT_ACCEPTABLE, _("You don't have permission for this action!")
+        ErrorCode.NOT_ACCEPTABLE, "You don't have permission for this action!"
     ),
     UnsupportedMediaType: APIExceptionHandlingParameters(
-        ErrorCode.UNSUPPORTED_MEDIA_TYPE, _("Unsupported media type!")
+        ErrorCode.UNSUPPORTED_MEDIA_TYPE, "Unsupported media type!"
     ),
-    Throttled: APIExceptionHandlingParameters(
-        ErrorCode.THROTTLED, _("An error occured!")
-    ),
+    Throttled: APIExceptionHandlingParameters(ErrorCode.THROTTLED, "An error occured!"),
     InvalidToken: APIExceptionHandlingParameters(
-        ErrorCode.INVALID_TOKEN, _("Not authenticated!")
+        ErrorCode.INVALID_TOKEN, "Not authenticated!"
     ),
 }
