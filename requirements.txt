@@ -49,6 +49,7 @@ packaging==24.0
 pathspec==0.12.1
 phonenumbers==8.13.35
 platformdirs==4.2.1
+polib==1.2.0
 proto-plus==1.23.0
 protobuf==4.25.3
 psycopg2-binary==2.9.9

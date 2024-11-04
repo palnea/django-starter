@@ -40,7 +40,7 @@ class ExceptionHandlingParameters(object):
         error_msg: str,
         response_status: int,
         response_information_code: ErrorCode,
-        response_message: str = _("An error occured!"),
+        response_message: str = "An error occured!",
     ):
         self.error_msg = error_msg
         self.response_status = response_status
@@ -62,7 +62,7 @@ def get_integrity_error_parameters(error: Exception):
             "Already exists!",
             status.HTTP_400_BAD_REQUEST,
             ErrorCode.DUPLICATE_KEY_ERROR,
-            _("Already exist!"),
+            "Already exist!",
         )
     return ExceptionHandlingParameters(
         "Integrity Error!",
