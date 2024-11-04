@@ -1,4 +1,4 @@
-from settings.base import *
+from settings.development import *
 
 VERIFICATION_ACTIVE_INTERVAL = 300
 

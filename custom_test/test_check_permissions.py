@@ -9,7 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.views import View
 from rest_framework.permissions import BasePermission
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import IsActionPermissionGranted, HasWritePermission
 
@@ -21,6 +21,11 @@ class PermissionExistenceTestCase(TestCase):
         Dynamically retrieve all viewsets that inherit from ModelViewSet.
         """
         viewsets = []
+        third_party_prefixes = [
+            "django",
+            "rest_framework",
+            "drf_yasg",
+        ]
 
         for app_config in apps.get_app_configs():
             # Get the base path of the app
@@ -44,9 +49,9 @@ class PermissionExistenceTestCase(TestCase):
                         for attr_name in dir(module):
                             attr = getattr(module, attr_name)
                             # Check if the attribute is a class, a subclass of ModelViewSet, and is not ModelViewSet itself
-                            if inspect.isclass(attr) and issubclass(attr, ModelViewSet) and attr is not ModelViewSet:
-                                # Ensure the viewset belongs to the current app
-                                if module.__name__.startswith(app_config.name):
+                            if inspect.isclass(attr) and issubclass(attr, View) and attr is not View:
+                                # Ensure the viewset belongs to the current app and is not from a third-party package
+                                if module.__name__.startswith(app_config.name) and not any(module.__name__.startswith(prefix) for prefix in third_party_prefixes):
                                     viewsets.append((attr, app_config.label))
                     except (ModuleNotFoundError, ImportError, ImproperlyConfigured):
                         # Skip modules that cannot be imported or cause configuration errors
@@ -62,8 +67,10 @@ class PermissionExistenceTestCase(TestCase):
             'create', 'destroy', 'update', 'partial_update', 'retrieve', 'list'
         ] if hasattr(viewset_class, method)]
 
-        # Custom actions added with @action decorator
-        custom_actions = [action.__name__ for action in viewset_class.get_extra_actions()]
+        # Custom actions added with @action decorator (only for ViewSet subclasses)
+        custom_actions = []
+        if issubclass(viewset_class, ViewSet):
+            custom_actions = [action.__name__ for action in viewset_class.get_extra_actions()]
 
         # Combine standard and custom actions
         return standard_actions + custom_actions
@@ -73,7 +80,11 @@ class PermissionExistenceTestCase(TestCase):
         Recursively checks if a permission_class is contained within permission_classes,
         handling both direct instances and compound expressions.
         """
-        for perm in list(permission_classes):  # Ensure permission_classes is iterable
+        # Ensure permission_classes is always a list
+        if not isinstance(permission_classes, list):
+            permission_classes = [permission_classes]
+
+        for perm in permission_classes:  # Ensure permission_classes is iterable
             # Check if perm directly matches the target_permission class
             if perm == permission_class or perm.__class__ == permission_class:
                 return True

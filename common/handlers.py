@@ -1,14 +1,17 @@
 import importlib
 import inspect
 import os
+from typing import List
 
 from django.apps import apps
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
+from django.views import View
 from rest_framework.permissions import BasePermission
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import IsActionPermissionGranted, \
     HasWritePermission  # Update with actual import path
@@ -23,6 +26,11 @@ def get_viewsets(app_label=None):
     If no app_label is provided, retrieves viewsets for all installed apps.
     """
     viewsets = []
+    third_party_prefixes = [
+        "django",
+        "rest_framework",
+        "drf_yasg",
+    ]
 
     for app_config in apps.get_app_configs():
         # If app_label is specified, skip other apps
@@ -44,20 +52,30 @@ def get_viewsets(app_label=None):
                     module = importlib.import_module(module_path)
                     for attr_name in dir(module):
                         attr = getattr(module, attr_name)
-                        if inspect.isclass(attr) and issubclass(attr, ModelViewSet) and attr is not ModelViewSet:
-                            if module.__name__.startswith(app_config.name):
+                        if inspect.isclass(attr) and issubclass(attr, View) and attr is not View:
+                            # Check that the module is from the current app and not third-party
+                            if module.__name__.startswith(app_config.name) and not any(module.__name__.startswith(prefix) for prefix in third_party_prefixes):
                                 viewsets.append((attr, app_config.label))
-                except (ModuleNotFoundError, ImportError):
+                except (ModuleNotFoundError, ImportError, ImproperlyConfigured):
                     continue
     return viewsets
 
 
-def get_all_actions(viewset_class):
+def get_all_actions(viewset_class: View) -> List[str]:
     """
     Retrieve all actions (standard and custom) for a given viewset.
     """
-    standard_actions = [method for method in STANDARD_ACTIONS if hasattr(viewset_class, method)]
-    custom_actions = [action.__name__ for action in viewset_class.get_extra_actions()]
+    # Standard actions in ModelViewSet
+    standard_actions = [method for method in [
+        'create', 'destroy', 'update', 'partial_update', 'retrieve', 'list'
+    ] if hasattr(viewset_class, method)]
+
+    # Custom actions added with @action decorator (only for ViewSet subclasses)
+    custom_actions = []
+    if issubclass(viewset_class, ViewSet):
+        custom_actions = [action.__name__ for action in viewset_class.get_extra_actions()]
+
+    # Combine standard and custom actions
     return standard_actions + custom_actions
 
 
@@ -66,7 +84,11 @@ def contains_permission(permission_classes, permission_class):
     Recursively checks if a permission_class is contained within permission_classes,
     handling both direct instances and compound expressions.
     """
-    for perm in list(permission_classes):  # Ensure permission_classes is iterable
+    # Ensure permission_classes is always a list
+    if not isinstance(permission_classes, list):
+        permission_classes = [permission_classes]
+
+    for perm in permission_classes:  # Ensure permission_classes is iterable
         # Check if perm directly matches the target_permission class
         if perm == permission_class or perm.__class__ == permission_class:
             return True
@@ -79,8 +101,7 @@ def contains_permission(permission_classes, permission_class):
         # Handle compound permissions (e.g., OperandHolder objects)
         if hasattr(perm, "op1_class") and hasattr(perm, "op2_class"):
             # Recursively check both operands
-            if contains_permission([perm.op1_class], permission_class) or contains_permission([perm.op2_class],
-                                                                                              permission_class):
+            if contains_permission([perm.op1_class], permission_class) or contains_permission([perm.op2_class], permission_class):
                 return True
     return False
 

@@ -5,12 +5,12 @@ from datetime import datetime
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
-from mock.mock import patch, call
+from mock.mock import patch, call, MagicMock
 from model_bakery import baker
 
-from custom_test.base_test import CustomIntegrationTestCase
 from payment.models import Purchase, PaymentTransaction, Buyable
 from payment.types import PaymentStatus, PaymentVendor
+from custom_test.base_test import CustomIntegrationTestCase
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
 from user.models import User
@@ -296,11 +296,13 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertGreater(
             user.active_subscription.expiration_date,
             datetime.utcnow() + relativedelta(days=26),
-        )
+            )
 
+    @patch("vendor.clients.googleplay.ServiceAccountCredentials.from_json_keyfile_dict")
     @patch("vendor.notification_handlers.subscription_notification_handlers.log")
     @patch("vendor.clients.googleplay.build")
-    def test_subscription_price_change_confirmed(self, m_build, m_logger):
+    def test_subscription_price_change_confirmed(self, m_build, m_logger, m_from_json_keyfile_dict):
+        m_from_json_keyfile_dict.return_value = MagicMock()
         price_micros = 1000000
         price_currency = "USD"
         mock_subscriptions = m_build.return_value.purchases().subscriptions().get()
@@ -353,8 +355,11 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
             ]
         )
 
+    @patch("vendor.clients.googleplay.ServiceAccountCredentials.from_json_keyfile_dict")
     @patch("vendor.clients.googleplay.build")
-    def test_subscription_deferred(self, m_build):
+    def test_subscription_deferred(self, m_build, m_from_json_keyfile_dict):
+        m_from_json_keyfile_dict.return_value = MagicMock()
+
         price_micros = 1000000
         price_currency = "USD"
         ten_days_in_millis = 864000000
@@ -539,13 +544,13 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.mock_verification.return_value = verified_data
 
     def _create_verified_data(
-        self,
-        notification_type,
-        notification_subtype,
-        transaction_id,
-        original_transaction_id,
-        expiration_millis,
-        product_name,
+            self,
+            notification_type,
+            notification_subtype,
+            transaction_id,
+            original_transaction_id,
+            expiration_millis,
+            product_name,
     ):
         apple_message = {
             "notification_type": notification_type,
