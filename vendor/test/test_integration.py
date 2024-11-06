@@ -296,12 +296,14 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertGreater(
             user.active_subscription.expiration_date,
             datetime.utcnow() + relativedelta(days=26),
-            )
+        )
 
     @patch("vendor.clients.googleplay.ServiceAccountCredentials.from_json_keyfile_dict")
     @patch("vendor.notification_handlers.subscription_notification_handlers.log")
     @patch("vendor.clients.googleplay.build")
-    def test_subscription_price_change_confirmed(self, m_build, m_logger, m_from_json_keyfile_dict):
+    def test_subscription_price_change_confirmed(
+        self, m_build, m_logger, m_from_json_keyfile_dict
+    ):
         m_from_json_keyfile_dict.return_value = MagicMock()
         price_micros = 1000000
         price_currency = "USD"
@@ -544,13 +546,13 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.mock_verification.return_value = verified_data
 
     def _create_verified_data(
-            self,
-            notification_type,
-            notification_subtype,
-            transaction_id,
-            original_transaction_id,
-            expiration_millis,
-            product_name,
+        self,
+        notification_type,
+        notification_subtype,
+        transaction_id,
+        original_transaction_id,
+        expiration_millis,
+        product_name,
     ):
         apple_message = {
             "notification_type": notification_type,

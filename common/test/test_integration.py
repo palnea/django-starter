@@ -20,7 +20,9 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_locale", content_type__app_label="common"),
+            Permission.objects.get(
+                codename="can_write_locale", content_type__app_label="common"
+            ),
         )
 
     def test_list_locales(self):
@@ -106,7 +108,9 @@ class TranslationTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_translation", content_type__app_label="common"),
+            Permission.objects.get(
+                codename="can_write_translation", content_type__app_label="common"
+            ),
         )
 
     def test_list_translations(self):
@@ -205,7 +209,9 @@ class TranslatedFileTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_translatedfile", content_type__app_label="common"),
+            Permission.objects.get(
+                codename="can_write_translatedfile", content_type__app_label="common"
+            ),
         )
 
     @patch("cloud_storage.idrive_client.IDriveClient.create_presigned_url")

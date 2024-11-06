@@ -7,7 +7,11 @@ from structlog import get_logger
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Translation
 from common.pagination import CustomPageNumberPagination
-from common.permissions.generic_permissions import IsOwner, IsReadonly, HasWritePermission
+from common.permissions.generic_permissions import (
+    IsOwner,
+    IsReadonly,
+    HasWritePermission,
+)
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,

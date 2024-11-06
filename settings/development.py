@@ -12,14 +12,22 @@ if DATABASES["default"] == {}:
 SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
 
 # Get above values from environment variables or use the default values
-IDRIVE_ENDPOINT_URL = os.environ.get("IDRIVE_ENDPOINT_URL", "https://k2f7.or.idrivee2-60.com")
+IDRIVE_ENDPOINT_URL = os.environ.get(
+    "IDRIVE_ENDPOINT_URL", "https://k2f7.or.idrivee2-60.com"
+)
 IDRIVE_ACCESS_KEY = os.environ.get("IDRIVE_ACCESS_KEY", "<access-key>")
 IDRIVE_SECRET_ACCESS_KEY = os.environ.get("IDRIVE_SECRET_ACCESS_KEY", "<secret-key>")
 IDRIVE_BUCKET_NAME = os.environ.get("IDRIVE_BUCKET_NAME", "central-backend-dev")
-CLOUD_STORAGE_BUCKET_NAME = os.environ.get("CLOUD_STORAGE_BUCKET_NAME", "central-backend-dev")
-CLOUD_STORAGE_PUBLIC_BUCKET_NAME = os.environ.get("CLOUD_STORAGE_PUBLIC_BUCKET_NAME", "central-backend-public-dev")
+CLOUD_STORAGE_BUCKET_NAME = os.environ.get(
+    "CLOUD_STORAGE_BUCKET_NAME", "central-backend-dev"
+)
+CLOUD_STORAGE_PUBLIC_BUCKET_NAME = os.environ.get(
+    "CLOUD_STORAGE_PUBLIC_BUCKET_NAME", "central-backend-public-dev"
+)
 CLOUD_STORAGE_VENDOR = os.environ.get("CLOUD_STORAGE_VENDOR", "idrive")
-CLOUD_STORAGE_BUCKET_IS_PUBLIC = os.environ.get("CLOUD_STORAGE_BUCKET_IS_PUBLIC", "false")
+CLOUD_STORAGE_BUCKET_IS_PUBLIC = os.environ.get(
+    "CLOUD_STORAGE_BUCKET_IS_PUBLIC", "false"
+)
 
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", True)
@@ -28,16 +36,37 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "info@vd.com")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "pass*")
 
 GOOGLE_PLAY_TYPE = os.environ.get("GOOGLE_PLAY_TYPE", "service_account")
-GOOGLE_PLAY_PROJECT_ID = os.environ.get("GOOGLE_PLAY_PROJECT_ID", "probable-maker-123456")
-GOOGLE_PLAY_PRIVATE_KEY_ID = os.environ.get("GOOGLE_PLAY_PRIVATE_KEY_ID", "privatekeyid")
-GOOGLE_PLAY_PRIVATE_KEY = os.environ.get("GOOGLE_PLAY_PRIVATE_KEY", "-----BEGIN PRIVATE KEY-----\n123456ABCDEFGH\n-----END PRIVATE KEY-----\n")
-GOOGLE_PLAY_CLIENT_EMAIL = os.environ.get("GOOGLE_PLAY_CLIENT_EMAIL", "google_play_client@email.com")
+GOOGLE_PLAY_PROJECT_ID = os.environ.get(
+    "GOOGLE_PLAY_PROJECT_ID", "probable-maker-123456"
+)
+GOOGLE_PLAY_PRIVATE_KEY_ID = os.environ.get(
+    "GOOGLE_PLAY_PRIVATE_KEY_ID", "privatekeyid"
+)
+GOOGLE_PLAY_PRIVATE_KEY = os.environ.get(
+    "GOOGLE_PLAY_PRIVATE_KEY",
+    "-----BEGIN PRIVATE KEY-----\n123456ABCDEFGH\n-----END PRIVATE KEY-----\n",
+)
+GOOGLE_PLAY_CLIENT_EMAIL = os.environ.get(
+    "GOOGLE_PLAY_CLIENT_EMAIL", "google_play_client@email.com"
+)
 GOOGLE_PLAY_CLIENT_ID = os.environ.get("GOOGLE_PLAY_CLIENT_ID", "123456")
-GOOGLE_PLAY_AUTH_URI = os.environ.get("GOOGLE_PLAY_AUTH_URI", "https://accounts.google.com/o/oauth2/auth")
-GOOGLE_PLAY_TOKEN_URI = os.environ.get("GOOGLE_PLAY_TOKEN_URI", "https://oauth2.googleapis.com/token")
-GOOGLE_PLAY_AUTH_PROVIDER_X509_CERT_URL = os.environ.get("GOOGLE_PLAY_AUTH_PROVIDER_X509_CERT_URL", "https://www.googleapis.com/oauth2/v1/certs")
-GOOGLE_PLAY_CLIENT_X509_CERT_URL = os.environ.get("GOOGLE_PLAY_CLIENT_X509_CERT_URL", "https://www.googleapis.com/robot/v1/metadata/x509/backend-developer-api%40probable-maker-123456.iam.gserviceaccount.com")
-GOOGLE_PLAY_UNIVERSE_DOMAIN = os.environ.get("GOOGLE_PLAY_UNIVERSE_DOMAIN", "googleapis.com")
+GOOGLE_PLAY_AUTH_URI = os.environ.get(
+    "GOOGLE_PLAY_AUTH_URI", "https://accounts.google.com/o/oauth2/auth"
+)
+GOOGLE_PLAY_TOKEN_URI = os.environ.get(
+    "GOOGLE_PLAY_TOKEN_URI", "https://oauth2.googleapis.com/token"
+)
+GOOGLE_PLAY_AUTH_PROVIDER_X509_CERT_URL = os.environ.get(
+    "GOOGLE_PLAY_AUTH_PROVIDER_X509_CERT_URL",
+    "https://www.googleapis.com/oauth2/v1/certs",
+)
+GOOGLE_PLAY_CLIENT_X509_CERT_URL = os.environ.get(
+    "GOOGLE_PLAY_CLIENT_X509_CERT_URL",
+    "https://www.googleapis.com/robot/v1/metadata/x509/backend-developer-api%40probable-maker-123456.iam.gserviceaccount.com",
+)
+GOOGLE_PLAY_UNIVERSE_DOMAIN = os.environ.get(
+    "GOOGLE_PLAY_UNIVERSE_DOMAIN", "googleapis.com"
+)
 
 NETGSM_USER_CODE = os.environ.get("NETGSM_USER_CODE", "8500000000")
 NETGSM_PASSWORD = os.environ.get("NETGSM_PASSWORD", "123456")

@@ -17,7 +17,9 @@ class AvatarViewSetTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_avatar", content_type__app_label="user"),
+            Permission.objects.get(
+                codename="can_write_avatar", content_type__app_label="user"
+            ),
         )
 
     def test_list_avatars(self):
@@ -67,7 +69,9 @@ class SchoolViewSetTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_school", content_type__app_label="user"),
+            Permission.objects.get(
+                codename="can_write_school", content_type__app_label="user"
+            ),
         )
 
     def test_list_schools(self):
@@ -143,7 +147,9 @@ class ClassViewSetTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_class", content_type__app_label="user"),
+            Permission.objects.get(
+                codename="can_write_class", content_type__app_label="user"
+            ),
         )
 
     def test_list_classes(self):
@@ -213,7 +219,9 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_user", content_type__app_label="user"),
+            Permission.objects.get(
+                codename="can_write_user", content_type__app_label="user"
+            ),
         )
 
     def test_list_users(self):

@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "payment",
     "subscription",
     "vendor",
-    "logger"
+    "logger",
 ]
 
 MIDDLEWARE = [

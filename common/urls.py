@@ -2,7 +2,8 @@ from django.urls import path
 
 from common.views import (
     TranslationViewSet,
-    TranslatedFileViewSet, LocaleViewSet,
+    TranslatedFileViewSet,
+    LocaleViewSet,
 )
 
 translation_viewset = TranslationViewSet.as_view({"get": "list", "post": "create"})

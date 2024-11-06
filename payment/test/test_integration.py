@@ -68,7 +68,9 @@ class BuyableTestCase(CustomIntegrationTestCase):
     def assign_permissions_to_admin_group(self):
         group = Group.objects.get(name="Admin")
         group.permissions.add(
-            Permission.objects.get(codename="can_write_buyable", content_type__app_label="payment"),
+            Permission.objects.get(
+                codename="can_write_buyable", content_type__app_label="payment"
+            ),
         )
 
     def test_list_buyables(self):

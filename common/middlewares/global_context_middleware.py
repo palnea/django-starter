@@ -51,7 +51,11 @@ class GlobalContext:
         permissions = cache.get(cache_key)
         if permissions is None:
             account = self.account
-            permissions = set(account.get_all_permissions()) if account.is_authenticated else set()
+            permissions = (
+                set(account.get_all_permissions())
+                if account.is_authenticated
+                else set()
+            )
             cache.set(cache_key, permissions, timeout=3600)
         return permissions
 
