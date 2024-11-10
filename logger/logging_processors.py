@@ -2,7 +2,7 @@ import concurrent.futures
 
 import httpx
 import newrelic.agent
-from django.conf import settings
+from django.conf import settings as django_settings
 
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
 
@@ -11,6 +11,12 @@ def send_to_newrelic(logger, log_method, event_dict):
     # Set parameters
     settings = newrelic.agent.application_settings()
     if settings is None:
+        if django_settings.DEBUG:
+            print({
+                "message": f"{event_dict['event']}",
+                "attributes": event_dict,
+                "level": log_method.upper(),
+            })
         return
 
     license_key = settings.license_key
@@ -42,7 +48,7 @@ def send_to_newrelic(logger, log_method, event_dict):
 
 
 def send_request(client, payload, headers):
-    if settings.DEBUG:
+    if django_settings.DEBUG:
         print(payload)
     else:
         response = client.post(
