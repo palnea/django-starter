@@ -3,6 +3,7 @@ from types import DynamicClassAttribute
 
 
 class ErrorCode(Enum):
+    CONTACT_NOT_VERIFIED = auto()
     GOOGLE_PLAY_CONSOLE_CREDENTIALS_NOT_FOUND = auto()
     PROVIDED_CODE_IS_NOT_APPLICABLE = auto()
     PROVIDED_CODE_IS_WRONG = auto()

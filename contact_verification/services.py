@@ -121,8 +121,8 @@ class CodeVerificationService:
             code=code, receiver_address=email or phone
         ).order_by("-id")
         if (
-                not contact_verification.exists()
-                or not contact_verification.first().is_valid
+            not contact_verification.exists()
+            or not contact_verification.first().is_valid
         ):
             raise CustomException(
                 detail={"code": ["Code is invalid or expired"]},

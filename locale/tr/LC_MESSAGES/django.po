@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-03 13:23+0300\n"
+"POT-Creation-Date: 2024-12-29 15:07+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,41 +38,49 @@ msgstr ""
 "Kullanıcının aktif olup olmadığını belirtir. Kullanıcıları silmek yerine bu "
 "alanın seçimini kaldırın."
 
-#: authy/serializers.py:60 authy/serializers.py:128 authy/services.py:91
+#: authy/serializers.py:63 authy/serializers.py:152 authy/services.py:89
 #: contact_verification/serializers.py:26
 msgid "Email or phone should be provided"
 msgstr "E-posta ya da telefon numarası girilmelidir!"
 
-#: authy/serializers.py:71 authy/services.py:99
+#: authy/serializers.py:74 authy/services.py:97
 #: contact_verification/serializers.py:37
 msgid "Enter email or phone not both"
 msgstr "E-Posta ve telefon beraber girilemez!"
 
-#: authy/serializers.py:87
+#: authy/serializers.py:95
 msgid "User with this email doesn't exist"
 msgstr "Bu e-postaya sahip kullanıcı bulunmamaktadır"
 
-#: authy/serializers.py:89
+#: authy/serializers.py:97
 msgid "User with this phone doesn't exist"
 msgstr "Bu telefon numarasına sahip kullanıcı bulunmamaktadır"
 
-#: authy/serializers.py:136
+#: authy/serializers.py:106
+msgid "Email is not verified"
+msgstr "Lütfen e-posta adresinizi doğrulayınız."
+
+#: authy/serializers.py:114
+msgid "Phone is not verified"
+msgstr "Lütfen telefon numaranızı doğrulayınız."
+
+#: authy/serializers.py:160
 msgid "Passwords doesn't match"
 msgstr "Şifreler birbiriyle uyuşmuyor"
 
-#: authy/services.py:53
+#: authy/services.py:49
 msgid "email verification message"
 msgstr "MyApp için e-posta doğrulama kodunuz: {code}"
 
-#: authy/services.py:54
+#: authy/services.py:50
 msgid "Email Verification Code"
 msgstr "Email Doğrulama Kodu"
 
-#: authy/services.py:64
+#: authy/services.py:61
 msgid "phone verification message"
 msgstr "MyAp için telefon numarası doğrulama kodunuz: {code}"
 
-#: authy/services.py:123
+#: authy/services.py:121
 #, fuzzy
 #| msgid "The password must be set"
 msgid "Reset password email message"
@@ -83,11 +91,11 @@ msgstr ""
 "\n"
 "Giriş yaptıktan sonra şifrenizi değiştirmenizi öneririz."
 
-#: authy/services.py:124
+#: authy/services.py:122
 msgid "Reset password title"
 msgstr "MyApp Şifre Sıfırlama"
 
-#: authy/services.py:130
+#: authy/services.py:128
 #, fuzzy
 #| msgid "The password must be set"
 msgid "Reset password sms message"
@@ -106,74 +114,6 @@ msgstr "Kayıt başarılı."
 #: common/response/view_response.py:147
 msgid "A server error occurred."
 msgstr "Sunucu hatası oluştu."
-
-#: common/exception_handling/exception_handler_mapper.py:43
-#: common/exception_handling/exception_handler_mapper.py:79
-#: common/exception_handling/exception_handler_mapper.py:98
-#: common/exception_handling/exception_handler_mapper.py:104
-#: common/exception_handling/exception_handler_mapper.py:110
-#: common/exception_handling/exception_handler_mapper.py:116
-#: common/exception_handling/exception_handler_mapper.py:137
-#: common/exception_handling/exception_handler_mapper.py:155
-#: common/exception_handling/exception_handler_mapper.py:167
-#: common/exception_handling/exception_handler_mapper.py:173
-#: common/exception_handling/exception_handler_mapper.py:197
-#: common/response/view_response.py:106
-msgid "An error occured!"
-msgstr "Bir hata oluştu!"
-
-#: common/exception_handling/exception_handler_mapper.py:65
-msgid "Already exist!"
-msgstr "Oluşturmaya çalıştığın şey zaten var!"
-
-#: common/exception_handling/exception_handler_mapper.py:86
-#: common/exception_handling/exception_handler_mapper.py:161
-#: common/exception_handling/exception_handler_mapper.py:185
-#: user/services.py:26
-msgid "Content not found!"
-msgstr "İçeriğe ulaşılamadı!"
-
-#: common/exception_handling/exception_handler_mapper.py:92
-#: common/exception_handling/exception_handler_mapper.py:182
-#: common/exception_handling/exception_handler_mapper.py:188
-#: common/exception_handling/exception_handler_mapper.py:191
-msgid "You don't have permission for this action!"
-msgstr "Bu işlem için izniniz yok!"
-
-#: common/exception_handling/exception_handler_mapper.py:122
-#: common/exception_handling/exception_handler_mapper.py:170
-#: common/response/view_response.py:129
-msgid "Request parameters are not valid!"
-msgstr "Gönderilen parametreler geçerli değil!"
-
-#: common/exception_handling/exception_handler_mapper.py:128
-msgid "Bad request!"
-msgstr "Hatalı istek!"
-
-#: common/exception_handling/exception_handler_mapper.py:131
-msgid "Request aborted!"
-msgstr "İstek yarıda kesildi!"
-
-#: common/exception_handling/exception_handler_mapper.py:143
-msgid "Upload is aborted!"
-msgstr "Yükleme işlemi yarıda kesildi!"
-
-#: common/exception_handling/exception_handler_mapper.py:149
-msgid "Session interrupted!"
-msgstr "Oturum kesintiye uğradı!"
-
-#: common/exception_handling/exception_handler_mapper.py:176
-msgid "Authentication failed!"
-msgstr "Kimlik doğrulama başarısız oldu!"
-
-#: common/exception_handling/exception_handler_mapper.py:179
-#: common/exception_handling/exception_handler_mapper.py:200
-msgid "Not authenticated!"
-msgstr "Giriş yapmalısınız!"
-
-#: common/exception_handling/exception_handler_mapper.py:194
-msgid "Unsupported media type!"
-msgstr "Desteklenmeyen dosya yapısı!"
 
 #: common/models.py:33
 #, python-format
@@ -204,10 +144,18 @@ msgstr "Karakter Kodlaması"
 msgid "Writing Direction"
 msgstr "Yazı Yönü"
 
-#: common/response/view_response.py:75 contact_verification/views.py:77
-#: contact_verification/views.py:108
+#: common/response/view_response.py:75 contact_verification/views.py:113
+#: contact_verification/views.py:144
 msgid "Success"
 msgstr "Başarılı"
+
+#: common/response/view_response.py:106
+msgid "An error occured!"
+msgstr "Bir hata oluştu!"
+
+#: common/response/view_response.py:129
+msgid "Request parameters are not valid!"
+msgstr "Gönderilen parametreler geçerli değil!"
 
 #: common/serializers.py:33 common/serializers.py:107
 msgid ""
@@ -232,46 +180,66 @@ msgstr "Ana kelime boş olamaz"
 
 #: common/views.py:147 common/views.py:216 common/views.py:305
 #: common/views.py:371 common/views.py:418 payment/views.py:185
-#: user/views.py:182 user/views.py:285 user/views.py:403
+#: user/views.py:186 user/views.py:289 user/views.py:407
 msgid "Created successfully!"
 msgstr "Kayıt başarıyla oluşturuldu!"
 
 #: common/views.py:167 common/views.py:325 common/views.py:438
-#: payment/views.py:205 user/views.py:129 user/views.py:305 user/views.py:423
+#: payment/views.py:205 user/views.py:133 user/views.py:309 user/views.py:427
 msgid "Updated successfully!"
 msgstr "Güncelleme işlemi başarılı!"
 
 #: common/views.py:184 common/views.py:188 common/views.py:342
 #: common/views.py:346 common/views.py:454 common/views.py:456
-#: payment/views.py:222 payment/views.py:226 user/views.py:148
-#: user/views.py:152 user/views.py:322 user/views.py:326 user/views.py:440
-#: user/views.py:444
+#: payment/views.py:222 payment/views.py:226 user/views.py:152
+#: user/views.py:156 user/views.py:326 user/views.py:330 user/views.py:444
+#: user/views.py:448
 msgid "Deleted successfully!"
 msgstr "Silindi!"
 
-#: contact_verification/models.py:80
+#: contact_verification/models.py:81
 #, fuzzy
 #| msgid "email verification message"
 msgid "Verification code message"
 msgstr "MyApp için doğrulama kodunuz: {code}"
 
-#: contact_verification/models.py:82
+#: contact_verification/models.py:83
 #, fuzzy
 #| msgid "Email Verification Code"
 msgid "Verification code header"
 msgstr "MyApp Doğrulama Kodu"
 
-#: contact_verification/services.py:45
+#: contact_verification/services.py:47
 msgid "Code is sent. Check your email."
 msgstr "Kod gönderilmiştir. E-Postanızı kontrol ediniz."
 
-#: contact_verification/services.py:47
+#: contact_verification/services.py:49
 msgid "Code is sent. Check your messages."
 msgstr "Kod gönderilmiştir. Mesajlarınızı kontrol ediniz."
 
-#: contact_verification/services.py:66
+#: contact_verification/services.py:67
+msgid "Please request a new code"
+msgstr "Lütfen yeni bir kod talep ediniz."
+
+#: contact_verification/services.py:75 contact_verification/services.py:131
 msgid "Code is invalid or expired"
 msgstr "Kod hatalı ya da süresi geçti"
+
+#: contact_verification/services.py:85
+msgid "You entered the wrong code too many times"
+msgstr "Yanlış kod numarasını çok kez denediniz. Yeni kod talep ediniz."
+
+#: contact_verification/services.py:96
+#, fuzzy
+#| msgid "Code is invalid or expired"
+msgid "Code is incorrect"
+msgstr "Kod hatalı ya da süresi geçti"
+
+#: contact_verification/services.py:148
+#, fuzzy
+#| msgid "Content not found!"
+msgid "User not found"
+msgstr "İçeriğe ulaşılamadı!"
 
 #: user/models.py:162 user/validators.py:37
 msgid "Validation error occured. Please check the fields."
@@ -284,6 +252,37 @@ msgstr "Genel"
 #: user/models.py:206
 msgid "Private"
 msgstr "Özel"
+
+#: user/services.py:26
+msgid "Content not found!"
+msgstr "İçeriğe ulaşılamadı!"
+
+msgid "Already exist!"
+msgstr "Oluşturmaya çalıştığın şey zaten var!"
+
+msgid "You don't have permission for this action!"
+msgstr "Bu işlem için izniniz yok!"
+
+msgid "Bad request!"
+msgstr "Hatalı istek!"
+
+msgid "Request aborted!"
+msgstr "İstek yarıda kesildi!"
+
+msgid "Upload is aborted!"
+msgstr "Yükleme işlemi yarıda kesildi!"
+
+msgid "Session interrupted!"
+msgstr "Oturum kesintiye uğradı!"
+
+msgid "Authentication failed!"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+msgid "Not authenticated!"
+msgstr "Giriş yapmalısınız!"
+
+msgid "Unsupported media type!"
+msgstr "Desteklenmeyen dosya yapısı!"
 
 msgid "Incorrect password"
 msgstr "Hatalı şifre"

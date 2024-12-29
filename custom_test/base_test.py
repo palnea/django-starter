@@ -33,6 +33,7 @@ class CustomIntegrationTestCase(TestCase):
         if kwargs.get("phone", None) is None:
             phone = self.generate_valid_phone_number()
             kwargs["phone"] = phone
+            kwargs["phone_verified"] = kwargs.get("phone_verified", True)
         account = baker.make(Account, id=uuid.uuid4())
         account.set_password(password)
         account.save()

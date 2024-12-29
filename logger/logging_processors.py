@@ -12,11 +12,13 @@ def send_to_newrelic(logger, log_method, event_dict):
     settings = newrelic.agent.application_settings()
     if settings is None:
         if django_settings.DEBUG:
-            print({
-                "message": f"{event_dict['event']}",
-                "attributes": event_dict,
-                "level": log_method.upper(),
-            })
+            print(
+                {
+                    "message": f"{event_dict['event']}",
+                    "attributes": event_dict,
+                    "level": log_method.upper(),
+                }
+            )
         return
 
     license_key = settings.license_key
