@@ -39,9 +39,6 @@ class RegistrationService:
             account=account,
         )
 
-        # Authenticate
-        validation = authenticate_user(user, data["password"])
-
         try:
             if user.email:
                 code = ContactVerificationService.create_contact_verification(
@@ -67,10 +64,7 @@ class RegistrationService:
         except Exception as e:
             pass
 
-        return {
-            **validation,
-            "phone": user.phone_as_international,
-        }
+        return {"phone": user.phone_as_international, "email": user.email}
 
 
 class PasswordService:

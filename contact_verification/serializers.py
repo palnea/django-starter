@@ -54,5 +54,10 @@ class ContactVerificationSerializer(serializers.Serializer):
         return validated_data
 
 
+class VerifyContactSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True)
+    uuid = serializers.UUIDField(required=True)
+
+
 class CodeVerificationSerializer(serializers.Serializer):
     code = serializers.CharField(required=False)

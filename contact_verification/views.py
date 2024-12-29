@@ -6,10 +6,15 @@ from rest_framework.viewsets import GenericViewSet
 from structlog import get_logger
 
 from common.response.response_information_codes.message_code import MessageCode
-from common.response.view_response import ViewResponse, log_view_response
+from common.response.view_response import (
+    ViewResponse,
+    log_view_response,
+    ViewSuccessResponse,
+)
 from contact_verification.serializers import (
     ContactVerificationSerializer,
     CodeVerificationSerializer,
+    VerifyContactSerializer,
 )
 from contact_verification.services import (
     ContactVerificationService,
@@ -23,6 +28,11 @@ log = get_logger(__name__)
 class ContactVerificationViewSet(GenericViewSet):
     serializer_class = ContactVerificationSerializer
     permission_classes = [AllowAny]
+
+    def get_serializer_class(self):
+        if self.action == "verify":
+            return VerifyContactSerializer
+        return self.serializer_class
 
     def create(self, request, *args, **kwargs):
         status_code = status.HTTP_201_CREATED
@@ -45,6 +55,32 @@ class ContactVerificationViewSet(GenericViewSet):
             struct_logger=log,
             view_name=self.__class__.__name__,
             method_name="create",
+            request_body=request.data,
+            request_path=request.get_full_path(),
+            request_method=request.method,
+            view_response=view_response,
+        )
+
+        return view_response.rest_response
+
+    @action(detail=False, methods=["post"])
+    def verify(self, request, *args, **kwargs):
+        status_code = status.HTTP_200_OK
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        ContactVerificationService.verify_contact(validated_data)
+        view_response = ViewSuccessResponse(
+            response_status=status_code,
+            response_information_code=MessageCode.GENERAL_SUCCESS,
+        )
+
+        log_view_response(
+            struct_logger=log,
+            view_name=self.__class__.__name__,
+            method_name="verify",
             request_body=request.data,
             request_path=request.get_full_path(),
             request_method=request.method,

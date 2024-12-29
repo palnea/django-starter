@@ -20,6 +20,7 @@ from authy.social_auth.facebook import Facebook
 from authy.social_auth.google import Google
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
+from contact_verification.services import ContactVerificationService
 from subscription.models import UserSubscription
 from user.models import User
 
@@ -32,6 +33,8 @@ class UserLoginSerializer(serializers.Serializer):
     )
     phone = PhoneNumberField(required=False, allow_null=True, allow_blank=True)
     password = serializers.CharField(max_length=128, write_only=True)
+    verification_id = serializers.CharField(required=False, max_length=64)
+    verification_code = serializers.CharField(required=False, max_length=8)
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
     role = serializers.CharField(read_only=True)
@@ -71,6 +74,11 @@ class UserLoginSerializer(serializers.Serializer):
                 message=_("Enter email or phone not both"),
             )
 
+        if data.get("verification_code") and data.get("verification_id"):
+            ContactVerificationService.verify_contact(
+                {"code": data["verification_code"], "uuid": data["verification_id"]}
+            )
+
         password = data["password"]
         user = (
             User.objects.filter(email=email).select_related("locale").first()
@@ -88,6 +96,22 @@ class UserLoginSerializer(serializers.Serializer):
                     if email
                     else _("User with this phone doesn't exist")
                 ),
+            )
+
+        if email and not user.email_verified:
+            raise CustomException(
+                detail={"email": ["Email is not verified"]},
+                code=ErrorCode.CONTACT_NOT_VERIFIED,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=_("Email is not verified"),
+            )
+
+        if phone and not user.phone_verified:
+            raise CustomException(
+                detail={"phone": ["Phone is not verified"]},
+                code=ErrorCode.CONTACT_NOT_VERIFIED,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message=_("Phone is not verified"),
             )
 
         return authenticate_user(user, password)

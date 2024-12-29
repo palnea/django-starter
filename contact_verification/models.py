@@ -31,6 +31,7 @@ class ContactVerification(models.Model):
     valid_interval_in_seconds = models.IntegerField(
         null=False, blank=False, default=300
     )
+    attempts = models.IntegerField(null=False, blank=False, default=0)
     status = models.CharField(
         null=False,
         blank=False,
