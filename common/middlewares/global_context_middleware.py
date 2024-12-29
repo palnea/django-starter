@@ -60,14 +60,6 @@ class GlobalContext:
         return permissions
 
     @cached_property
-    def user_school_id(self) -> str:
-        return (
-            self.request.auth.payload.get("school_id", None)
-            if self.request.auth and self.request.auth.payload
-            else None
-        )
-
-    @cached_property
     def user_timezone(self) -> Union[StaticTzInfo, DstTzInfo]:
         timezone_header = self.request.META.get("HTTP_USER_TIMEZONE", "UTC")
         return timezone_with_fallback(timezone_header)

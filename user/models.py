@@ -33,16 +33,6 @@ class User(SoftDeleteModel):
     email = models.EmailField(null=True, blank=True)
     email_verified = models.BooleanField(null=False, blank=False, default=False)
     fullname = models.CharField(max_length=255, blank=True)
-    student_class = models.ForeignKey(
-        "user.Class",
-        on_delete=models.SET_NULL,
-        db_column="class_id",
-        related_name="users",
-        null=True,
-    )
-    school = models.ForeignKey(
-        "user.School", on_delete=models.SET_NULL, related_name="users", null=True
-    )
     account = models.OneToOneField(
         Account, on_delete=models.CASCADE, related_name="user", null=False
     )
@@ -54,13 +44,6 @@ class User(SoftDeleteModel):
     )
     creation_type = models.CharField(
         max_length=16, choices=UserCreationType.choices, null=False, blank=False
-    )
-    avatar = models.ForeignKey(
-        "user.Avatar",
-        on_delete=models.CASCADE,
-        related_name="users",
-        null=True,
-        blank=True,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -171,53 +154,3 @@ class User(SoftDeleteModel):
             creation_type=UserCreationType.PERSONAL,
         )
         return user
-
-
-class Avatar(models.Model):
-    image = models.CharField(max_length=2048, blank=False, null=True)
-    created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
-    updated = DateTimeWithoutTZField(auto_now=True, editable=False)
-
-    class Meta:
-        db_table = "avatar"
-
-
-class Class(models.Model):
-    id = models.UUIDField(
-        unique=True, primary_key=True, default=uuid.uuid4, editable=False
-    )
-    branch = models.CharField(max_length=64, blank=False, null=False)
-    school = models.ForeignKey(
-        "user.School", null=False, related_name="classes", on_delete=models.CASCADE
-    )
-    created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
-    updated = DateTimeWithoutTZField(auto_now=True, editable=False)
-
-    class Meta:
-        unique_together = ("branch", "school")
-        db_table = "class"
-
-
-class School(models.Model):
-    PUBLIC = "PUBLIC"
-    PRIVATE = "PRIVATE"
-    ROLE = [
-        (PUBLIC, _("Public")),
-        (PRIVATE, _("Private")),
-    ]
-
-    id = models.UUIDField(
-        unique=True, primary_key=True, default=uuid.uuid4, editable=False
-    )
-    name = models.ForeignKey(
-        "common.Translation",
-        on_delete=models.CASCADE,
-        related_name="named_schools",
-        null=False,
-    )
-    type = models.CharField(max_length=15, choices=ROLE, default=PUBLIC)
-    created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
-    updated = DateTimeWithoutTZField(auto_now=True, editable=False)
-
-    class Meta:
-        db_table = "school"
