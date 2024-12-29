@@ -14,7 +14,7 @@ from user.models import User
 
 class ContactVerificationService:
     @staticmethod
-    def create_contact_verification(data, send_code: bool = True):
+    def create_contact_verification(data, send_code: bool = True) -> (Dict, str):
         medium = CommunicationMedium(data.get("medium", None))
         if not medium:
             raise CustomException.from_exception(

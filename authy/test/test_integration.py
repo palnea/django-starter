@@ -6,6 +6,7 @@ from mock import patch
 from model_bakery import baker
 
 from authy.models import Account
+from contact_verification.models import ContactVerification
 from custom_test.base_test import CustomIntegrationTestCase
 from user.models import User
 
@@ -53,12 +54,28 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
 
         url = reverse("register")
 
-        self.assertFalse(User.objects.filter(phone=phone).exists())
+        user_query = User.objects.filter(phone=phone)
+        self.assertFalse(user_query.exists())
 
         response = self.client.post(url, data, format="json")
 
         self.assertTrue(User.objects.filter(phone=phone).exists())
         self.assertEqual(response.status_code, 200)
+
+        url = reverse("login")
+        contact_verification = (
+            ContactVerification.objects.filter(receiver_address=phone)
+            .order_by("-id")
+            .first()
+        )
+        data["verification_code"] = contact_verification.code
+        data["verification_id"] = response.data.get("response_body").get("code_id")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.data.get("response_body").get("access"), None)
+
+        user = user_query.first()
+        self.assertTrue(user.phone_verified)
 
     @patch("communications.clients.sms.NetgsmSMSClient.send_sms")
     @patch("communications.clients.email.DjangoEmailClient.send_email")
@@ -80,9 +97,25 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
 
         response = self.client.post(url, data, format="json")
 
-        self.assertTrue(User.objects.filter(email=email).exists())
+        user_query = User.objects.filter(email=email)
+        self.assertTrue(user_query.exists())
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get("response_body").get("access"), None)
+
+        url = reverse("login")
+        contact_verification = (
+            ContactVerification.objects.filter(receiver_address=email)
+            .order_by("-id")
+            .first()
+        )
+        data["verification_code"] = contact_verification.code
+        data["verification_id"] = response.data.get("response_body").get("code_id")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(response.data.get("response_body").get("access"), None)
+
+        user = user_query.first()
+        self.assertTrue(user.email_verified)
 
     def test_login_with_phone(self):
         data = {"phone": self.user.phone, "password": "123"}

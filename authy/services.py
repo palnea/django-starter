@@ -5,9 +5,6 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
-from authy.helpers.token_helper import (
-    authenticate_user,
-)
 from authy.models import Account
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
@@ -39,23 +36,26 @@ class RegistrationService:
             account=account,
         )
 
+        contact_verification_id = None
         try:
             if user.email:
-                code = ContactVerificationService.create_contact_verification(
+                code, _ = ContactVerificationService.create_contact_verification(
                     {"receiver_address": data.get("email"), "medium": "email"},
                     send_code=False,
                 )
+                contact_verification_id = str(code.get("id"))
                 EmailService(DjangoEmailClient()).send_async(
                     [user.email],
                     _("email verification message").format(code=code),
                     _("Email Verification Code"),
-                    from_email=settings.EMAIL_HOST_USER,
+                    from_email="info@myapp.com",
                 )
             elif user.phone:
-                code = ContactVerificationService.create_contact_verification(
+                code, _ = ContactVerificationService.create_contact_verification(
                     {"receiver_address": data.get("phone"), "medium": "phone"},
                     send_code=False,
                 )
+                contact_verification_id = str(code.get("id"))
                 SMSService(get_sms_client()).send(
                     [user.phone.as_international.replace(" ", "").replace("+", "00")],
                     _("phone verification message").format(code=code),
@@ -64,7 +64,11 @@ class RegistrationService:
         except Exception as e:
             pass
 
-        return {"phone": user.phone_as_international, "email": user.email}
+        return {
+            "phone": user.phone_as_international,
+            "email": user.email,
+            "code_id": contact_verification_id,
+        }
 
 
 class PasswordService:
