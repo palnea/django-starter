@@ -31,7 +31,7 @@ log = get_logger(__name__)
 class UserViewSet(ModelViewSet):
     permission_classes = [HasWritePermission | IsOwner]
     pagination_class = CustomPageNumberPagination
-    queryset = User.objects.all().select_related("school")
+    queryset = User.objects.all()
     lookup_url_kwarg = "user_id"
     lookup_field = "id"
 
@@ -44,22 +44,17 @@ class UserViewSet(ModelViewSet):
         query_params = self.request.query_params
         created_from = query_params.get("created_from")
         created_to = query_params.get("created_to")
-        school_id = query_params.get("school_id", None)
-        school_ids = school_id and school_id.split(",")
         reference_code = query_params.get("reference_code", None)
         reference_codes = reference_code and reference_code.split(",")
         order_by = query_params.get("order_by")
 
-        queryset = User.objects.all().select_related("school")
+        queryset = User.objects.all()
 
         if created_from:
             queryset = queryset.filter(created__gte=created_from)
 
         if created_to:
             queryset = queryset.filter(created__lte=created_to)
-
-        if school_ids:
-            queryset = queryset.filter(school_id__in=school_ids)
 
         if reference_codes:
             queryset = queryset.filter(reference_codes__code__in=reference_codes)
