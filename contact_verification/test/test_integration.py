@@ -25,9 +25,9 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         url = reverse("contact-verification")
         response = self.client.post(url, data, format="json")
 
-        id = response.data["response_body"]["id"]
-
         self.assertEqual(response.status_code, 201)
+
+        id = response.data.get("response_body").get("id")
         self.assertTrue(ContactVerification.objects.filter(pk=id).exists())
         m_sms_response.assert_called_once_with(
             receiver=phone.replace("+", "00"),
@@ -87,3 +87,39 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         self.assertEqual(
             response.data.get("response_code"), "ERR_GENERAL_VALIDATION_ERROR"
         )
+
+    @patch("communications.clients.email.DjangoEmailClient.send_email")
+    def test_contact_verification_email(self, m_send_email):
+        email = "test@myapp.com"
+        data = {"email": email}
+        url = reverse("contact-verification")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertTrue(
+            ContactVerification.objects.filter(receiver_address=email).exists()
+        )
+        m_send_email.assert_called_once()
+
+    def test_verify_code_email(self):
+        email = "test@myapp.com"
+        self.user.email = email
+        self.user.email_verified = False
+        self.user.save()
+        contact_verification = ContactVerification.objects.create(
+            medium=CommunicationMedium.EMAIL.value,
+            receiver_address=email,
+            code="123456",
+        )
+        code = "123456"
+        data = {"uuid": contact_verification.id, "code": code}
+        url = reverse("verify-contact")
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get("response_code"), "MSG_GENERAL_SUCCESS")
+        contact_verification.refresh_from_db()
+        self.assertEqual(
+            contact_verification.status, ContactVerification.Status.VERIFIED.value
+        )
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.email_verified)
+        self.assertEqual(self.user.email, email)

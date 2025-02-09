@@ -34,12 +34,15 @@ class EmailService(BaseCommunicationService):
         message: str,
         header: str,
         from_email: str = settings.EMAIL_HOST_USER,
+        html_message: str = None,
+        **kwargs
     ) -> bool:
         return self._client.send_email(
             subject=header,
             message=message,
             recipient_list=receivers,
             from_email=from_email,
+            html_message=html_message,
         )
 
 
@@ -48,7 +51,7 @@ class SMSService(BaseCommunicationService):
         super().__init__(client)
 
     def _send(
-        self, receivers: List[str], message: str, header: str, language="en"
+        self, receivers: List[str], message: str, header: str, language="en", **kwargs
     ) -> bool:
         return self._client.send_sms(
             receiver=",".join(map(lambda x: x.replace("+", "00"), receivers)),

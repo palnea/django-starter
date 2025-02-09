@@ -38,7 +38,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("authy.urls")),
     path("user/", include("user.urls")),
-    path("contact_verification/", include("contact_verification.urls")),
+    path("contact-verification/", include("contact_verification.urls")),
     path("payment/", include("payment.urls")),
     path("common/", include("common.urls")),
     path(

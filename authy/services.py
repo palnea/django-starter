@@ -39,30 +39,30 @@ class RegistrationService:
         contact_verification_id = None
         try:
             if user.email:
-                code, _ = ContactVerificationService.create_contact_verification(
-                    {"receiver_address": data.get("email"), "medium": "email"},
-                    send_code=False,
+                code, message, contact_verification = (
+                    ContactVerificationService.create_contact_verification(
+                        {"receiver_address": data.get("email"), "medium": "email"},
+                        send_code=False,
+                    )
                 )
                 contact_verification_id = str(code.get("id"))
-                EmailService(DjangoEmailClient()).send_async(
-                    [user.email],
-                    _("email verification message").format(code=code),
-                    _("Email Verification Code"),
-                    from_email="info@myapp.com",
-                )
+                contact_verification.send_code()
             elif user.phone:
-                code, _ = ContactVerificationService.create_contact_verification(
-                    {"receiver_address": data.get("phone"), "medium": "phone"},
-                    send_code=False,
+                code, message, contact_verification = (
+                    ContactVerificationService.create_contact_verification(
+                        {"receiver_address": data.get("phone"), "medium": "phone"},
+                        send_code=False,
+                    )
                 )
                 contact_verification_id = str(code.get("id"))
-                SMSService(get_sms_client()).send(
-                    [user.phone.as_international.replace(" ", "").replace("+", "00")],
-                    _("phone verification message").format(code=code),
-                    settings.SMS_HEADER,
-                )
+                contact_verification.send_code()
         except Exception as e:
-            pass
+            raise CustomException(
+                detail={"error": str(e)},
+                code=ErrorCode.INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                message=_("Could not send the verification code"),
+            )
 
         return {
             "phone": user.phone_as_international,

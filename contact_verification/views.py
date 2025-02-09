@@ -40,7 +40,7 @@ class ContactVerificationViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
-        content, message = ContactVerificationService.create_contact_verification(
+        content, message, _ = ContactVerificationService.create_contact_verification(
             validated_data
         )
         view_response = ViewResponse(
