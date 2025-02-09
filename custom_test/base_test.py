@@ -41,7 +41,8 @@ class CustomIntegrationTestCase(TestCase):
 
     def create_admin_user(self, password="123", **kwargs):
         user, password = self.create_user(password, **kwargs)
-        user.account.groups.add(Group.objects.filter(name="Admin").first())
+        admin_group, _ = Group.objects.get_or_create(name="Admin")
+        user.account.groups.add(admin_group)
         user.account.save()
 
         return user, password

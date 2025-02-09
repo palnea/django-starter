@@ -6,10 +6,12 @@ import uuid
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import UniqueConstraint, Q
+from django.template.loader import render_to_string
+from django.utils.translation import gettext_lazy as _, activate
 
+from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from communications.services import CommunicationMedium, get_communication_service
 from utils.fields import DateTimeWithoutTZField
-from django.utils.translation import gettext_lazy as _
 
 
 # Create your models here.
@@ -73,18 +75,42 @@ class ContactVerification(models.Model):
     def get_sender(self):
         return get_communication_service(CommunicationMedium(self.medium))
 
+    def get_email_html_message(self, verification_code: str, user_name: str):
+        user_language = GlobalContextMiddleware.get_global_context().language_code
+        activate(user_language)
+
+        # Prepare context for email template
+        context = {
+            "verification_code": verification_code,
+            "user_name": user_name,
+            "expiry_time": settings.EMAIL_VERIFICATION_ACTIVE_INTERVAL,
+            "logo_url": f"{settings.LOGO_URL}",
+        }
+
+        # Render email template with context
+        return render_to_string("emails/verification_email.html", context)
+
     def send_code(self):
         # Send the code to user over given medium
         if self.code:
+            context = GlobalContextMiddleware.get_global_context()
             sender = self.get_sender()
 
-            message = _("Verification code message")
+            message = _("Verification code message").format(code=self.code)
+            email_html_message = self.get_email_html_message(
+                self.code, getattr(context.user, "fullname", "") or ""
+            )
             header = (
-                _("Verification code header")
+                _("Verify Your Email")
                 if self.medium == CommunicationMedium.EMAIL
                 else settings.SMS_HEADER
             )
-            success = sender.send([self.receiver_address], message, header)
+            success = sender.send_async(
+                [self.receiver_address],
+                message,
+                header,
+                html_message=email_html_message,
+            )
             if success:
                 self.status = ContactVerification.Status.SENT
             else:

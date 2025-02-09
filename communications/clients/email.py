@@ -21,6 +21,7 @@ class DjangoEmailClient(BaseEmailClient):
         message: str,
         recipient_list: List[str],
         from_email: str = settings.EMAIL_HOST_USER,
+        html_message: str = None,
     ) -> bool:
         try:
             send_mail(
@@ -28,6 +29,7 @@ class DjangoEmailClient(BaseEmailClient):
                 message,
                 from_email,
                 recipient_list,
+                html_message=html_message,
                 fail_silently=False,
             )
             return True

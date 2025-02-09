@@ -14,7 +14,9 @@ from user.models import User
 
 class ContactVerificationService:
     @staticmethod
-    def create_contact_verification(data, send_code: bool = True) -> (Dict, str):
+    def create_contact_verification(
+        data, send_code: bool = True
+    ) -> (Dict, str, ContactVerification):
         medium = CommunicationMedium(data.get("medium", None))
         if not medium:
             raise CustomException.from_exception(
@@ -43,10 +45,14 @@ class ContactVerificationService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         content = {"id": contact_verification.id}
-        return content, (
-            _("Code is sent. Check your email.")
-            if medium == CommunicationMedium.EMAIL
-            else _("Code is sent. Check your messages.")
+        return (
+            content,
+            (
+                _("Code is sent. Check your email.")
+                if medium == CommunicationMedium.EMAIL
+                else _("Code is sent. Check your messages.")
+            ),
+            contact_verification,
         )
 
     @staticmethod

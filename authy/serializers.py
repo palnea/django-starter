@@ -161,7 +161,7 @@ class UserRegisterSerializer(serializers.Serializer):
             )
 
         validation = {
-            "phone": data.get("phone") if data.get("phone") else None,
+            "phone": str(data.get("phone")) if data.get("phone") else None,
             "email": data.get("email").lower().strip() if data.get("email") else None,
             "password": data.get("password"),
         }

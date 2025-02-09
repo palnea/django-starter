@@ -272,3 +272,4 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 EMAIL_VERIFICATION_ACTIVE_INTERVAL = 1500  # a day
 PHONE_VERIFICATION_ACTIVE_INTERVAL = 300  # 5 minutes
 MAX_VERIFICATION_ATTEMPTS = 3
+LOGO_URL = "https://ideacdn.net/idea/iq/19/themes/selftpl_60ffab7e7aa23/assets/uploads/logo.png?revision=1737433142"
