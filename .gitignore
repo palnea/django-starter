@@ -349,3 +349,5 @@ Procfile.local
 
 # Local Overrides
 local_overrides.py
+
+.qodo

@@ -19,7 +19,7 @@ class BaseCommunicationService:
 
     @call_async
     def send_async(
-            self, receivers: List[str], message: str, header: str, **kwargs
+        self, receivers: List[str], message: str, header: str, **kwargs
     ) -> bool:
         return self._send(receivers=receivers, message=message, header=header, **kwargs)
 
@@ -29,13 +29,13 @@ class EmailService(BaseCommunicationService):
         super().__init__(client)
 
     def _send(
-            self,
-            receivers: str,
-            message: str,
-            header: str,
-            from_email: str = settings.EMAIL_HOST_USER,
-            html_message: str = None,
-            **kwargs
+        self,
+        receivers: str,
+        message: str,
+        header: str,
+        from_email: str = settings.EMAIL_HOST_USER,
+        html_message: str = None,
+        **kwargs
     ) -> bool:
         return self._client.send_email(
             subject=header,
@@ -51,7 +51,7 @@ class SMSService(BaseCommunicationService):
         super().__init__(client)
 
     def _send(
-            self, receivers: List[str], message: str, header: str, language="en", **kwargs
+        self, receivers: List[str], message: str, header: str, language="en", **kwargs
     ) -> bool:
         return self._client.send_sms(
             receiver=",".join(map(lambda x: x.replace("+", "00"), receivers)),
