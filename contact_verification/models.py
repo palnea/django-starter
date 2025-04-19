@@ -105,16 +105,13 @@ class ContactVerification(models.Model):
                 if self.medium == CommunicationMedium.EMAIL
                 else settings.SMS_HEADER
             )
-            success = sender.send_async(
+            sender.send_async(
                 [self.receiver_address],
                 message,
                 header,
                 html_message=email_html_message,
             )
-            if success:
-                self.status = ContactVerification.Status.SENT
-            else:
-                self.status = ContactVerification.Status.FAILED
+            self.status = ContactVerification.Status.SENT
             self.save()
 
     @property
