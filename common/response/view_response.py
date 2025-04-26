@@ -168,9 +168,15 @@ def log_view_response(
     exception_stack_trace = (
         traceback.format_exc() if view_response.exception is not None else None
     )
-    log_function = (
-        struct_logger.info if view_response.is_successful else struct_logger.error
-    )
+    # Determine the appropriate log function based on success and status code
+    if view_response.is_successful:
+        log_function = struct_logger.info
+    elif 400 <= view_response.response_status_code < 500:
+        # Log 4xx client errors as warnings
+        log_function = struct_logger.warning
+    else:
+        # Log 5xx server errors and other failures as errors
+        log_function = struct_logger.error
 
     request_user_id = GlobalContextMiddleware.get_global_context().user_id
     log_function(
