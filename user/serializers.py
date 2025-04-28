@@ -4,6 +4,10 @@ from user.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = User
         fields = "__all__"

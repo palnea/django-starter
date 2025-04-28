@@ -81,7 +81,7 @@ def get_user_day_range_for_start_hour(
 
 
 def get_user_week_range(
-    user_timezone: Union[StaticTzInfo, DstTzInfo]
+    user_timezone: Union[StaticTzInfo, DstTzInfo],
 ) -> (datetime, datetime):
     now = timezone.now().astimezone(user_timezone)
 
@@ -93,7 +93,7 @@ def get_user_week_range(
 
 
 def get_user_month_range(
-    user_timezone: Union[StaticTzInfo, DstTzInfo]
+    user_timezone: Union[StaticTzInfo, DstTzInfo],
 ) -> (datetime, datetime):
     now = timezone.now().astimezone(user_timezone)
     year = now.year
@@ -108,7 +108,7 @@ def get_user_month_range(
 
 
 def get_user_year_range(
-    user_timezone: Union[StaticTzInfo, DstTzInfo]
+    user_timezone: Union[StaticTzInfo, DstTzInfo],
 ) -> (datetime, datetime):
     now = timezone.now().astimezone(user_timezone)
     year = now.year

@@ -47,6 +47,10 @@ class TranslationBulkCreateSerializer(serializers.Serializer):
 
 
 class TranslationListItemSerializer(serializers.ModelSerializer):
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = Translation
         fields = "__all__"
@@ -57,11 +61,14 @@ class TranslationSerializer(serializers.ModelSerializer):
     translations = serializers.ListSerializer(
         child=TranslationListItemSerializer(), read_only=True
     )
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta:
         model = Translation
         fields = "__all__"
-        read_only_fields = ("root",)
+        read_only_fields = ("root", "created", "updated", "deleted_at")
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)
@@ -121,6 +128,10 @@ class TranslatedFileBulkCreateSerializer(serializers.Serializer):
 
 
 class TranslatedFileListItemSerializer(serializers.ModelSerializer):
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = TranslatedFile
         fields = "__all__"
@@ -133,11 +144,21 @@ class TranslatedFileSerializer(serializers.ModelSerializer):
     )
     url = serializers.SerializerMethodField(read_only=True)
     presigned_url = serializers.SerializerMethodField(read_only=True)
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta:
         model = TranslatedFile
         fields = "__all__"
-        read_only_fields = ("root", "vendor", "public", "directory", "bucket_name")
+        read_only_fields = (
+            "root",
+            "vendor",
+            "public",
+            "directory",
+            "bucket_name",
+            "deleted_at",
+        )
 
     def validate(self, attrs):
         validated_data = super().validate(attrs)

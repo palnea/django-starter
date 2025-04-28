@@ -43,6 +43,9 @@ class BuyableSerializer(serializers.ModelSerializer):
     special_offer_root = serializers.SerializerMethodField()
     title_id = serializers.IntegerField(required=True)
     description_id = serializers.IntegerField(required=True)
+    deleted_at = serializers.DateTimeField(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta:
         model = Buyable
@@ -50,6 +53,7 @@ class BuyableSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "title",
             "description",
+            "deleted_at",
         )
 
     def get_special_offer_root(self, obj):
