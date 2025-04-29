@@ -56,13 +56,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "common.middlewares.health_check_middleware.HealthCheckMiddleware",
-    "common.middlewares.global_context_middleware.GlobalContextMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "common.middlewares.global_context_middleware.GlobalContextMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "common.middlewares.swagger_middleware.SwaggerAccessMiddleware",
@@ -174,7 +174,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated"),
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "authy.utils.custom_jwt_authentication.CustomJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ),
