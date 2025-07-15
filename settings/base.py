@@ -34,6 +34,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",  # before django.contrib.admin
+    "unfold.contrib.filters",  # optional, if special filters are used
+    "unfold.contrib.forms",  # optional, if special form elements are used
+    "unfold.contrib.inlines",  # optional, if special inlines are used
+    "unfold.contrib.import_export",  # optional, if django-import-export package is used
+    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -276,3 +283,32 @@ EMAIL_VERIFICATION_ACTIVE_INTERVAL = 1500  # a day
 PHONE_VERIFICATION_ACTIVE_INTERVAL = 300  # 5 minutes
 MAX_VERIFICATION_ATTEMPTS = 3
 LOGO_URL = "https://ideacdn.net/idea/iq/19/themes/selftpl_60ffab7e7aa23/assets/uploads/logo.png?revision=1737433142"
+
+# Unfold Admin Configuration
+UNFOLD = {
+    "SITE_TITLE": "MyApp Admin",
+    "SITE_HEADER": "MyApp Administration",
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "speed",  # symbol from icon set
+    "SHOW_HISTORY": True,  # show/hide "History" button, default: True
+    "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255",
+            "200": "233 213 255",
+            "300": "216 180 254",
+            "400": "196 144 254",
+            "500": "168 85 247",
+            "600": "147 51 234",
+            "700": "126 34 206",
+            "800": "107 33 168",
+            "900": "88 28 135",
+            "950": "59 7 100",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "show_all_applications": True,  # Dropdown with all applications and models
+    },
+}

@@ -1,0 +1,21 @@
+/* Custom Admin Styles for MyApp */
+.admin-title {
+    font-weight: 600;
+    color: #168085;
+}
+
+/* Additional custom styles can be added here */
+.unfold-admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Custom button styles */
+.btn-primary-custom {
+    background-color: #168085;
+    border-color: #168085;
+}
+
+.btn-primary-custom:hover {
+    background-color: #126e73;
+    border-color: #126e73;
+} 
