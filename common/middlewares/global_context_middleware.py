@@ -50,10 +50,10 @@ class GlobalContext:
         cache_key = f"user_{self.user_id}_perms"
         permissions = cache.get(cache_key)
         if permissions is None:
-            account = self.account
+            user = self.user
             permissions = (
-                set(account.get_all_permissions())
-                if account.is_authenticated
+                set(user.get_all_permissions())
+                if user and user.is_authenticated
                 else set()
             )
             cache.set(cache_key, permissions, timeout=3600)
@@ -66,13 +66,13 @@ class GlobalContext:
 
     @cached_property
     def user(self) -> Union["User", None]:
-        account = self.request.user
-        if str(account.__class__.__name__) == "Account":
-            return account.user
+        user = self.request.user
+        if str(user.__class__.__name__) == "User":
+            return user
         return None
 
     @cached_property
-    def account(self) -> Union["Account", None]:
+    def account(self) -> Union["User", None]:
         return self.request.user
 
     @cached_property

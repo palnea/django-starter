@@ -28,10 +28,8 @@ def set_token_parameters(token: Token, parameters: Dict[str, any]) -> Token:
 
 
 def authenticate_response(user: "User"):
-    account = user.account
-
     try:
-        token = CustomTokenObtainPairSerializer.get_token(account, user)
+        token = CustomTokenObtainPairSerializer.get_token(user, user)
         refresh_token = token
         access_token = token.access_token
         subscription = get_token_subscription_for_user(user)
@@ -45,7 +43,7 @@ def authenticate_response(user: "User"):
             },
         )
 
-        update_last_login(None, account)
+        update_last_login(None, user)
 
         validation = {
             "access": str(access_token),
@@ -63,8 +61,7 @@ def authenticate_response(user: "User"):
 
 
 def authenticate_user(user: "User", password: str):
-    auth_user = authenticate(id=user.account_id, password=password)
-    if auth_user is None:
+    if not user.check_password(password):
         raise CustomException(
             "Invalid login credentials",
             ErrorCode.AUTHENTICATION_FAILED,

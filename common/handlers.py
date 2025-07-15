@@ -4,7 +4,7 @@ import os
 from typing import List
 
 from django.apps import apps
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_migrate
@@ -43,9 +43,9 @@ def get_viewsets(app_label=None):
         for root, _, files in os.walk(app_path):
             for file in files:
                 if (
-                    file == "admin.py"
-                    or file.startswith("__")
-                    or not file.endswith(".py")
+                        file == "admin.py"
+                        or file.startswith("__")
+                        or not file.endswith(".py")
                 ):
                     continue
 
@@ -61,14 +61,14 @@ def get_viewsets(app_label=None):
                     for attr_name in dir(module):
                         attr = getattr(module, attr_name)
                         if (
-                            inspect.isclass(attr)
-                            and issubclass(attr, View)
-                            and attr is not View
+                                inspect.isclass(attr)
+                                and issubclass(attr, View)
+                                and attr is not View
                         ):
                             # Check that the module is from the current app and not third-party
                             if module.__name__.startswith(app_config.name) and not any(
-                                module.__name__.startswith(prefix)
-                                for prefix in third_party_prefixes
+                                    module.__name__.startswith(prefix)
+                                    for prefix in third_party_prefixes
                             ):
                                 viewsets.append((attr, app_config.label))
                 except (ModuleNotFoundError, ImportError, ImproperlyConfigured):
@@ -123,15 +123,15 @@ def contains_permission(permission_classes, permission_class):
             # Inspect permissions within the compound permission
             for sub_perm in perm.permissions:
                 if (
-                    sub_perm == permission_class
-                    or sub_perm.__class__ == permission_class
+                        sub_perm == permission_class
+                        or sub_perm.__class__ == permission_class
                 ):
                     return True
         # Handle compound permissions (e.g., OperandHolder objects)
         if hasattr(perm, "op1_class") and hasattr(perm, "op2_class"):
             # Recursively check both operands
             if contains_permission(
-                [perm.op1_class], permission_class
+                    [perm.op1_class], permission_class
             ) or contains_permission([perm.op2_class], permission_class):
                 return True
     return False
@@ -143,6 +143,8 @@ def create_permissions(sender, **kwargs):
     Signal handler to create custom permissions for ModelViewSet actions after migrations,
     including those without an associated model.
     """
+    create_admin_group_with_all_permissions()
+
     for viewset_class, app_label in get_viewsets(sender.name):
         # Determine if the viewset has a queryset/model or should use a fallback content type
         if hasattr(viewset_class, "queryset") and viewset_class.queryset is not None:
@@ -162,7 +164,7 @@ def create_permissions(sender, **kwargs):
 
         # Create permissions for IsActionPermissionGranted if used in permission_classes
         if contains_permission(
-            viewset_class.permission_classes, IsActionPermissionGranted
+                viewset_class.permission_classes, IsActionPermissionGranted
         ):
             for action in actions:
                 codename = f"{view_name}.{action}"
@@ -182,3 +184,8 @@ def create_permissions(sender, **kwargs):
                 name=write_permission_name,
                 content_type=content_type,
             )
+
+
+def create_admin_group_with_all_permissions():
+    # Ensure the Admin group exists
+    Group.objects.get_or_create(name="Admin")

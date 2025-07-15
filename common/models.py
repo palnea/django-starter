@@ -131,7 +131,8 @@ class Translation(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translations",
-        default=Locale.get_default,
+        null=True,
+        blank=True,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -161,6 +162,8 @@ class Translation(SoftDeleteModel):
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         is_create = not bool(self.id)
+        if self.locale_id is None:
+            self.locale = Locale.get_default()
         super().save(force_insert, force_update, using, update_fields)
         if is_create and self.root_id is None:
             self.root_id = self.id
@@ -259,7 +262,8 @@ class TranslatedFile(SoftDeleteModel):
         Locale,
         on_delete=models.CASCADE,
         related_name="translated_files",
-        default=Locale.get_default,
+        null=True,
+        blank=True,
     )
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -294,6 +298,8 @@ class TranslatedFile(SoftDeleteModel):
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         is_create = not bool(self.id)
+        if self.locale_id is None:
+            self.locale = Locale.get_default()
         super().save(force_insert, force_update, using, update_fields)
         if is_create and self.root_id is None:
             self.root_id = self.id

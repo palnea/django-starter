@@ -5,7 +5,6 @@ from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 
-from authy.models import Account
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from communications.clients.email import DjangoEmailClient
@@ -20,21 +19,13 @@ class RegistrationService:
     @staticmethod
     @transaction.atomic
     def register(data):
-        # Create account
-        account = Account.objects.create()
-        account.set_password(data["password"])
-        account.save()
-
-        # Create user
+        # Create user with password
         user_data = {
             x: data[x]
             for x in data
             if x not in ["password", "verify_password", "reference_code"]
         }
-        user = User.objects.create(
-            **user_data,
-            account=account,
-        )
+        user = User.create_with_password({**user_data, "password": data["password"]})
 
         contact_verification_id = None
         try:
@@ -109,11 +100,10 @@ class PasswordService:
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-        account = user.account
         password = random_numeric_string(6)
 
-        account.set_password(password)
-        account.save()
+        user.set_password(password)
+        user.save()
 
         if data.get("email"):
             EmailService(DjangoEmailClient()).send_async(

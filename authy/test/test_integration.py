@@ -5,7 +5,6 @@ from django.urls import reverse
 from mock import patch
 from model_bakery import baker
 
-from authy.models import Account
 from contact_verification.models import ContactVerification
 from custom_test.base_test import CustomIntegrationTestCase
 from user.models import User
@@ -16,18 +15,14 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         super().setUp()
         self.create_common_models()
         self.email_password = "123"
-        self.email_account = baker.make(
-            Account, id="381c8642-6135-4efe-a487-4b93a4217c06"
-        )
-        self.email_account.set_password(self.email_password)
-        self.email_account.save()
         self.email_user = baker.make(
             User,
             id="381c8642-6135-4efe-a487-4b93a4217c06",
-            account=self.email_account,
             email="myapp@yopmail.com",
             email_verified=True,
         )
+        self.email_user.set_password(self.email_password)
+        self.email_user.save()
 
     def test_admin_group_exists(self):
         """
@@ -232,17 +227,13 @@ class SocialAuthenticationTestCase(CustomIntegrationTestCase):
         super().setUp()
         self.create_common_models()
         self.email_password = "123"
-        self.email_account = baker.make(
-            Account, id="381c8642-6135-4efe-a487-4b93a4217c06"
-        )
-        self.email_account.set_password(self.email_password)
-        self.email_account.save()
         self.email_user = baker.make(
             User,
             id="381c8642-6135-4efe-a487-4b93a4217c06",
-            account=self.email_account,
             email="myapp@yopmail.com",
         )
+        self.email_user.set_password(self.email_password)
+        self.email_user.save()
 
     @override_settings(GOOGLE_CLIENT_ID="google")
     @override_settings(SOCIAL_SECRET="social")

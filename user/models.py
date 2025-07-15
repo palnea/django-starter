@@ -1,6 +1,8 @@
 import uuid
 from typing import List, Dict
 
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.db.models import Q, Case, When, Value, CharField
@@ -10,7 +12,7 @@ from django_softdelete.models import SoftDeleteModel
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework import status
 
-from authy.models import Account
+from authy.managers import CustomUserManager
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Locale
 from common.response.response_information_codes.error_code import ErrorCode
@@ -22,7 +24,7 @@ from utils.converters import ModelConverter
 from utils.fields import DateTimeWithoutTZField
 
 
-class User(SoftDeleteModel):
+class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
     username_validator = UnicodeUsernameValidator()
 
     id = models.UUIDField(
@@ -30,27 +32,50 @@ class User(SoftDeleteModel):
     )
     phone = PhoneNumberField(null=True, blank=True)
     phone_verified = models.BooleanField(null=False, blank=False, default=False)
-    email = models.EmailField(null=True, blank=True)
+    email = models.EmailField(null=True, blank=True, unique=True)
     email_verified = models.BooleanField(null=False, blank=False, default=False)
+    
+    # User profile fields
     fullname = models.CharField(max_length=255, blank=True)
-    account = models.OneToOneField(
-        Account, on_delete=models.CASCADE, related_name="user", null=False
-    )
     locale = models.ForeignKey(
         Locale,
         on_delete=models.CASCADE,
         related_name="users",
-        default=Locale.get_default,
+        null=True,
+        blank=True,
     )
     creation_type = models.CharField(
         max_length=16, choices=UserCreationType.choices, null=False, blank=False
     )
+    
+    # Permission fields
+    is_active = models.BooleanField(
+        _("active"),
+        default=True,
+        help_text=_(
+            "Designates whether this user should be treated as active. "
+            "Unselect this instead of deleting accounts."
+        ),
+    )
+    is_staff = models.BooleanField(default=False)
+    
+    # Timestamps
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
     deleted_at = DateTimeWithoutTZField(blank=True, null=True)
 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+    
+    objects = CustomUserManager()
+
+    def save(self, *args, **kwargs):
+        if self.locale_id is None:
+            self.locale = Locale.get_default()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.email
+        return self.email or self.phone_as_international or str(self.id)
 
     class Meta:
         db_table = "user"
@@ -132,9 +157,9 @@ class User(SoftDeleteModel):
         return user_dict
 
     @staticmethod
-    def create_with_account(data: Dict[str, any]):
+    def create_with_password(data: Dict[str, any]):
         """
-        Creates a user with an account
+        Creates a user with password
         """
         errors, validated_data = UserValidator(data).validate_create()
         if errors:
@@ -145,12 +170,11 @@ class User(SoftDeleteModel):
                 message=_("Validation error occured. Please check the fields."),
             )
 
-        account = Account.objects.create()
-        account.set_password(validated_data.pop("password"))
-        account.save()
+        password = validated_data.pop("password")
         user = User.objects.create(
             **validated_data,
-            account=account,
             creation_type=UserCreationType.PERSONAL,
         )
+        user.set_password(password)
+        user.save()
         return user

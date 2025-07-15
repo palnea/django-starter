@@ -158,8 +158,5 @@ class CodeVerificationService:
             user.email_verified = True
         elif phone:
             user.phone_verified = True
+        user.is_active = True
         user.save()
-
-        account = user.account
-        account.is_active = True
-        account.save()

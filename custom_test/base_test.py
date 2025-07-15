@@ -7,7 +7,6 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
-from authy.models import Account
 from common.models import Locale
 from common.models import Translation
 from payment.models import Buyable
@@ -34,16 +33,20 @@ class CustomIntegrationTestCase(TestCase):
             phone = self.generate_valid_phone_number()
             kwargs["phone"] = phone
             kwargs["phone_verified"] = kwargs.get("phone_verified", True)
-        account = baker.make(Account, id=uuid.uuid4())
-        account.set_password(password)
-        account.save()
-        return baker.make(User, id=uuid.uuid4(), account=account, **kwargs), password
+        if kwargs.get("email", None) is None:
+            kwargs["email"] = f"user{uuid.uuid4()}@example.com"
+        user = baker.make(User, id=uuid.uuid4(), **kwargs)
+        user.set_password(password)
+        user.save()
+        return user, password
 
     def create_admin_user(self, password="123", **kwargs):
         user, password = self.create_user(password, **kwargs)
         admin_group, _ = Group.objects.get_or_create(name="Admin")
-        user.account.groups.add(admin_group)
-        user.account.save()
+        user.groups.add(admin_group)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
 
         return user, password
 
