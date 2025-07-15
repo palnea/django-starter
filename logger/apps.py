@@ -1,7 +1,7 @@
 import structlog
 from django.apps import AppConfig
 
-from logger.logging_processors import send_to_newrelic
+from logger.logging_processors import send_to_betterstack
 
 
 class LoggerConfig(AppConfig):
@@ -9,7 +9,7 @@ class LoggerConfig(AppConfig):
     name = "logger"
 
     def ready(self):
-        # Configure Structlog's processor pipeline
+        # Configure Structlog's processor pipeline for BetterStack
         structlog.configure(
-            processors=[send_to_newrelic, structlog.processors.JSONRenderer()],
+            processors=[send_to_betterstack, structlog.processors.JSONRenderer()],
         )

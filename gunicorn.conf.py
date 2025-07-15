@@ -1,10 +1,18 @@
-import newrelic.agent
-
+import os
 from utils.constants.environment_variables import get_environment
 
 
 def post_fork(server, worker):
+    """
+    Post-fork hook for Gunicorn workers.
+    BetterStack doesn't require agent initialization like New Relic.
+    Just ensure environment variables are available.
+    """
     environment = get_environment()
-    newrelic_config_file = "settings/logger/" + environment + ".ini"
-    newrelic.agent.initialize(newrelic_config_file)
-    newrelic.agent.register_application(timeout=10.0)
+    
+    # Ensure BetterStack token is available
+    betterstack_token = os.environ.get('BETTERSTACK_SOURCE_TOKEN')
+    if not betterstack_token:
+        print(f"Warning: BETTERSTACK_SOURCE_TOKEN not set for {environment} environment")
+    else:
+        print(f"BetterStack logging configured for {environment} environment")

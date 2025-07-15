@@ -70,6 +70,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "common.middlewares.global_context_middleware.GlobalContextMiddleware",
+    "common.middlewares.betterstack_apm_middleware.BetterStackAPMMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "common.middlewares.swagger_middleware.SwaggerAccessMiddleware",
@@ -310,5 +311,83 @@ UNFOLD = {
     "SIDEBAR": {
         "show_search": True,  # Search in applications and models names
         "show_all_applications": True,  # Dropdown with all applications and models
+    },
+}
+
+# BetterStack Configuration
+BETTERSTACK_SOURCE_TOKEN = os.environ.get('BETTERSTACK_SOURCE_TOKEN')
+
+# Django Logging Configuration with BetterStack integration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'json': {
+            '()': 'pythonjsonlogger.jsonlogger.JsonFormatter',
+            'format': '%(asctime)s %(name)s %(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'betterstack': {
+            'class': 'logtail.LogtailHandler',
+            'source_token': BETTERSTACK_SOURCE_TOKEN,
+        } if BETTERSTACK_SOURCE_TOKEN else {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'betterstack'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'betterstack'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # Application loggers
+        'authy': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'user': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'payment': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'vendor': {
+            'handlers': ['console', 'betterstack'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
