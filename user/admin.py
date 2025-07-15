@@ -35,7 +35,14 @@ class UserAdmin(BaseUserAdmin):
         ),
     )
     list_display = ("email", "fullname", "is_staff", "is_active", "created")
-    list_filter = ("is_staff", "is_superuser", "is_active", "email_verified", "phone_verified", "creation_type")
+    list_filter = (
+        "is_staff",
+        "is_superuser",
+        "is_active",
+        "email_verified",
+        "phone_verified",
+        "creation_type",
+    )
     search_fields = ("email", "fullname", "phone")
     ordering = ("email",)
     readonly_fields = ("created", "updated", "last_login")

@@ -35,6 +35,11 @@ class UserValidator(BaseValidator):
                 message=_("Validation error occured. Please check the fields."),
             )
 
-        validated_data = {"email": email, "phone": phone, "password": password, "fullname": fullname}
+        validated_data = {
+            "email": email,
+            "phone": phone,
+            "password": password,
+            "fullname": fullname,
+        }
 
         return errors, validated_data

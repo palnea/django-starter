@@ -43,9 +43,9 @@ def get_viewsets(app_label=None):
         for root, _, files in os.walk(app_path):
             for file in files:
                 if (
-                        file == "admin.py"
-                        or file.startswith("__")
-                        or not file.endswith(".py")
+                    file == "admin.py"
+                    or file.startswith("__")
+                    or not file.endswith(".py")
                 ):
                     continue
 
@@ -61,14 +61,14 @@ def get_viewsets(app_label=None):
                     for attr_name in dir(module):
                         attr = getattr(module, attr_name)
                         if (
-                                inspect.isclass(attr)
-                                and issubclass(attr, View)
-                                and attr is not View
+                            inspect.isclass(attr)
+                            and issubclass(attr, View)
+                            and attr is not View
                         ):
                             # Check that the module is from the current app and not third-party
                             if module.__name__.startswith(app_config.name) and not any(
-                                    module.__name__.startswith(prefix)
-                                    for prefix in third_party_prefixes
+                                module.__name__.startswith(prefix)
+                                for prefix in third_party_prefixes
                             ):
                                 viewsets.append((attr, app_config.label))
                 except (ModuleNotFoundError, ImportError, ImproperlyConfigured):
@@ -123,15 +123,15 @@ def contains_permission(permission_classes, permission_class):
             # Inspect permissions within the compound permission
             for sub_perm in perm.permissions:
                 if (
-                        sub_perm == permission_class
-                        or sub_perm.__class__ == permission_class
+                    sub_perm == permission_class
+                    or sub_perm.__class__ == permission_class
                 ):
                     return True
         # Handle compound permissions (e.g., OperandHolder objects)
         if hasattr(perm, "op1_class") and hasattr(perm, "op2_class"):
             # Recursively check both operands
             if contains_permission(
-                    [perm.op1_class], permission_class
+                [perm.op1_class], permission_class
             ) or contains_permission([perm.op2_class], permission_class):
                 return True
     return False
@@ -164,7 +164,7 @@ def create_permissions(sender, **kwargs):
 
         # Create permissions for IsActionPermissionGranted if used in permission_classes
         if contains_permission(
-                viewset_class.permission_classes, IsActionPermissionGranted
+            viewset_class.permission_classes, IsActionPermissionGranted
         ):
             for action in actions:
                 codename = f"{view_name}.{action}"

@@ -34,7 +34,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
     phone_verified = models.BooleanField(null=False, blank=False, default=False)
     email = models.EmailField(null=True, blank=True, unique=True)
     email_verified = models.BooleanField(null=False, blank=False, default=False)
-    
+
     # User profile fields
     fullname = models.CharField(max_length=255, blank=True)
     locale = models.ForeignKey(
@@ -47,7 +47,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
     creation_type = models.CharField(
         max_length=16, choices=UserCreationType.choices, null=False, blank=False
     )
-    
+
     # Permission fields
     is_active = models.BooleanField(
         _("active"),
@@ -58,7 +58,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
         ),
     )
     is_staff = models.BooleanField(default=False)
-    
+
     # Timestamps
     created = DateTimeWithoutTZField(auto_now_add=True, editable=False)
     updated = DateTimeWithoutTZField(auto_now=True, editable=False)
@@ -66,7 +66,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
-    
+
     objects = CustomUserManager()
 
     def save(self, *args, **kwargs):

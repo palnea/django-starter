@@ -6,7 +6,9 @@ INSTALLED_APPS += (
 
 ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]", "*"]
 
-DATABASES["default"] = dj_database_url.parse(os.environ.get("DATABASE_URL", "postgresql://localhost:6666/myapp"))
+DATABASES["default"] = dj_database_url.parse(
+    os.environ.get("DATABASE_URL", "postgresql://localhost:6666/myapp")
+)
 
 SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
 
