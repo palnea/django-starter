@@ -19,6 +19,7 @@ django-filter==25.1
 django-phonenumber-field==8.1.0
 django-phonenumbers==1.0.1
 django-soft-delete==1.0.18
+django-unfold==0.62.0
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 drf-yasg==1.21.10
