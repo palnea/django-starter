@@ -2,6 +2,7 @@ from django.conf import settings
 
 from authy.helpers.token_helper import social_auth_authenticate_user
 from user.models import User
+from user.types import UserCreationType
 
 
 def login_social_user(provider, user_id, email, name, contact_permission=False):
@@ -14,8 +15,11 @@ def login_social_user(provider, user_id, email, name, contact_permission=False):
         data = {
             "email": email,
             "password": password,
-            "auth_provider": provider,
-            "contact_permission": contact_permission,
+            "fullname": name or "",
         }
-        user = User.create_with_account(data=data)
+        user = User.create_with_password(data=data)
+        # Set additional social auth specific fields
+        user.email_verified = True  # Email is verified through social provider
+        user.creation_type = UserCreationType.PERSONAL
+        user.save()
     return social_auth_authenticate_user(user)

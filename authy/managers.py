@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils.translation import gettext_lazy as _
+from django_softdelete.models import SoftDeleteManager
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 
 
-class CustomUserManager(BaseUserManager):
+class CustomUserManager(SoftDeleteManager, BaseUserManager):
     """
     Custom user model where the email address is the unique identifier
     and has an is_admin field to allow access to the admin app
@@ -31,6 +32,32 @@ class CustomUserManager(BaseUserManager):
         user.set_password(password)
         user.save()
         return user
+
+    def create_user(self, email=None, password=None, **extra_fields):
+        """
+        Create and save a regular User with the given email and password.
+        """
+        if not email:
+            raise ValueError(_("The Email must be set"))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, email=None, password=None, **extra_fields):
+        """
+        Create and save a SuperUser with the given email and password.
+        """
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError(_("Superuser must have is_staff=True."))
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError(_("Superuser must have is_superuser=True."))
+        return self.create_user(email, password, **extra_fields)
 
     def create_admin(self, password, **extra_fields):
         extra_fields.setdefault("is_active", True)

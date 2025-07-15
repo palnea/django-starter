@@ -190,11 +190,11 @@ class UpdatePasswordSerializer(serializers.Serializer):
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        account = request.user if request else None
+        user = request.user if request else None
 
-        account = authenticate(id=account.id, password=old_password)
+        authenticated_user = authenticate(email=user.email, password=old_password)
         errors = {}
-        if not account:
+        if not authenticated_user:
             errors.update({"old_password": ["Password is incorrect!"]})
 
         if new_password != confirm_password:
@@ -207,8 +207,8 @@ class UpdatePasswordSerializer(serializers.Serializer):
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        account.set_password(new_password)
-        account.save()
+        user.set_password(new_password)
+        user.save()
         return {}
 
 

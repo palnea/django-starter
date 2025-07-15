@@ -6,8 +6,9 @@ INSTALLED_APPS += (
 
 ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]", "*"]
 
-if DATABASES["default"] == {}:
-    DATABASES["default"] = dj_database_url.parse("postgresql://localhost:6666/myapp")
+DATABASES["default"] = dj_database_url.parse(
+    os.environ.get("DATABASE_URL", "postgresql://localhost:6666/myapp")
+)
 
 SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
 
@@ -73,6 +74,8 @@ NETGSM_PASSWORD = os.environ.get("NETGSM_PASSWORD", "123456")
 SMS_HEADER = os.environ.get("SMS_HEADER", "VD")
 
 SWAGGER_ACCESS_PASSCODE = os.environ.get("SWAGGER_ACCESS_PASSCODE", "swagger")
+
+SOCIAL_SECRET = os.environ.get("SOCIAL_SECRET", "dev-social-secret-123")
 
 try:
     from settings.local_overrides import *

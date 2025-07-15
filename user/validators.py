@@ -14,14 +14,12 @@ class UserValidator(BaseValidator):
         super().__init__(data)
 
     def validate_create(self, raise_exception: bool = False) -> (bool, Dict[str, any]):
-        errors = self.check_nulls(["email", "password"])
-
-        if len(errors) > 0:
-            return errors, {}
+        errors = []
 
         email = self._data.get("email", None)
         phone = self._data.get("phone", None)
         password = self._data.get("password", None)
+        fullname = self._data.get("fullname", "")
 
         if email is None and phone is None:
             errors.append("Email or phone should be provided")
@@ -37,6 +35,11 @@ class UserValidator(BaseValidator):
                 message=_("Validation error occured. Please check the fields."),
             )
 
-        validated_data = {"email": email, "phone": phone, "password": password}
+        validated_data = {
+            "email": email,
+            "phone": phone,
+            "password": password,
+            "fullname": fullname,
+        }
 
         return errors, validated_data

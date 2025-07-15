@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 if TYPE_CHECKING:
-    from user.models import Account, User
+    from user.models import User
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -14,15 +14,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         pass
 
     @classmethod
-    def get_token(cls, account: "Account", user: "User"):
-        token = super().get_token(account)
+    def get_token(cls, user: "User", user_obj: "User"):
+        token = super().get_token(user)
 
         token["email"] = user.email
         token["phone"] = user.phone and user.phone.as_international.replace(" ", "")
         token["user_id"] = str(user.id)
-        token["groups"] = list(account.groups.values_list("name", flat=True))
+        token["groups"] = list(user.groups.values_list("name", flat=True))
         token["permissions"] = list(
-            account.user_permissions.values_list("codename", flat=True)
+            user.user_permissions.values_list("codename", flat=True)
         )
 
         return token

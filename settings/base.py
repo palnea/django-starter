@@ -135,7 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "authy.Account"
+AUTH_USER_MODEL = "user.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -253,6 +253,9 @@ APPLE_CONNECT_API_KEY_ID = os.environ.get("APPLE_CONNECT_API_KEY_ID")
 APPLE_CONNECT_API_SIGNING_KEY = os.environ.get("APPLE_CONNECT_API_SIGNING_KEY")
 
 SIMPLE_JWT["SIGNING_KEY"] = os.environ.get("SECRET_KEY")
+
+# Social Authentication
+SOCIAL_SECRET = os.environ.get("SOCIAL_SECRET", "default-social-secret-key")
 
 AWS_S3_ACCESS_KEY_ID = os.environ.get("AWS_S3_ACCESS_KEY_ID")
 AWS_S3_SECRET_ACCESS_KEY = os.environ.get("AWS_S3_SECRET_ACCESS_KEY")

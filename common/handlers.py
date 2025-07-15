@@ -4,7 +4,7 @@ import os
 from typing import List
 
 from django.apps import apps
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_migrate
@@ -143,6 +143,8 @@ def create_permissions(sender, **kwargs):
     Signal handler to create custom permissions for ModelViewSet actions after migrations,
     including those without an associated model.
     """
+    create_admin_group_with_all_permissions()
+
     for viewset_class, app_label in get_viewsets(sender.name):
         # Determine if the viewset has a queryset/model or should use a fallback content type
         if hasattr(viewset_class, "queryset") and viewset_class.queryset is not None:
@@ -182,3 +184,8 @@ def create_permissions(sender, **kwargs):
                 name=write_permission_name,
                 content_type=content_type,
             )
+
+
+def create_admin_group_with_all_permissions():
+    # Ensure the Admin group exists
+    Group.objects.get_or_create(name="Admin")
