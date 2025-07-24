@@ -6,10 +6,11 @@ from structlog import get_logger
 
 from common.pagination import CustomPageNumberPagination
 from common.permissions.generic_permissions import (
-    DjangoModelPermissionsWithOwnership,
+    DjangoModelPermissionsWithView,
     IsOwnerWithoutSideEffects,
     ShortCircuitOr,
 )
+from common.view_mixins import OwnershipMixin
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
@@ -29,25 +30,31 @@ log = get_logger(__name__)
 
 
 # Create your views here.
-class UserViewSet(ModelViewSet):
+class UserViewSet(OwnershipMixin, ModelViewSet):
     """
     ViewSet for User model with Django model permissions and ownership checks.
     
     Permissions:
-    - DjangoModelPermissionsWithOwnership: Combines Django model permissions with ownership logic
+    - DjangoModelPermissionsWithView: Standard Django model permissions for admins
+    - IsOwnerWithoutSideEffects: Ownership checks for regular users
+    - ShortCircuitOr: Combines permissions without side effects
+    
+    Mixins:
+    - OwnershipMixin: Handles queryset filtering and user_id injection explicitly in views
     
     Permission Flow:
     - Users with model-level permissions (add_user, change_user, delete_user, view_user) can access all user data
     - Users without model-level permissions can only access their own user data  
-    - user_id is automatically injected for users without broad permissions
+    - user_id is automatically injected for users without broad permissions (via mixin)
     - Follows Django best practices by checking actual permissions, not user roles
     
     This means:
     - Admins with appropriate permissions can perform any action on any user
     - Regular users can only read/modify their own user data
     - No role-based checks - everything is permission-based
+    - All side effects are handled explicitly in view layer (not hidden in permissions)
     """
-    permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithOwnership, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithView, IsOwnerWithoutSideEffects)]
     pagination_class = CustomPageNumberPagination
     queryset = User.objects.all()
     lookup_url_kwarg = "user_id"
@@ -59,19 +66,16 @@ class UserViewSet(ModelViewSet):
         return UserSerializer
 
     def get_queryset(self):
+        # Start with ownership-filtered queryset from mixin
+        queryset = super().get_queryset()
+        
+        # Apply additional custom filtering based on query parameters
         query_params = self.request.query_params
         created_from = query_params.get("created_from")
         created_to = query_params.get("created_to")
         reference_code = query_params.get("reference_code", None)
         reference_codes = reference_code and reference_code.split(",")
         order_by = query_params.get("order_by")
-
-        queryset = User.objects.all()
-
-        # Filter by user for users without broad view permissions
-        # The permission class will handle the permission checking
-        if not self.request.user.has_perm('user.view_user'):
-            queryset = queryset.filter(id=self.request.user.id)
 
         if created_from:
             queryset = queryset.filter(created__gte=created_from)

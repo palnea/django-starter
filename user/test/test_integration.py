@@ -58,34 +58,197 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         )
         self.assertFalse(User.objects.filter(id=created_user.id).exists())
 
-    def test_regular_user_can_only_access_own_data(self):
+    def test_regular_user_can_only_list_own_data(self):
         """
-        Test that regular users can only access their own user data.
+        Test that regular users can only see their own data in list operations.
+        """
+        # Create additional users
+        user2, password2 = self.create_user()
+        user3, password3 = self.create_user()
+        
+        # Login as regular user (self.user created in setUp)
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # List users - should only see own data
+        url = reverse("user-viewset")
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_users = response.data.get("response_body")
+        
+        # Should only see own user data  
+        self.assertEqual(response_users['count'], 1)
+        self.assertEqual(len(response_users['results']), 1)
+        self.assertEqual(response_users['results'][0]["id"], str(self.user.id))
+
+    def test_regular_user_can_access_own_detail(self):
+        """
+        Test that regular users can access their own user detail.
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Access own user detail - should work
+        url = reverse("user-detail-viewset", kwargs={"user_id": self.user.id})
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("response_body").get("id"), str(self.user.id))
+
+    def test_regular_user_cannot_access_other_user_detail(self):
+        """
+        Test that regular users cannot access other users' detail data.
+        
+        Note: This returns 404 instead of 403 because the ownership filtering
+        makes the object invisible to the user, which is better for security
+        (doesn't reveal that the object exists).
         """
         # Create another user
-        other_user = baker.make(
-            User,
-            email="other@example.com",
-            password="password123"
-        )
-
-        # Login as a regular user (not admin)
-        response = self.login_user(other_user, "password123")
+        other_user, _ = self.create_user()
+        
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
+        
+        # Try to access other user's detail - should return 404 (not found in filtered queryset)
+        url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        if user_access_token:
-            # Try to access other user's data - should be forbidden
-            url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
-            response = self.client.get(
-                url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
-            )
-            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_regular_user_can_update_own_data(self):
+        """
+        Test that regular users can update their own data.
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Update own data - should work
+        url = reverse("user-detail-viewset", kwargs={"user_id": self.user.id})
+        new_fullname = "Updated Name"
+        response = self.client.patch(
+            url,
+            {"fullname": new_fullname},
+            content_type="application/json",
+            format="json",
+            HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Verify update
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.fullname, new_fullname)
 
-            # Try to access own data - should work
-            current_user = self.get_current_user()  # Get the logged in user
-            if current_user:
-                url = reverse("user-detail-viewset", kwargs={"user_id": current_user.id})
-                response = self.client.get(
-                    url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
-                )
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_regular_user_cannot_update_other_user_data(self):
+        """
+        Test that regular users cannot update other users' data.
+        
+        Note: This returns 404 instead of 403 because the ownership filtering
+        makes the object invisible to the user, which is better for security.
+        """
+        # Create another user
+        other_user, _ = self.create_user()
+        
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Try to update other user's data - should return 404 (not found in filtered queryset)
+        url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
+        response = self.client.patch(
+            url,
+            {"fullname": "Should Not Work"},
+            content_type="application/json",
+            format="json",
+            HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_regular_user_can_delete_own_data(self):
+        """
+        Test that regular users can delete their own data.
+        """
+        # Create a user specifically for deletion test
+        user_to_delete, password = self.create_user()
+        
+        # Login as that user
+        response = self.login_user(user_to_delete, password)
+        user_access_token = response.get("access", None)
+        
+        # Delete own data - should work
+        url = reverse("user-detail-viewset", kwargs={"user_id": user_to_delete.id})
+        response = self.client.delete(
+            url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # Verify deletion
+        self.assertFalse(User.objects.filter(id=user_to_delete.id).exists())
+
+    def test_regular_user_cannot_delete_other_user_data(self):
+        """
+        Test that regular users cannot delete other users' data.
+        """
+        # Create another user
+        other_user, _ = self.create_user()
+        
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Try to delete other user's data - should be forbidden
+        url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
+        response = self.client.delete(
+            url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Verify other user still exists
+        self.assertTrue(User.objects.filter(id=other_user.id).exists())
+
+    def test_admin_can_access_all_users(self):
+        """
+        Test that admin users can access all user data.
+        """
+        # Create additional users
+        user2, _ = self.create_user()
+        user3, _ = self.create_user()
+        
+        # List all users as admin - should see all users
+        url = reverse("user-viewset")
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_users = response.data.get("response_body")
+        
+        # Should see all users (including admin, self.user, user2, user3)
+        self.assertGreaterEqual(len(response_users), 4)
+        
+        # Admin should be able to access any user's detail
+        url = reverse("user-detail-viewset", kwargs={"user_id": user2.id})
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("response_body").get("id"), str(user2.id))
+
+    def test_unauthenticated_user_cannot_access_users(self):
+        """
+        Test that unauthenticated users cannot access user data.
+        """
+        # Try to list users without authentication
+        url = reverse("user-viewset")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        # Try to access user detail without authentication
+        url = reverse("user-detail-viewset", kwargs={"user_id": self.user.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

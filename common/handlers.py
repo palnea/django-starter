@@ -15,7 +15,6 @@ from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import (
     IsActionPermissionGranted,
-    DjangoModelPermissionsWithOwnership,
 )
 
 # Standard actions in ModelViewSet

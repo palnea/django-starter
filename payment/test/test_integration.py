@@ -133,3 +133,197 @@ class BuyableTestCase(CustomIntegrationTestCase):
             url, format="json", HTTP_AUTHORIZATION=f"Bearer {access_token}"
         )
         self.assertFalse(Buyable.objects.filter(id=buyable.id).exists())
+
+    def test_regular_user_can_list_buyables(self):
+        """
+        Test that regular users can list buyables (read-only access).
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # List buyables - should work (IsReadonly permission)
+        url = reverse("buyable-viewset")
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data.get("response_body")), 2)
+
+    def test_regular_user_can_retrieve_buyable(self):
+        """
+        Test that regular users can retrieve individual buyables (read-only access).
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Retrieve buyable - should work (IsReadonly permission)
+        buyable = Buyable.objects.first()
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable.id})
+        response = self.client.get(
+            url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("response_body").get("id"), buyable.id)
+
+    def test_regular_user_cannot_create_buyables(self):
+        """
+        Test that regular users cannot create buyables.
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Try to create buyable - should be forbidden
+        data = {
+            "title_id": self.translation.id,
+            "description_id": self.translation.id,
+            "is_deleted": False,
+            "name": "unauthorized_buyable",
+            "price": "99.99",
+            "currency": "TRY",
+            "period": "monthly",
+            "type": "personal_subscription",
+            "trial_days": 1,
+            "is_active": True,
+        }
+        
+        buyable_count_before = Buyable.objects.count()
+        url = reverse("buyable-viewset")
+        response = self.client.post(
+            url, data, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        buyable_count_after = Buyable.objects.count()
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(buyable_count_after, buyable_count_before)  # No new buyable created
+
+    def test_regular_user_cannot_update_buyables(self):
+        """
+        Test that regular users cannot update buyables.
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Try to update buyable - should be forbidden
+        buyable = Buyable.objects.first()
+        original_price = buyable.price
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable.id})
+        response = self.client.patch(
+            url,
+            {"price": "999.99"},
+            content_type="application/json",
+            format="json",
+            HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Verify buyable was not updated
+        buyable.refresh_from_db()
+        self.assertEqual(buyable.price, original_price)
+
+    def test_regular_user_cannot_delete_buyables(self):
+        """
+        Test that regular users cannot delete buyables.
+        """
+        # Login as regular user
+        response = self.login_user(self.user, self.user_password)
+        user_access_token = response.get("access", None)
+        
+        # Try to delete buyable - should be forbidden
+        buyable = Buyable.objects.first()
+        buyable_id = buyable.id
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable_id})
+        response = self.client.delete(
+            url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+        # Verify buyable still exists
+        self.assertTrue(Buyable.objects.filter(id=buyable_id).exists())
+
+    def test_unauthenticated_user_can_list_buyables(self):
+        """
+        Test that unauthenticated users can list buyables (public read access).
+        """
+        # List buyables without authentication - should work (IsReadonly permission)
+        url = reverse("buyable-viewset")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data.get("response_body")), 2)
+
+    def test_unauthenticated_user_can_retrieve_buyable(self):
+        """
+        Test that unauthenticated users can retrieve individual buyables (public read access).
+        """
+        # Retrieve buyable without authentication - should work (IsReadonly permission)
+        buyable = Buyable.objects.first()
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("response_body").get("id"), buyable.id)
+
+    def test_unauthenticated_user_cannot_create_buyables(self):
+        """
+        Test that unauthenticated users cannot create buyables.
+        """
+        # Try to create buyable without authentication - should be unauthorized
+        data = {
+            "title_id": self.translation.id,
+            "description_id": self.translation.id,
+            "name": "unauthorized_buyable",
+            "price": "99.99",
+            "currency": "TRY",
+            "period": "monthly",
+            "type": "personal_subscription",
+            "trial_days": 1,
+            "is_active": True,
+        }
+        
+        buyable_count_before = Buyable.objects.count()
+        url = reverse("buyable-viewset")
+        response = self.client.post(url, data, format="json")
+        buyable_count_after = Buyable.objects.count()
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(buyable_count_after, buyable_count_before)  # No new buyable created
+
+    def test_unauthenticated_user_cannot_update_buyables(self):
+        """
+        Test that unauthenticated users cannot update buyables.
+        """
+        # Try to update buyable without authentication - should be unauthorized
+        buyable = Buyable.objects.first()
+        original_price = buyable.price
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable.id})
+        response = self.client.patch(
+            url,
+            {"price": "999.99"},
+            content_type="application/json",
+            format="json",
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        # Verify buyable was not updated
+        buyable.refresh_from_db()
+        self.assertEqual(buyable.price, original_price)
+
+    def test_unauthenticated_user_cannot_delete_buyables(self):
+        """
+        Test that unauthenticated users cannot delete buyables.
+        """
+        # Try to delete buyable without authentication - should be unauthorized
+        buyable = Buyable.objects.first()
+        buyable_id = buyable.id
+        url = reverse("buyable-detail-viewset", kwargs={"id": buyable_id})
+        response = self.client.delete(url, format="json")
+        
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
+        # Verify buyable still exists
+        self.assertTrue(Buyable.objects.filter(id=buyable_id).exists())

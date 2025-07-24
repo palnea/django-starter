@@ -49,7 +49,7 @@ class UserViewSet(ModelViewSet):
         # If user has model permissions, use Django permissions
         lambda r, v: r.user.has_perm('user.view_user'): DjangoModelPermissionsWithView,
         # Otherwise, use ownership logic
-        lambda r, v: True: IsOwner  # Default case
+        lambda r, v: True: IsOwnerWithoutSideEffects  # Default case
     })]
 ```
 
@@ -66,32 +66,7 @@ permission_classes = [DjangoModelPermissionsWithView | IsOwnerWithoutSideEffects
 
 ## Permission Classes
 
-### 1. IsOwner (Comprehensive Ownership)
-
-**Pure ownership permission for user-owned entities like documents, posts, notes, etc.**
-
-```python
-from common.permissions.generic_permissions import IsOwner
-
-class DocumentViewSet(ModelViewSet):
-    permission_classes = [IsOwner]
-    queryset = Document.objects.all()
-    
-    def get_queryset(self):
-        # Filter to user's own documents
-        return Document.objects.filter(user_id=self.request.user.id)
-```
-
-**How it works:**
-1. **LIST**: Users see only their own entities (via queryset filtering)
-2. **RETRIEVE**: Users can only access their own entities (via object-level check)
-3. **CREATE**: `user_id` is automatically injected, no client input needed
-4. **UPDATE/DELETE**: Users can only modify their own entities (via object-level check)
-5. **No unnecessary parameters**: Client doesn't need to send `user_id` for retrieve
-
-**Perfect for:** Documents, Posts, Notes, Tasks, or any user-owned content
-
-### 2. IsOwnerWithoutSideEffects (Composition-Safe)
+### 1. IsOwnerWithoutSideEffects (Composition-Safe)
 
 **Pure ownership permission designed for composition with other permissions.**
 
@@ -113,28 +88,7 @@ class DocumentViewSet(ModelViewSet):
 
 **Perfect for:** Composition scenarios where you need ownership checks without side effects
 
-### 3. DjangoModelPermissionsWithOwnership
-
-**Combines Django model permissions with ownership logic - ideal for user management.**
-
-```python
-from common.permissions.generic_permissions import DjangoModelPermissionsWithOwnership
-
-class UserViewSet(ModelViewSet):
-    permission_classes = [DjangoModelPermissionsWithOwnership]
-    queryset = User.objects.all()
-    
-    def get_queryset(self):
-        queryset = User.objects.all()
-        # Filter for users without broad permissions
-        if not self.request.user.has_perm('user.view_user'):
-            queryset = queryset.filter(id=self.request.user.id)
-        return queryset
-```
-
-**Perfect for:** User management, Admin interfaces, Resources requiring model permissions
-
-### 4. DjangoModelPermissionsWithView
+### 2. DjangoModelPermissionsWithView
 
 **Standard Django model permissions with view permission for GET requests.**
 
@@ -188,7 +142,7 @@ class BlogPostViewSet(ModelViewSet):
         # Staff can manage all posts
         lambda r, v: r.user.is_staff: DjangoModelPermissionsWithView,
         # Authors can manage their own posts
-        lambda r, v: r.user.groups.filter(name='Authors').exists(): IsOwner,
+        lambda r, v: r.user.groups.filter(name='Authors').exists(): IsOwnerWithoutSideEffects,
         # Readers can only view
         lambda r, v: True: IsReadonly
     })]
@@ -217,16 +171,16 @@ class ProjectViewSet(ModelViewSet):
 
 ```python
 # Had to create specialized permission for each combination
-class DjangoModelPermissionsWithOwnership(DjangoModelPermissions):
-    # Complex logic mixing model permissions with ownership
-    pass
-
 class BlogPostModelPermissionsWithOwnership(DjangoModelPermissions):
-    # Another specialized permission for blog posts
+    # Complex logic mixing model permissions with ownership for blog posts
     pass
 
 class DocumentModelPermissionsWithOwnership(DjangoModelPermissions):
-    # Yet another specialized permission for documents
+    # Another specialized permission for documents
+    pass
+
+class ProjectModelPermissionsWithOwnership(DjangoModelPermissions):
+    # Yet another specialized permission for projects
     pass
 ```
 
@@ -299,34 +253,38 @@ permission_classes = [ShortCircuitOr(PermA, PermB & PermC, PermD)]
 
 ### Pattern 4: Pure Ownership
 ```python
-permission_classes = [IsOwner]
-# + automatic queryset filtering
+# Use OwnershipMixin + IsOwnerWithoutSideEffects for pure ownership
+from common.view_mixins import OwnershipMixin
+
+class DocumentViewSet(OwnershipMixin, ModelViewSet):
+    permission_classes = [IsOwnerWithoutSideEffects]
+    # Mixin handles queryset filtering automatically
 ```
 
 ## Migration Guide
 
 ### From Specialized Permissions
 ```python
-# Old: Specialized permission
-class UserViewSet(ModelViewSet):
-    permission_classes = [DjangoModelPermissionsWithOwnership]
+# Old: Specialized permission for each model
+class DocumentViewSet(ModelViewSet):
+    permission_classes = [DocumentModelPermissionsWithOwnership]
 
 # New: Generic composition
-class UserViewSet(ModelViewSet):
+class DocumentViewSet(ModelViewSet):
     permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithView, IsOwnerWithoutSideEffects)]
     
     def get_queryset(self):
-        if not self.request.user.has_perm('user.view_user'):
-            return User.objects.filter(id=self.request.user.id)
-        return User.objects.all()
+        if not self.request.user.has_perm('documents.view_document'):
+            return Document.objects.filter(user_id=self.request.user.id)
+        return Document.objects.all()
 ```
 
 ### From Standard OR Composition
 ```python
 # Old: Side effects with standard OR
-permission_classes = [DjangoModelPermissionsWithView | IsOwner]  # ❌ Side effects
+permission_classes = [DjangoModelPermissionsWithView | IsOwnerWithoutSideEffects]  # ❌ Potential evaluation issues
 
-# New: Safe composition
+# New: Safe composition with short-circuiting
 permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithView, IsOwnerWithoutSideEffects)]  # ✅ No side effects
 ```
 
