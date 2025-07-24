@@ -13,7 +13,6 @@ from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import (
     IsActionPermissionGranted,
-    HasWritePermission,
 )
 
 
@@ -39,9 +38,9 @@ class PermissionExistenceTestCase(TestCase):
                 for file in files:
                     # Skip admin.py and any init files
                     if (
-                        file == "admin.py"
-                        or file.startswith("__")
-                        or not file.endswith(".py")
+                            file == "admin.py"
+                            or file.startswith("__")
+                            or not file.endswith(".py")
                     ):
                         continue
 
@@ -59,13 +58,13 @@ class PermissionExistenceTestCase(TestCase):
                             attr = getattr(module, attr_name)
                             # Check if the attribute is a class, a subclass of ModelViewSet, and is not ModelViewSet itself
                             if (
-                                inspect.isclass(attr)
-                                and issubclass(attr, View)
-                                and attr is not View
+                                    inspect.isclass(attr)
+                                    and issubclass(attr, View)
+                                    and attr is not View
                             ):
                                 # Ensure the viewset belongs to the current app and is not from a third-party package
                                 if module.__name__.startswith(
-                                    app_config.name
+                                        app_config.name
                                 ) and not any(
                                     module.__name__.startswith(prefix)
                                     for prefix in third_party_prefixes
@@ -122,15 +121,15 @@ class PermissionExistenceTestCase(TestCase):
                 # Inspect permissions within the compound permission
                 for sub_perm in perm.permissions:
                     if (
-                        sub_perm == permission_class
-                        or sub_perm.__class__ == permission_class
+                            sub_perm == permission_class
+                            or sub_perm.__class__ == permission_class
                     ):
                         return True
             # Handle compound permissions (e.g., OperandHolder objects)
             if hasattr(perm, "op1_class") and hasattr(perm, "op2_class"):
                 # Recursively check both operands
                 if self.contains_permission(
-                    [perm.op1_class], permission_class
+                        [perm.op1_class], permission_class
                 ) or self.contains_permission([perm.op2_class], permission_class):
                     return True
         return False
@@ -143,7 +142,7 @@ class PermissionExistenceTestCase(TestCase):
 
             # Check for permissions if IsActionPermissionGranted is in permission_classes
             if self.contains_permission(
-                viewset_class.permission_classes, IsActionPermissionGranted
+                    viewset_class.permission_classes, IsActionPermissionGranted
             ):
                 for action in actions:
                     view_name = viewset_class.__name__.replace("ViewSet", "").lower()
@@ -156,18 +155,3 @@ class PermissionExistenceTestCase(TestCase):
                             ).exists(),
                             f"Permission '{permission_codename}' does not exist in the database",
                         )
-
-            # Check for 'can_write_<model_name>' permission if HasWritePermission is in permission_classes
-            if self.contains_permission(
-                viewset_class.permission_classes, HasWritePermission
-            ):
-                view_name = viewset_class.__name__.replace("ViewSet", "").lower()
-                write_permission_codename = f"can_write_{view_name}"
-                with self.subTest(permission_codename=write_permission_codename):
-                    self.assertTrue(
-                        Permission.objects.filter(
-                            codename=write_permission_codename,
-                            content_type__app_label=app_label,
-                        ).exists(),
-                        f"Permission '{write_permission_codename}' does not exist in the database",
-                    )

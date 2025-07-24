@@ -10,13 +10,13 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.views import View
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, DjangoModelPermissions
 from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import (
     IsActionPermissionGranted,
-    HasWritePermission,
-)  # Update with actual import path
+    DjangoModelPermissionsWithOwnership,
+)
 
 # Standard actions in ModelViewSet
 STANDARD_ACTIONS = ["create", "destroy", "update", "partial_update", "retrieve", "list"]
@@ -140,32 +140,51 @@ def contains_permission(permission_classes, permission_class):
 @receiver(post_migrate)
 def create_permissions(sender, **kwargs):
     """
-    Signal handler to create custom permissions for ModelViewSet actions after migrations,
-    including those without an associated model.
+    Signal handler to create Django model permissions for ModelViewSet actions after migrations.
+    
+    This creates standard Django permissions that work with DjangoModelPermissions:
+    - add_model
+    - change_model  
+    - delete_model
+    - view_model
+    
+    These are created automatically by Django for models, but this handler ensures
+    they exist for all models used in ViewSets and assigns them to the Admin group.
     """
     create_admin_group_with_all_permissions()
 
     for viewset_class, app_label in get_viewsets(sender.name):
-        # Determine if the viewset has a queryset/model or should use a fallback content type
-        if hasattr(viewset_class, "queryset") and viewset_class.queryset is not None:
-            # Use the model's content type if a queryset is defined
-            model = viewset_class.queryset.model
-            content_type = ContentType.objects.get_for_model(model)
-            view_name = viewset_class.__name__.replace("ViewSet", "").lower()
-        else:
-            # Use a fallback content type for viewsets without a queryset
-            content_type, _ = ContentType.objects.get_or_create(
-                app_label=app_label, model="generic_view"
+        # Only process viewsets that have a queryset/model
+        if not (hasattr(viewset_class, "queryset") and viewset_class.queryset is not None):
+            continue
+            
+        model = viewset_class.queryset.model
+        content_type = ContentType.objects.get_for_model(model)
+        
+        # Standard Django model permissions
+        standard_permissions = [
+            ('add', f'Can add {model._meta.verbose_name}'),
+            ('change', f'Can change {model._meta.verbose_name}'),
+            ('delete', f'Can delete {model._meta.verbose_name}'),
+            ('view', f'Can view {model._meta.verbose_name}'),
+        ]
+        
+        # Create standard permissions if they don't exist
+        for codename_prefix, name in standard_permissions:
+            codename = f"{codename_prefix}_{model._meta.model_name}"
+            Permission.objects.get_or_create(
+                codename=codename,
+                name=name,
+                content_type=content_type,
             )
-            view_name = viewset_class.__name__.replace("ViewSet", "").lower()
-
-        # Get actions dynamically
-        actions = get_all_actions(viewset_class)
 
         # Create permissions for IsActionPermissionGranted if used in permission_classes
         if contains_permission(
             viewset_class.permission_classes, IsActionPermissionGranted
         ):
+            view_name = viewset_class.__name__.replace("ViewSet", "").lower()
+            actions = get_all_actions(viewset_class)
+            
             for action in actions:
                 codename = f"{view_name}.{action}"
                 name = f"Can {action} {view_name}"
@@ -175,17 +194,16 @@ def create_permissions(sender, **kwargs):
                     content_type=content_type,
                 )
 
-        # Create can_write_<view_name> permission if HasWritePermission is used
-        if contains_permission(viewset_class.permission_classes, HasWritePermission):
-            write_permission_codename = f"can_write_{view_name}"
-            write_permission_name = f"Can write {view_name}"
-            Permission.objects.get_or_create(
-                codename=write_permission_codename,
-                name=write_permission_name,
-                content_type=content_type,
-            )
-
 
 def create_admin_group_with_all_permissions():
-    # Ensure the Admin group exists
-    Group.objects.get_or_create(name="Admin")
+    """
+    Create Admin group and assign all permissions to it.
+    This ensures admins have access to all functionality.
+    """
+    admin_group, created = Group.objects.get_or_create(name="Admin")
+    
+    # Assign all permissions to admin group
+    if created or admin_group.permissions.count() == 0:
+        all_permissions = Permission.objects.all()
+        admin_group.permissions.set(all_permissions)
+        admin_group.save()

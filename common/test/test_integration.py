@@ -15,15 +15,6 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         self.create_common_models()
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
-        self.assign_permissions_to_admin_group()
-
-    def assign_permissions_to_admin_group(self):
-        group = Group.objects.get(name="Admin")
-        group.permissions.add(
-            Permission.objects.get(
-                codename="can_write_locale", content_type__app_label="common"
-            ),
-        )
 
     def test_list_locales(self):
         url = reverse("locale-viewset")
@@ -103,15 +94,6 @@ class TranslationTestCase(CustomIntegrationTestCase):
 
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
-        self.assign_permissions_to_admin_group()
-
-    def assign_permissions_to_admin_group(self):
-        group = Group.objects.get(name="Admin")
-        group.permissions.add(
-            Permission.objects.get(
-                codename="can_write_translation", content_type__app_label="common"
-            ),
-        )
 
     def test_list_translations(self):
         url = reverse("translation-viewset")
@@ -204,15 +186,6 @@ class TranslatedFileTestCase(CustomIntegrationTestCase):
 
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
-        self.assign_permissions_to_admin_group()
-
-    def assign_permissions_to_admin_group(self):
-        group = Group.objects.get(name="Admin")
-        group.permissions.add(
-            Permission.objects.get(
-                codename="can_write_translatedfile", content_type__app_label="common"
-            ),
-        )
 
     @patch("cloud_storage.idrive_client.IDriveClient.create_presigned_url")
     def test_list_translated_files(self, mock_create_presigned_url):

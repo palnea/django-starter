@@ -6,8 +6,9 @@ from structlog import get_logger
 
 from common.pagination import CustomPageNumberPagination
 from common.permissions.generic_permissions import (
-    IsOwner,
-    HasWritePermission,
+    DjangoModelPermissionsWithOwnership,
+    IsOwnerWithoutSideEffects,
+    ShortCircuitOr,
 )
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
@@ -29,7 +30,24 @@ log = get_logger(__name__)
 
 # Create your views here.
 class UserViewSet(ModelViewSet):
-    permission_classes = [HasWritePermission | IsOwner]
+    """
+    ViewSet for User model with Django model permissions and ownership checks.
+    
+    Permissions:
+    - DjangoModelPermissionsWithOwnership: Combines Django model permissions with ownership logic
+    
+    Permission Flow:
+    - Users with model-level permissions (add_user, change_user, delete_user, view_user) can access all user data
+    - Users without model-level permissions can only access their own user data  
+    - user_id is automatically injected for users without broad permissions
+    - Follows Django best practices by checking actual permissions, not user roles
+    
+    This means:
+    - Admins with appropriate permissions can perform any action on any user
+    - Regular users can only read/modify their own user data
+    - No role-based checks - everything is permission-based
+    """
+    permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithOwnership, IsOwnerWithoutSideEffects)]
     pagination_class = CustomPageNumberPagination
     queryset = User.objects.all()
     lookup_url_kwarg = "user_id"
@@ -49,6 +67,11 @@ class UserViewSet(ModelViewSet):
         order_by = query_params.get("order_by")
 
         queryset = User.objects.all()
+
+        # Filter by user for users without broad view permissions
+        # The permission class will handle the permission checking
+        if not self.request.user.has_perm('user.view_user'):
+            queryset = queryset.filter(id=self.request.user.id)
 
         if created_from:
             queryset = queryset.filter(created__gte=created_from)

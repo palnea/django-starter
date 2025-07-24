@@ -63,15 +63,6 @@ class BuyableTestCase(CustomIntegrationTestCase):
             trial_days=30,
             is_active=True,
         )
-        self.assign_permissions_to_admin_group()
-
-    def assign_permissions_to_admin_group(self):
-        group = Group.objects.get(name="Admin")
-        group.permissions.add(
-            Permission.objects.get(
-                codename="can_write_buyable", content_type__app_label="payment"
-            ),
-        )
 
     def test_list_buyables(self):
         url = reverse("buyable-viewset")

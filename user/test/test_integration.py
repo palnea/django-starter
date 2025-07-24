@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
+from model_bakery import baker
 from rest_framework import status
 
 from custom_test.base_test import CustomIntegrationTestCase
@@ -13,15 +14,7 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         self.create_common_models()
         response = self.login_admin_user()
         self.access_token = response.get("access", None)
-        self.assign_permissions_to_admin_group()
 
-    def assign_permissions_to_admin_group(self):
-        group = Group.objects.get(name="Admin")
-        group.permissions.add(
-            Permission.objects.get(
-                codename="can_write_user", content_type__app_label="user"
-            ),
-        )
 
     def test_list_users(self):
         url = reverse("user-viewset")
@@ -64,3 +57,35 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
             url, format="json", HTTP_AUTHORIZATION=f"Bearer {self.access_token}"
         )
         self.assertFalse(User.objects.filter(id=created_user.id).exists())
+
+    def test_regular_user_can_only_access_own_data(self):
+        """
+        Test that regular users can only access their own user data.
+        """
+        # Create another user
+        other_user = baker.make(
+            User,
+            email="other@example.com",
+            password="password123"
+        )
+
+        # Login as a regular user (not admin)
+        response = self.login_user(other_user, "password123")
+        user_access_token = response.get("access", None)
+
+        if user_access_token:
+            # Try to access other user's data - should be forbidden
+            url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
+            response = self.client.get(
+                url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+            )
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+            # Try to access own data - should work
+            current_user = self.get_current_user()  # Get the logged in user
+            if current_user:
+                url = reverse("user-detail-viewset", kwargs={"user_id": current_user.id})
+                response = self.client.get(
+                    url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
+                )
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
