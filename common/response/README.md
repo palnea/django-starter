@@ -103,7 +103,9 @@ raise CustomException.validation_error(
 }
 ```
 
-### 2. General Business Logic Errors
+### 2. General Business Logic Errors (Generic Errors with Title and Description)
+
+Generic errors are not tied to specific fields but provide rich title and description data:
 
 ```python
 # For business logic errors
@@ -132,6 +134,8 @@ raise CustomException.business_logic_error(
     "required_amount": 25.00
 }
 ```
+
+**Note:** Generic errors have `title` and `detail` fields but no `errors` field (which is only for field-specific validation).
 
 ## Error Types
 

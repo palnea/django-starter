@@ -39,10 +39,12 @@ I have successfully implemented a comprehensive structured error response system
 }
 ```
 
-### 2. ✅ General Error Messages with Title and Details
-- **Business logic errors**: Rich error messages with context
-- **Authentication/Authorization**: Proper error categorization
-- **Server errors**: Structured internal error responses
+### 2. ✅ Generic Errors with Title and Description Data
+- **Business logic errors**: Rich error messages with context, not tied to specific fields
+- **Authentication/Authorization**: Proper error categorization with clear titles
+- **Server errors**: Structured internal error responses with helpful descriptions
+- **DRF non-field errors**: Automatically converted to generic format with title/detail
+- **System maintenance**: Rich context for operational issues
 
 **Example Response:**
 ```json

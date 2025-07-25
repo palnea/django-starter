@@ -108,7 +108,7 @@ raise CustomException.validation_error(
 )
 ```
 
-### 3. Business Logic Errors
+### 3. Business Logic Errors (Generic Errors with Title and Description)
 
 **Before (Old Pattern):**
 ```python
@@ -134,6 +134,26 @@ raise CustomException.business_logic_error(
     }
 )
 ```
+
+**Response Structure:**
+```json
+{
+    "type": "business_logic_error",
+    "status": 409,
+    "title": "Active Subscription Exists",
+    "detail": "You already have an active subscription. Please cancel it before creating a new one.",
+    "instance": "/api/v1/subscriptions",
+    "code": "ERR_ACTIVE_SUBSCRIPTION_EXISTS",
+    "existing_subscription_id": 12345,
+    "expires_at": "2024-12-31T23:59:59Z"
+}
+```
+
+**Key Benefits:**
+- **Clear Title**: Immediately conveys the error type
+- **Rich Description**: Explains what went wrong and how to fix it
+- **Extra Context**: Additional data for smart client handling
+- **No Field Mapping**: Perfect for business rules not tied to specific fields
 
 ### 4. Authentication/Authorization Errors
 

@@ -134,11 +134,21 @@ def create_structured_response_from_validation_error(exc: ValidationError, conte
     # Create general error if we have non-field errors
     general_error = None
     if general_errors:
-        general_error = GeneralError(
-            title=_("Validation Error"),
-            detail=general_errors[0],  # Use first error as main detail
-            code="validation_error"
-        )
+        # If we have multiple general errors, combine them appropriately
+        if len(general_errors) == 1:
+            general_error = GeneralError(
+                title=_("Validation Error"),
+                detail=general_errors[0],
+                code="validation_error"
+            )
+        else:
+            # Multiple general errors - create a comprehensive message
+            combined_detail = ". ".join(general_errors)
+            general_error = GeneralError(
+                title=_("Validation Errors"),
+                detail=combined_detail,
+                code="validation_error"
+            )
     
     structured_response = StructuredErrorResponse(
         error_type=StructuredErrorType.VALIDATION_ERROR,
