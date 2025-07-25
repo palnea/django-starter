@@ -53,25 +53,25 @@ class UserLoginSerializer(serializers.Serializer):
             email = email.strip().lower()
 
         if not email and not phone:
-            raise CustomException(
-                detail={
-                    "email": "Cannot be empty if no phone provided",
-                    "phone": "Cannot be empty if no email provided",
+            # New structured error format - provides better field-based errors
+            raise CustomException.validation_error(
+                field_errors={
+                    "email": ["Cannot be empty if no phone provided"],
+                    "phone": ["Cannot be empty if no email provided"]
                 },
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Email or phone should be provided"),
+                title=_("Contact Information Required"),
+                instance="/api/v1/auth/login"
             )
 
         if email and phone:
-            raise CustomException(
-                detail={
-                    "email": "Should not be provided if phone provided",
-                    "phone": "Should not be provided if email provided",
+            # New structured error format - provides better field-based errors
+            raise CustomException.validation_error(
+                field_errors={
+                    "email": ["Should not be provided if phone provided"],
+                    "phone": ["Should not be provided if email provided"]
                 },
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Enter email or phone not both"),
+                title=_("Only One Contact Method Allowed"),
+                instance="/api/v1/auth/login"
             )
 
         if data.get("verification_code") and data.get("verification_id"):
