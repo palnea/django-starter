@@ -8,7 +8,7 @@ from structlog import get_logger
 
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Translation
-from common.permissions.generic_permissions import IsReadonly, DjangoModelPermissionsWithView
+from common.permissions.generic_permissions import IsReadonly, ActionAwareModelPermissions
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
@@ -57,7 +57,7 @@ class PaymentViewSet(GenericViewSet):
 
 
 class BuyableViewSet(ModelViewSet):
-    permission_classes = [IsReadonly | DjangoModelPermissionsWithView]
+    permission_classes = [IsReadonly | ActionAwareModelPermissions]
     serializer_class = BuyableSerializer
     queryset = (
         Buyable.objects.all().select_related("title").select_related("description")

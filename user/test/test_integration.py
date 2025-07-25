@@ -103,9 +103,8 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         """
         Test that regular users cannot access other users' detail data.
         
-        Note: This returns 404 instead of 403 because the ownership filtering
-        makes the object invisible to the user, which is better for security
-        (doesn't reveal that the object exists).
+        Returns 403 (Forbidden) because the object exists but the user lacks permission.
+        This is correct behavior for object-level permission checks.
         """
         # Create another user
         other_user, _ = self.create_user()
@@ -114,12 +113,12 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
         
-        # Try to access other user's detail - should return 404 (not found in filtered queryset)
+        # Try to access other user's detail - should return 403 (permission denied)
         url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
         response = self.client.get(
             url, HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_regular_user_can_update_own_data(self):
         """
@@ -159,7 +158,7 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
         
-        # Try to update other user's data - should return 404 (not found in filtered queryset)
+        # Try to update other user's data - should return 403 (permission denied)
         url = reverse("user-detail-viewset", kwargs={"user_id": other_user.id})
         response = self.client.patch(
             url,
@@ -168,7 +167,7 @@ class UserViewSetTestCase(CustomIntegrationTestCase):
             format="json",
             HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
         )
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_regular_user_can_delete_own_data(self):
         """

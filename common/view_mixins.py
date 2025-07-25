@@ -5,23 +5,33 @@ from rest_framework.generics import get_object_or_404
 
 class OwnershipFilterMixin:
     """
-    Mixin to handle ownership-based queryset filtering.
+    Mixin to handle ownership-based queryset filtering and object retrieval.
     
-    This replaces the automatic filtering that was previously done in permission classes.
-    Now filtering is explicit and visible in the view layer.
+    Behavior:
+    - List operations: Apply ownership filtering (users see only their own data)
+    - Object operations (retrieve, update, delete): No filtering, rely on has_object_permission for 403 responses
     """
     
     ownership_field = 'user_id'  # Override in subclass if needed
     ownership_permission = None  # e.g., 'user.view_user' - set in subclass
     
+    # Actions that should use object-level permission checks instead of queryset filtering
+    object_level_actions = {'retrieve', 'update', 'partial_update', 'destroy'}
+    
     def get_queryset(self):
         """
-        Filter queryset based on ownership for users without broad permissions.
-        Users with model-level permissions see all objects.
+        Apply ownership filtering only for list operations.
+        Object operations get unfiltered queryset and rely on has_object_permission.
         """
         queryset = super().get_queryset()
         
-        # If no ownership permission is specified, apply ownership filtering by default
+        # For object-level actions, return unfiltered queryset
+        # This allows proper 403 responses instead of 404
+        action = getattr(self, 'action', None)
+        if action in self.object_level_actions:
+            return queryset
+        
+        # For list actions, apply ownership filtering
         if self.ownership_permission is None:
             # Auto-determine permission from model
             model = queryset.model
@@ -33,7 +43,7 @@ class OwnershipFilterMixin:
         if self.request.user.has_perm(self.ownership_permission):
             return queryset
             
-        # Otherwise filter by ownership
+        # Otherwise filter by ownership for list operations
         # Special case: For User model, filter by id instead of user_id
         if queryset.model.__name__ == 'User' and self.ownership_field == 'user_id':
             filter_kwargs = {'id': self.request.user.id}
@@ -44,29 +54,12 @@ class OwnershipFilterMixin:
 
     def get_object(self):
         """
-        Ensure that detail operations (retrieve, update, delete) also respect ownership filtering.
-        This prevents users from accessing objects that aren't in their filtered queryset.
+        For object-level operations, use standard DRF flow.
+        This will find the object and then check permissions via has_object_permission.
         """
-        # Use the ownership-filtered queryset for getting the object
-        queryset = self.filter_queryset(self.get_queryset())
-        
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        
-        assert lookup_url_kwarg in self.kwargs, (
-            'Expected view %s to be called with a URL keyword argument '
-            'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
-        )
-        
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-        
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-        
-        return obj
+        # Use the standard DRF get_object implementation
+        # This will find the object (or 404) and then check object permissions (or 403)
+        return super().get_object()
 
 
 class UserIDInjectionMixin:

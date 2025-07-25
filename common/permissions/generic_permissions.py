@@ -6,6 +6,33 @@ from common.middlewares.global_context_middleware import (
 )
 
 
+def get_action_permission_name(view_class, action, app_label=None):
+    """
+    Centralized function to generate consistent action permission names.
+    
+    Args:
+        view_class: The ViewSet class (e.g., UserViewSet)
+        action: The action name (e.g., 'reset_password')
+        app_label: Optional app label (e.g., 'user')
+    
+    Returns:
+        tuple: (codename, full_permission_name)
+        
+    Examples:
+        get_action_permission_name(UserViewSet, 'reset_password', 'user')
+        # Returns: ('user_reset_password', 'user.user_reset_password')
+    """
+    view_name = view_class.__name__.replace("ViewSet", "").lower()
+    codename = f"{view_name}_{action}"
+    
+    if app_label:
+        full_permission_name = f"{app_label}.{codename}"
+    else:
+        full_permission_name = codename
+        
+    return codename, full_permission_name
+
+
 class ShortCircuitOr:
     """
     Short-circuiting OR operator for permissions that stops evaluation 
@@ -85,33 +112,58 @@ class ConditionalPermission(permissions.BasePermission):
 
 class IsActionPermissionGranted(permissions.BasePermission):
     """
-    Global permission check for granted operations
-    Allows admin or user with granted permissions
+    Enhanced action-based permission check that uses actual DRF action names.
+    
+    Permission format: {app_label}.{view_name}_{action}
+    Examples:
+    - user.user_reset_password (for reset_password action)
+    - user.user_promote_to_admin (for promote_to_admin action) 
+    - user.user_list (for list action)
+    - user.user_create (for create action)
+    
+    This provides granular control over each action rather than HTTP method-based permissions.
     """
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
 
-        view_name = view.__class__.__name__.replace("ViewSet", "").lower()
-        app_label = view.queryset.model._meta.app_label
-        permission_name = (
-            f"{app_label}.{view_name}.{request.method.lower()}"
-            if app_label
-            else f"{view_name}.{request.method.lower()}"
+        # Get the actual DRF action (more specific than HTTP method)
+        action = getattr(view, 'action', None)
+        if not action:
+            return False
+            
+        app_label = getattr(view.queryset.model._meta, 'app_label', None)
+        
+        # Use centralized permission naming function
+        codename, permission_name = get_action_permission_name(
+            view.__class__, action, app_label
         )
+        
         user_all_permissions = (
             GlobalContextMiddleware.get_global_context().user_all_permissions
         )
         return permission_name in user_all_permissions
 
 
-class DjangoModelPermissionsWithView(DjangoModelPermissions):
+class ActionAwareModelPermissions(DjangoModelPermissions):
     """
-    Standard DjangoModelPermissions with view permission for GET requests.
-    This is for cases where you want standard Django permissions without ownership logic.
+    Enhanced Django model permissions that handles custom actions separately.
+    
+    Standard CRUD operations use Django model permissions:
+    - list/retrieve -> view_model
+    - create -> add_model  
+    - update/partial_update -> change_model
+    - destroy -> delete_model
+    
+    Custom actions require explicit permissions:
+    - reset_password -> app_label.viewname_reset_password
+    - promote_to_admin -> app_label.viewname_promote_to_admin
+    
+    This prevents security issues where custom actions inherit inappropriate permissions.
     """
     
+    # Standard CRUD action mapping
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'OPTIONS': [],
@@ -121,6 +173,57 @@ class DjangoModelPermissionsWithView(DjangoModelPermissions):
         'PATCH': ['%(app_label)s.change_%(model_name)s'],
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
+    
+    # Standard DRF actions that should use model permissions
+    standard_actions = {'list', 'create', 'retrieve', 'update', 'partial_update', 'destroy'}
+    
+    def get_required_permissions(self, method, model_cls):
+        """
+        Override to handle custom actions vs standard CRUD operations.
+        """
+        # Get the current action from the view
+        action = getattr(self.view, 'action', None)
+        
+        # If it's a standard CRUD action, use the parent's logic
+        if action in self.standard_actions:
+            return super().get_required_permissions(method, model_cls)
+        
+        # For custom actions, create action-specific permission
+        if action:
+            app_label = model_cls._meta.app_label
+            codename, action_permission = get_action_permission_name(
+                self.view.__class__, action, app_label
+            )
+            return [action_permission]
+        
+        # Fallback to parent behavior
+        return super().get_required_permissions(method, model_cls)
+    
+    def has_permission(self, request, view):
+        # Store view reference for get_required_permissions
+        self.view = view
+        return super().has_permission(request, view)
+    
+    def has_object_permission(self, request, view, obj):
+        """
+        For object-level permissions:
+        - If user has model-level permissions, grant access (like admins)
+        - If user doesn't have model-level permissions, defer to ownership checks
+        """
+        # Store view reference needed for get_required_permissions
+        self.view = view
+        
+        # Check if user has the required model-level permission for this action
+        queryset = self._queryset(view)
+        model_cls = queryset.model
+        perms = self.get_required_permissions(request.method, model_cls)
+        
+        # If user has the required model permission, grant object access
+        if request.user.has_perms(perms):
+            return True
+        
+        # Otherwise, defer to ownership checks
+        return False
 
 
 class IsOwnerWithoutSideEffects(permissions.BasePermission):
@@ -157,3 +260,6 @@ class IsReadonly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
+
+
+

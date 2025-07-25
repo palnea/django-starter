@@ -36,11 +36,13 @@ class PermissionExistenceTestCase(TestCase):
             # Walk through the app directory and inspect each Python file
             for root, _, files in os.walk(app_path):
                 for file in files:
-                    # Skip admin.py and any init files
+                    # Skip admin.py, init files, test files and test directories
                     if (
                             file == "admin.py"
                             or file.startswith("__")
                             or not file.endswith(".py")
+                            or "test" in file.lower()  # Exclude test files
+                            or "test" in root.lower()  # Exclude test directories
                     ):
                         continue
 
@@ -61,6 +63,8 @@ class PermissionExistenceTestCase(TestCase):
                                     inspect.isclass(attr)
                                     and issubclass(attr, View)
                                     and attr is not View
+                                    and not attr_name.startswith("Mock")  # Exclude Mock classes
+                                    and not attr_name.startswith("Test")  # Exclude Test classes
                             ):
                                 # Ensure the viewset belongs to the current app and is not from a third-party package
                                 if module.__name__.startswith(

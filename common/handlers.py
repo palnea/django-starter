@@ -10,11 +10,12 @@ from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.views import View
-from rest_framework.permissions import BasePermission, DjangoModelPermissions
+from rest_framework.permissions import BasePermission
 from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import (
     IsActionPermissionGranted,
+    get_action_permission_name,
 )
 
 # Standard actions in ModelViewSet
@@ -45,6 +46,8 @@ def get_viewsets(app_label=None):
                     file == "admin.py"
                     or file.startswith("__")
                     or not file.endswith(".py")
+                    or "test" in file.lower()  # Exclude test files
+                    or "test" in root.lower()  # Exclude test directories
                 ):
                     continue
 
@@ -63,6 +66,8 @@ def get_viewsets(app_label=None):
                             inspect.isclass(attr)
                             and issubclass(attr, View)
                             and attr is not View
+                            and not attr_name.startswith("Mock")  # Exclude Mock classes
+                            and not attr_name.startswith("Test")  # Exclude Test classes
                         ):
                             # Check that the module is from the current app and not third-party
                             if module.__name__.startswith(app_config.name) and not any(
@@ -181,11 +186,15 @@ def create_permissions(sender, **kwargs):
         if contains_permission(
             viewset_class.permission_classes, IsActionPermissionGranted
         ):
-            view_name = viewset_class.__name__.replace("ViewSet", "").lower()
             actions = get_all_actions(viewset_class)
             
             for action in actions:
-                codename = f"{view_name}.{action}"
+                # Use centralized permission naming function
+                codename, full_permission_name = get_action_permission_name(
+                    viewset_class, action, app_label
+                )
+                
+                view_name = viewset_class.__name__.replace("ViewSet", "").lower()
                 name = f"Can {action} {view_name}"
                 Permission.objects.get_or_create(
                     codename=codename,

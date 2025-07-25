@@ -10,7 +10,7 @@ from structlog import get_logger
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Translation, TranslatedFile, Locale
-from common.permissions.generic_permissions import IsReadonly, DjangoModelPermissionsWithView
+from common.permissions.generic_permissions import IsReadonly, ActionAwareModelPermissions
 from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
@@ -32,7 +32,7 @@ log = get_logger(__name__)
 
 
 class TranslationViewSet(ModelViewSet):
-    permission_classes = [DjangoModelPermissionsWithView | IsReadonly]
+    permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = TranslationSerializer
     lookup_field = "id"
 
@@ -228,7 +228,7 @@ class TranslationViewSet(ModelViewSet):
 
 
 class TranslatedFileViewSet(ModelViewSet):
-    permission_classes = [DjangoModelPermissionsWithView | IsReadonly]
+    permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = TranslatedFileSerializer
     lookup_field = "id"
 
@@ -383,7 +383,7 @@ class TranslatedFileViewSet(ModelViewSet):
 
 
 class LocaleViewSet(ModelViewSet):
-    permission_classes = [DjangoModelPermissionsWithView | IsReadonly]
+    permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = LocaleSerializer
     queryset = Locale.objects.all()
     lookup_field = "id"
