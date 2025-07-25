@@ -29,6 +29,39 @@ The structured error response system provides:
 
 ## Quick Start
 
+### DRF Serializer Validation (Automatic Conversion)
+
+**No code changes needed!** All DRF serializer validation errors are automatically converted to structured format:
+
+```python
+class UserSerializer(serializers.ModelSerializer):
+    def validate_email(self, value):
+        if "@" not in value:
+            # This automatically becomes a structured error!
+            raise ValidationError("Email must contain @ symbol")
+        return value
+```
+
+**Automatic Response:**
+```json
+{
+    "type": "validation_error",
+    "status": 400,
+    "title": "Validation Error",
+    "detail": "The request data is invalid.",
+    "instance": "/api/v1/users/",
+    "errors": {
+        "email": [
+            {
+                "code": "invalid",
+                "message": "Email must contain @ symbol",
+                "value": null
+            }
+        ]
+    }
+}
+```
+
 ### 1. Field-based Validation Errors
 
 ```python

@@ -213,21 +213,65 @@ raise CustomException.business_logic_error(
 )
 ```
 
-## Using in Serializers
+## DRF Serializer Integration
 
-### DRF Serializer Field Validation
+### Automatic Conversion of DRF ValidationErrors
 
-DRF's built-in ValidationError will automatically be converted to structured format:
+**The best part**: All DRF serializer validation errors are **automatically converted** to structured format! You don't need to change your existing serializer code.
+
+#### Field-level Validation (No Changes Needed)
 
 ```python
-def validate_email(self, value):
-    if "@" not in value:
-        # This gets automatically converted to structured format
-        raise ValidationError("Email must contain @ symbol")
-    return value
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password']
+        extra_kwargs = {
+            'email': {'required': True},
+            'password': {'min_length': 8}
+        }
+    
+    def validate_email(self, value):
+        if "@" not in value:
+            # This automatically gets converted to structured format!
+            raise ValidationError("Email must contain @ symbol")
+        return value
+    
+    def validate_username(self, value):
+        if value.lower() == 'admin':
+            # Custom error codes are preserved
+            raise ValidationError("Username 'admin' is reserved", code='reserved_username')
+        return value
 ```
 
-### Custom Serializer Validation
+**Automatic Response:**
+```json
+{
+    "type": "validation_error",
+    "status": 400,
+    "title": "Validation Error",
+    "detail": "The request data is invalid.",
+    "instance": "/api/v1/users/",
+    "errors": {
+        "email": [
+            {
+                "code": "invalid",
+                "message": "Email must contain @ symbol",
+                "value": null
+            }
+        ],
+        "username": [
+            {
+                "code": "reserved_username",
+                "message": "Username 'admin' is reserved",
+                "value": null
+            }
+        ]
+    }
+}
+```
+
+#### Object-level Validation (No Changes Needed)
 
 ```python
 def validate(self, attrs):
@@ -235,17 +279,101 @@ def validate(self, attrs):
     phone = attrs.get('phone')
     
     if not email and not phone:
-        raise CustomException.validation_error(
-            field_errors={
-                "email": ["Email is required when phone is not provided"],
-                "phone": ["Phone is required when email is not provided"]
-            },
-            title=_("Contact Information Required"),
-            instance="/api/v1/users"
-        )
+        # This automatically gets converted to structured format!
+        raise ValidationError({
+            "email": "Email is required when phone is not provided",
+            "phone": "Phone is required when email is not provided"
+        })
     
     return attrs
 ```
+
+**Automatic Response:**
+```json
+{
+    "type": "validation_error",
+    "status": 400,
+    "title": "Validation Error",
+    "detail": "The request data is invalid.",
+    "instance": "/api/v1/users/",
+    "errors": {
+        "email": [
+            {
+                "code": "invalid",
+                "message": "Email is required when phone is not provided",
+                "value": null
+            }
+        ],
+        "phone": [
+            {
+                "code": "invalid",
+                "message": "Phone is required when email is not provided",
+                "value": null
+            }
+        ]
+    }
+}
+```
+
+#### Nested Serializer Support (Works Automatically)
+
+```python
+class AddressSerializer(serializers.Serializer):
+    street = serializers.CharField(required=True, max_length=100)
+    zipcode = serializers.CharField(required=True, min_length=5)
+
+class UserProfileSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True, min_length=3)
+    address = AddressSerializer(required=True)
+```
+
+**Automatic Response for nested errors:**
+```json
+{
+    "type": "validation_error",
+    "status": 400,
+    "title": "Validation Error",
+    "detail": "The request data is invalid.",
+    "instance": "/api/v1/profile/",
+    "errors": {
+        "username": [
+            {
+                "code": "min_length",
+                "message": "Ensure this field has at least 3 characters.",
+                "value": null
+            }
+        ],
+        "address.street": [
+            {
+                "code": "blank",
+                "message": "This field may not be blank.",
+                "value": null
+            }
+        ],
+        "address.zipcode": [
+            {
+                "code": "min_length",
+                "message": "Ensure this field has at least 5 characters.",
+                "value": null
+            }
+        ]
+    }
+}
+```
+
+### When to Use CustomException vs DRF ValidationError
+
+**Use DRF ValidationError (Recommended):**
+- Field-level validation in serializers
+- Object-level validation in serializers  
+- Standard form validation
+- When you want automatic field mapping
+
+**Use CustomException.validation_error():**
+- When you need more control over the error structure
+- When raising validation errors outside of serializers (in views, services)
+- When you want to include extra data
+- When you need specific business logic error types
 
 ## Using in Views
 

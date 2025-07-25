@@ -87,34 +87,49 @@ def create_structured_response_from_validation_error(exc: ValidationError, conte
     field_errors = []
     general_errors = []
     
-    if hasattr(exc, 'detail') and isinstance(exc.detail, dict):
-        for field_name, errors in exc.detail.items():
-            if field_name == 'non_field_errors':
-                # Handle non-field errors as general errors
-                for error in errors:
-                    general_errors.append(str(error))
-            else:
-                # Handle field-specific errors
-                if isinstance(errors, list):
-                    for error in errors:
-                        field_errors.append(FieldError(
-                            field=field_name,
-                            code=getattr(error, 'code', 'invalid') if hasattr(error, 'code') else 'invalid',
-                            message=str(error)
-                        ))
+    def process_error_detail(detail, field_prefix=""):
+        """Recursively process error details to handle nested serializers and lists"""
+        if isinstance(detail, dict):
+            for field_name, errors in detail.items():
+                current_field = f"{field_prefix}.{field_name}" if field_prefix else field_name
+                
+                if field_name == 'non_field_errors':
+                    # Handle non-field errors as general errors
+                    if isinstance(errors, list):
+                        for error in errors:
+                            general_errors.append(str(error))
+                    else:
+                        general_errors.append(str(errors))
                 else:
+                    # Handle field-specific errors
+                    process_error_detail(errors, current_field)
+                    
+        elif isinstance(detail, list):
+            for idx, error in enumerate(detail):
+                if isinstance(error, dict):
+                    # Handle list of objects (list serializer errors)
+                    current_field = f"{field_prefix}.{idx}" if field_prefix else str(idx)
+                    process_error_detail(error, current_field)
+                else:
+                    # Handle list of error messages for a single field
                     field_errors.append(FieldError(
-                        field=field_name,
-                        code=getattr(errors, 'code', 'invalid') if hasattr(errors, 'code') else 'invalid',
-                        message=str(errors)
+                        field=field_prefix,
+                        code=getattr(error, 'code', 'invalid') if hasattr(error, 'code') else 'invalid',
+                        message=str(error)
                     ))
-    elif hasattr(exc, 'detail') and isinstance(exc.detail, list):
-        # Handle list of errors
-        for error in exc.detail:
-            general_errors.append(str(error))
+        else:
+            # Handle single error message
+            field_errors.append(FieldError(
+                field=field_prefix,
+                code=getattr(detail, 'code', 'invalid') if hasattr(detail, 'code') else 'invalid',
+                message=str(detail)
+            ))
+    
+    # Process the validation error detail
+    if hasattr(exc, 'detail'):
+        process_error_detail(exc.detail)
     else:
-        # Handle single error
-        general_errors.append(str(exc.detail))
+        general_errors.append(str(exc))
     
     # Create general error if we have non-field errors
     general_error = None
