@@ -141,7 +141,7 @@ class BuyableTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # List buyables - should work (IsReadonly permission)
         url = reverse("buyable-viewset")
         response = self.client.get(
@@ -157,7 +157,7 @@ class BuyableTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Retrieve buyable - should work (IsReadonly permission)
         buyable = Buyable.objects.first()
         url = reverse("buyable-detail-viewset", kwargs={"id": buyable.id})
@@ -174,7 +174,7 @@ class BuyableTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to create buyable - should be forbidden
         data = {
             "title_id": self.translation.id,
@@ -188,16 +188,18 @@ class BuyableTestCase(CustomIntegrationTestCase):
             "trial_days": 1,
             "is_active": True,
         }
-        
+
         buyable_count_before = Buyable.objects.count()
         url = reverse("buyable-viewset")
         response = self.client.post(
             url, data, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
         buyable_count_after = Buyable.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(buyable_count_after, buyable_count_before)  # No new buyable created
+        self.assertEqual(
+            buyable_count_after, buyable_count_before
+        )  # No new buyable created
 
     def test_regular_user_cannot_update_buyables(self):
         """
@@ -206,7 +208,7 @@ class BuyableTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to update buyable - should be forbidden
         buyable = Buyable.objects.first()
         original_price = buyable.price
@@ -218,9 +220,9 @@ class BuyableTestCase(CustomIntegrationTestCase):
             format="json",
             HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify buyable was not updated
         buyable.refresh_from_db()
         self.assertEqual(buyable.price, original_price)
@@ -232,7 +234,7 @@ class BuyableTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to delete buyable - should be forbidden
         buyable = Buyable.objects.first()
         buyable_id = buyable.id
@@ -240,9 +242,9 @@ class BuyableTestCase(CustomIntegrationTestCase):
         response = self.client.delete(
             url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify buyable still exists
         self.assertTrue(Buyable.objects.filter(id=buyable_id).exists())
 
@@ -283,14 +285,16 @@ class BuyableTestCase(CustomIntegrationTestCase):
             "trial_days": 1,
             "is_active": True,
         }
-        
+
         buyable_count_before = Buyable.objects.count()
         url = reverse("buyable-viewset")
         response = self.client.post(url, data, format="json")
         buyable_count_after = Buyable.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(buyable_count_after, buyable_count_before)  # No new buyable created
+        self.assertEqual(
+            buyable_count_after, buyable_count_before
+        )  # No new buyable created
 
     def test_unauthenticated_user_cannot_update_buyables(self):
         """
@@ -306,9 +310,9 @@ class BuyableTestCase(CustomIntegrationTestCase):
             content_type="application/json",
             format="json",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify buyable was not updated
         buyable.refresh_from_db()
         self.assertEqual(buyable.price, original_price)
@@ -322,8 +326,8 @@ class BuyableTestCase(CustomIntegrationTestCase):
         buyable_id = buyable.id
         url = reverse("buyable-detail-viewset", kwargs={"id": buyable_id})
         response = self.client.delete(url, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify buyable still exists
         self.assertTrue(Buyable.objects.filter(id=buyable_id).exists())

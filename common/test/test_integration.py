@@ -88,7 +88,7 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # List locales - should work (IsReadonly permission)
         url = reverse("locale-viewset")
         response = self.client.get(
@@ -104,7 +104,7 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Retrieve locale - should work (IsReadonly permission)
         locale = Locale.objects.first()
         url = reverse("locale-detail-viewset", kwargs={"id": locale.id})
@@ -121,7 +121,7 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to create locale - should be forbidden
         data = {"name": "Unauthorized Locale", "code": "xx"}
         locale_count_before = Locale.objects.count()
@@ -130,9 +130,11 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
             url, data, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
         locale_count_after = Locale.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(locale_count_after, locale_count_before)  # No new locale created
+        self.assertEqual(
+            locale_count_after, locale_count_before
+        )  # No new locale created
 
     def test_regular_user_cannot_update_locales(self):
         """
@@ -141,7 +143,7 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to update locale - should be forbidden
         locale = Locale.objects.first()
         original_name = locale.name
@@ -153,9 +155,9 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
             format="json",
             HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify locale was not updated
         locale.refresh_from_db()
         self.assertEqual(locale.name, original_name)
@@ -167,7 +169,7 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to delete locale - should be forbidden
         locale = Locale.objects.first()
         locale_id = locale.id
@@ -175,9 +177,9 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         response = self.client.delete(
             url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify locale still exists
         self.assertTrue(Locale.objects.filter(id=locale_id).exists())
 
@@ -212,9 +214,11 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         url = reverse("locale-viewset")
         response = self.client.post(url, data, format="json")
         locale_count_after = Locale.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(locale_count_after, locale_count_before)  # No new locale created
+        self.assertEqual(
+            locale_count_after, locale_count_before
+        )  # No new locale created
 
     def test_unauthenticated_user_cannot_update_locales(self):
         """
@@ -230,9 +234,9 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
             content_type="application/json",
             format="json",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify locale was not updated
         locale.refresh_from_db()
         self.assertEqual(locale.name, original_name)
@@ -246,9 +250,9 @@ class LocaleViewTestCase(CustomIntegrationTestCase):
         locale_id = locale.id
         url = reverse("locale-detail-viewset", kwargs={"id": locale_id})
         response = self.client.delete(url, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify locale still exists
         self.assertTrue(Locale.objects.filter(id=locale_id).exists())
 
@@ -341,7 +345,7 @@ class TranslationTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # List translations - should work (IsReadonly permission)
         url = reverse("translation-viewset")
         response = self.client.get(
@@ -357,7 +361,7 @@ class TranslationTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Retrieve translation - should work (IsReadonly permission)
         translation = Translation.objects.first()
         url = reverse("translation-detail-viewset", kwargs={"id": translation.id})
@@ -374,23 +378,25 @@ class TranslationTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to create translation - should be forbidden
         data = {
             "text": "Unauthorized Translation",
             "locale": self.eng_locale.id,
             "root_id": self.root_translation.id,
         }
-        
+
         translation_count_before = Translation.objects.count()
         url = reverse("translation-viewset")
         response = self.client.post(
             url, data, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
         translation_count_after = Translation.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(translation_count_after, translation_count_before)  # No new translation created
+        self.assertEqual(
+            translation_count_after, translation_count_before
+        )  # No new translation created
 
     def test_regular_user_cannot_update_translations(self):
         """
@@ -399,7 +405,7 @@ class TranslationTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to update translation - should be forbidden
         translation = Translation.objects.first()
         original_text = translation.text
@@ -411,9 +417,9 @@ class TranslationTestCase(CustomIntegrationTestCase):
             format="json",
             HTTP_AUTHORIZATION=f"Bearer {user_access_token}",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify translation was not updated
         translation.refresh_from_db()
         self.assertEqual(translation.text, original_text)
@@ -425,7 +431,7 @@ class TranslationTestCase(CustomIntegrationTestCase):
         # Login as regular user
         response = self.login_user(self.user, self.user_password)
         user_access_token = response.get("access", None)
-        
+
         # Try to delete translation - should be forbidden
         translation = Translation.objects.first()
         translation_id = translation.id
@@ -433,9 +439,9 @@ class TranslationTestCase(CustomIntegrationTestCase):
         response = self.client.delete(
             url, format="json", HTTP_AUTHORIZATION=f"Bearer {user_access_token}"
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
         # Verify translation still exists
         self.assertTrue(Translation.objects.filter(id=translation_id).exists())
 
@@ -470,14 +476,16 @@ class TranslationTestCase(CustomIntegrationTestCase):
             "locale": self.eng_locale.id,
             "root_id": self.root_translation.id,
         }
-        
+
         translation_count_before = Translation.objects.count()
         url = reverse("translation-viewset")
         response = self.client.post(url, data, format="json")
         translation_count_after = Translation.objects.count()
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(translation_count_after, translation_count_before)  # No new translation created
+        self.assertEqual(
+            translation_count_after, translation_count_before
+        )  # No new translation created
 
     def test_unauthenticated_user_cannot_update_translations(self):
         """
@@ -493,9 +501,9 @@ class TranslationTestCase(CustomIntegrationTestCase):
             content_type="application/json",
             format="json",
         )
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify translation was not updated
         translation.refresh_from_db()
         self.assertEqual(translation.text, original_text)
@@ -509,9 +517,9 @@ class TranslationTestCase(CustomIntegrationTestCase):
         translation_id = translation.id
         url = reverse("translation-detail-viewset", kwargs={"id": translation_id})
         response = self.client.delete(url, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         # Verify translation still exists
         self.assertTrue(Translation.objects.filter(id=translation_id).exists())
 

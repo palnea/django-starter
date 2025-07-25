@@ -38,11 +38,11 @@ class PermissionExistenceTestCase(TestCase):
                 for file in files:
                     # Skip admin.py, init files, test files and test directories
                     if (
-                            file == "admin.py"
-                            or file.startswith("__")
-                            or not file.endswith(".py")
-                            or "test" in file.lower()  # Exclude test files
-                            or "test" in root.lower()  # Exclude test directories
+                        file == "admin.py"
+                        or file.startswith("__")
+                        or not file.endswith(".py")
+                        or "test" in file.lower()  # Exclude test files
+                        or "test" in root.lower()  # Exclude test directories
                     ):
                         continue
 
@@ -60,15 +60,19 @@ class PermissionExistenceTestCase(TestCase):
                             attr = getattr(module, attr_name)
                             # Check if the attribute is a class, a subclass of ModelViewSet, and is not ModelViewSet itself
                             if (
-                                    inspect.isclass(attr)
-                                    and issubclass(attr, View)
-                                    and attr is not View
-                                    and not attr_name.startswith("Mock")  # Exclude Mock classes
-                                    and not attr_name.startswith("Test")  # Exclude Test classes
+                                inspect.isclass(attr)
+                                and issubclass(attr, View)
+                                and attr is not View
+                                and not attr_name.startswith(
+                                    "Mock"
+                                )  # Exclude Mock classes
+                                and not attr_name.startswith(
+                                    "Test"
+                                )  # Exclude Test classes
                             ):
                                 # Ensure the viewset belongs to the current app and is not from a third-party package
                                 if module.__name__.startswith(
-                                        app_config.name
+                                    app_config.name
                                 ) and not any(
                                     module.__name__.startswith(prefix)
                                     for prefix in third_party_prefixes
@@ -125,15 +129,15 @@ class PermissionExistenceTestCase(TestCase):
                 # Inspect permissions within the compound permission
                 for sub_perm in perm.permissions:
                     if (
-                            sub_perm == permission_class
-                            or sub_perm.__class__ == permission_class
+                        sub_perm == permission_class
+                        or sub_perm.__class__ == permission_class
                     ):
                         return True
             # Handle compound permissions (e.g., OperandHolder objects)
             if hasattr(perm, "op1_class") and hasattr(perm, "op2_class"):
                 # Recursively check both operands
                 if self.contains_permission(
-                        [perm.op1_class], permission_class
+                    [perm.op1_class], permission_class
                 ) or self.contains_permission([perm.op2_class], permission_class):
                     return True
         return False
@@ -146,7 +150,7 @@ class PermissionExistenceTestCase(TestCase):
 
             # Check for permissions if IsActionPermissionGranted is in permission_classes
             if self.contains_permission(
-                    viewset_class.permission_classes, IsActionPermissionGranted
+                viewset_class.permission_classes, IsActionPermissionGranted
             ):
                 for action in actions:
                     view_name = viewset_class.__name__.replace("ViewSet", "").lower()

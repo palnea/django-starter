@@ -145,13 +145,13 @@ def contains_permission(permission_classes, permission_class):
 def create_permissions(sender, **kwargs):
     """
     Signal handler to create Django model permissions for ModelViewSet actions after migrations.
-    
+
     This creates standard Django permissions that work with DjangoModelPermissions:
     - add_model
-    - change_model  
+    - change_model
     - delete_model
     - view_model
-    
+
     These are created automatically by Django for models, but this handler ensures
     they exist for all models used in ViewSets and assigns them to the Admin group.
     """
@@ -159,20 +159,22 @@ def create_permissions(sender, **kwargs):
 
     for viewset_class, app_label in get_viewsets(sender.name):
         # Only process viewsets that have a queryset/model
-        if not (hasattr(viewset_class, "queryset") and viewset_class.queryset is not None):
+        if not (
+            hasattr(viewset_class, "queryset") and viewset_class.queryset is not None
+        ):
             continue
-            
+
         model = viewset_class.queryset.model
         content_type = ContentType.objects.get_for_model(model)
-        
+
         # Standard Django model permissions
         standard_permissions = [
-            ('add', f'Can add {model._meta.verbose_name}'),
-            ('change', f'Can change {model._meta.verbose_name}'),
-            ('delete', f'Can delete {model._meta.verbose_name}'),
-            ('view', f'Can view {model._meta.verbose_name}'),
+            ("add", f"Can add {model._meta.verbose_name}"),
+            ("change", f"Can change {model._meta.verbose_name}"),
+            ("delete", f"Can delete {model._meta.verbose_name}"),
+            ("view", f"Can view {model._meta.verbose_name}"),
         ]
-        
+
         # Create standard permissions if they don't exist
         for codename_prefix, name in standard_permissions:
             codename = f"{codename_prefix}_{model._meta.model_name}"
@@ -187,13 +189,13 @@ def create_permissions(sender, **kwargs):
             viewset_class.permission_classes, IsActionPermissionGranted
         ):
             actions = get_all_actions(viewset_class)
-            
+
             for action in actions:
                 # Use centralized permission naming function
                 codename, full_permission_name = get_action_permission_name(
                     viewset_class, action, app_label
                 )
-                
+
                 view_name = viewset_class.__name__.replace("ViewSet", "").lower()
                 name = f"Can {action} {view_name}"
                 Permission.objects.get_or_create(
@@ -209,7 +211,7 @@ def create_admin_group_with_all_permissions():
     This ensures admins have access to all functionality.
     """
     admin_group, created = Group.objects.get_or_create(name="Admin")
-    
+
     # Assign all permissions to admin group
     if created or admin_group.permissions.count() == 0:
         all_permissions = Permission.objects.all()

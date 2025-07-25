@@ -33,22 +33,22 @@ log = get_logger(__name__)
 class UserViewSet(OwnershipMixin, ModelViewSet):
     """
     ViewSet for User model with action-aware Django model permissions and ownership checks.
-    
+
     Permissions:
     - ActionAwareModelPermissions: Enhanced Django model permissions for admins with action-level granularity
     - IsOwnerWithoutSideEffects: Ownership checks for regular users
     - ShortCircuitOr: Combines permissions without side effects
-    
+
     Mixins:
     - OwnershipMixin: Handles queryset filtering and user_id injection explicitly in views
-    
+
     Permission Flow:
     - Users with model-level permissions (add_user, change_user, delete_user, view_user) can access all user data
-    - Users without model-level permissions can only access their own user data  
+    - Users without model-level permissions can only access their own user data
     - user_id is automatically injected for users without broad permissions (via mixin)
     - Custom actions require specific permissions for enhanced security
     - Follows Django best practices by checking actual permissions, not user roles
-    
+
     This means:
     - Admins with appropriate permissions can perform any action on any user
     - Regular users can only read/modify their own user data
@@ -56,7 +56,10 @@ class UserViewSet(OwnershipMixin, ModelViewSet):
     - No role-based checks - everything is permission-based
     - All side effects are handled explicitly in view layer (not hidden in permissions)
     """
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+
+    permission_classes = [
+        ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)
+    ]
     pagination_class = CustomPageNumberPagination
     queryset = User.objects.all()
     lookup_url_kwarg = "user_id"
@@ -70,7 +73,7 @@ class UserViewSet(OwnershipMixin, ModelViewSet):
     def get_queryset(self):
         # Start with ownership-filtered queryset from mixin
         queryset = super().get_queryset()
-        
+
         # Apply additional custom filtering based on query parameters
         query_params = self.request.query_params
         created_from = query_params.get("created_from")

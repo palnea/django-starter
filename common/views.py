@@ -10,7 +10,10 @@ from structlog import get_logger
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Translation, TranslatedFile, Locale
-from common.permissions.generic_permissions import IsReadonly, ActionAwareModelPermissions
+from common.permissions.generic_permissions import (
+    IsReadonly,
+    ActionAwareModelPermissions,
+)
 from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
