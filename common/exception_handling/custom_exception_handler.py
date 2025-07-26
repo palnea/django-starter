@@ -6,11 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from typing import Dict, List, Any
 
 from common.custom_exceptions.custom_exception import CustomException
-from common.exception_handling.exception_handler_mapper import (
-    EXCEPTION_HANDLER_MAPPER,
-    API_EXCEPTION_HANDLER_MAPPER,
-)
-from common.response.view_response import ViewFailResponse, log_view_response
+# Legacy imports removed - now using only structured responses
 from common.response.structured_error_response import (
     StructuredErrorResponse, 
     FieldError, 
@@ -196,97 +192,52 @@ def create_structured_response_from_api_exception(exc: APIException, context: Di
     return structured_response.to_response()
 
 
+def create_structured_response_from_generic_exception(exc: Exception, context: Dict[str, Any]):
+    """Create structured error response from generic exception"""
+    request_path = get_request_path(context)
+    
+    general_error = GeneralError(
+        title=_("Server Error"),
+        detail=_("An internal server error occurred. Please try again later."),
+        code="server_error"
+    )
+    
+    structured_response = StructuredErrorResponse(
+        error_type=StructuredErrorType.SERVER_ERROR,
+        status_code=500,
+        instance=request_path,
+        general_error=general_error
+    )
+    
+    return structured_response.to_response()
+
+
 def custom_exception_handler(exc, context):
     """
-    Custom exception handler that supports both legacy and structured error responses
+    Custom exception handler that returns structured error responses
     """
-    # Check if we should use structured responses (can be controlled via settings)
-    use_structured_responses = getattr(settings, 'USE_STRUCTURED_ERROR_RESPONSES', True)
-    
     # Handle CustomException with structured responses
-    if isinstance(exc, CustomException) and use_structured_responses and exc.is_structured():
+    if isinstance(exc, CustomException):
         response = create_structured_response_from_custom_exception(exc, context)
         log_structured_response(exc, context, response)
         return response
     
     # Handle DRF ValidationError with structured responses
-    if isinstance(exc, ValidationError) and use_structured_responses:
+    if isinstance(exc, ValidationError):
         response = create_structured_response_from_validation_error(exc, context)
         log_structured_response(exc, context, response)
         return response
     
     # Handle other API exceptions with structured responses
-    if isinstance(exc, APIException) and use_structured_responses:
+    if isinstance(exc, APIException):
         response = create_structured_response_from_api_exception(exc, context)
         log_structured_response(exc, context, response)
         return response
     
-    # Fall back to legacy handling for backward compatibility
-    if isinstance(exc, CustomException):
-        view_response = ViewFailResponse(
-            exception=exc,
-            error_msg=exc.detail,
-            response_status=exc.status_code,
-            response_information_code=exc.code,
-            response_message=exc.message,
-        )
-    elif isinstance(exc, APIException):
-        exception_parameters = API_EXCEPTION_HANDLER_MAPPER.get(
-            exc.__class__, API_EXCEPTION_HANDLER_MAPPER.get(APIException)
-        )
-        view_response = ViewFailResponse(
-            exception=exc,
-            error_msg=exc.detail,
-            response_status=exc.status_code,
-            response_information_code=exception_parameters.response_information_code,
-            response_message=_(exception_parameters.response_message),
-        )
-    else:
-        exception_handling_parameters = EXCEPTION_HANDLER_MAPPER.get(
-            exc.__class__, EXCEPTION_HANDLER_MAPPER.get(Exception)
-        )(exc)
-        if settings.DEBUG:
-            exception_handling_parameters.error_msg += " Exception: " + str(exc)
-        view_response = ViewFailResponse(
-            exception=exc,
-            error_msg=exception_handling_parameters.error_msg,
-            response_status=exception_handling_parameters.response_status,
-            response_information_code=exception_handling_parameters.response_information_code,
-            response_message=_(exception_handling_parameters.response_message),
-        )
-
-    view_class = (
-        context.get("view").__class__.__name__
-        if context.get("view", None) is not None
-        else None
-    )
-    request_data = (
-        context.get("request").data
-        if context.get("request", None) is not None
-        else None
-    )
-    path = (
-        context.get("request").get_full_path()
-        if context.get("request", None) is not None
-        else None
-    )
-    request_method = (
-        context.get("request").method
-        if context.get("request", None) is not None
-        else None
-    )
-
-    log_view_response(
-        struct_logger=log,
-        view_name=view_class,
-        method_name="",
-        request_body=request_data,
-        request_path=path,
-        request_method=request_method,
-        view_response=view_response,
-    )
-    
-    return view_response.rest_response
+    # Handle any other exceptions as server errors
+    response = create_structured_response_from_generic_exception(exc, context)
+    log_structured_response(exc, context, response)
+    return response
 
 
 def log_structured_response(exc, context, response):

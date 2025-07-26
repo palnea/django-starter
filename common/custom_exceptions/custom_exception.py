@@ -40,7 +40,7 @@ class CustomException(APIException):
         self.message = message
         self.detail = _get_error_details(detail, code)
         self.field_errors = field_errors or {}
-        self.title = title
+        self.title = title or str(self.default_message)  # Ensure all exceptions have a title
         self.instance = instance
         self.extra_data = extra_data or {}
         
@@ -158,7 +158,3 @@ class CustomException(APIException):
     def has_field_errors(self) -> bool:
         """Check if this exception has field-specific errors"""
         return bool(self.field_errors)
-    
-    def is_structured(self) -> bool:
-        """Check if this exception should use structured error response"""
-        return bool(self.field_errors or self.title or self.extra_data)

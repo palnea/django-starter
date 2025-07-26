@@ -87,31 +87,30 @@ class UserLoginSerializer(serializers.Serializer):
         )
 
         if user is None:
-            raise CustomException(
-                detail={"email": ["User with this email doesn't exist"]},
-                code=ErrorCode.NOT_FOUND_ERROR,
-                status_code=status.HTTP_404_NOT_FOUND,
-                message=(
-                    _("User with this email doesn't exist")
-                    if email
-                    else _("User with this phone doesn't exist")
-                ),
+            field_name = "email" if email else "phone"
+            error_message = (
+                _("User with this email doesn't exist")
+                if email
+                else _("User with this phone doesn't exist")
+            )
+            raise CustomException.validation_error(
+                field_errors={field_name: [str(error_message)]},
+                title=_("User Not Found"),
+                instance="/api/v1/auth/login"
             )
 
         if email and not user.email_verified:
-            raise CustomException(
-                detail={"email": ["Email is not verified"]},
-                code=ErrorCode.CONTACT_NOT_VERIFIED,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Email is not verified"),
+            raise CustomException.validation_error(
+                field_errors={"email": [_("Email is not verified")]},
+                title=_("Email Verification Required"),
+                instance="/api/v1/auth/login"
             )
 
         if phone and not user.phone_verified:
-            raise CustomException(
-                detail={"phone": ["Phone is not verified"]},
-                code=ErrorCode.CONTACT_NOT_VERIFIED,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Phone is not verified"),
+            raise CustomException.validation_error(
+                field_errors={"phone": [_("Phone is not verified")]},
+                title=_("Phone Verification Required"),
+                instance="/api/v1/auth/login"
             )
 
         return authenticate_user(user, password)
@@ -140,24 +139,20 @@ class UserRegisterSerializer(serializers.Serializer):
         verify_password = data.get("verify_password")
 
         if not email and not phone:
-            raise CustomException(
-                detail={
-                    "error": {
-                        "email": "Cannot be null or empty if no phone provided",
-                        "phone": "Cannot be null or empty if no email provided",
-                    }
+            raise CustomException.validation_error(
+                field_errors={
+                    "email": [_("Cannot be empty if no phone provided")],
+                    "phone": [_("Cannot be empty if no email provided")]
                 },
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Email or phone should be provided"),
+                title=_("Contact Information Required"),
+                instance="/api/v1/auth/register"
             )
 
         if not password == verify_password:
-            raise CustomException(
-                detail={"verify_password": ["Password doesn't match"]},
-                code=ErrorCode.PASSWORD_DOES_NOT_MATCH,
-                status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Passwords doesn't match"),
+            raise CustomException.validation_error(
+                field_errors={"verify_password": [_("Password doesn't match")]},
+                title=_("Password Mismatch"),
+                instance="/api/v1/auth/register"
             )
 
         validation = {
@@ -201,10 +196,10 @@ class UpdatePasswordSerializer(serializers.Serializer):
             errors.update({"confirm_password": ["Given passwords doesn't match"]})
 
         if errors:
-            raise CustomException(
-                detail=errors,
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                status_code=status.HTTP_400_BAD_REQUEST,
+            raise CustomException.validation_error(
+                field_errors=errors,
+                title=_("Password Change Failed"),
+                instance="/api/v1/auth/change-password"
             )
 
         user.set_password(new_password)
@@ -287,10 +282,10 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
             )
 
         if user_data["aud"] != settings.GOOGLE_CLIENT_ID:
-            raise CustomException(
-                detail=f"Google client id doesn't match with system's client id. \nServer ClientId: **{settings.GOOGLE_CLIENT_ID.split('.')[0][-10:]} \nUser Client Id: **{user_data['aud'].split('.')[0][-10:]}",
-                code=ErrorCode.AUTHENTICATION_FAILED,
-                status_code=status.HTTP_401_UNAUTHORIZED,
+            raise CustomException.authentication_error(
+                title=_("Google Authentication Failed"),
+                detail=_("Google client ID doesn't match with system's client ID. Please try logging in again."),
+                instance="/api/v1/auth/google"
             )
 
         try:
