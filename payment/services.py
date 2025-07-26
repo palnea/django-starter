@@ -83,8 +83,8 @@ class PaymentService:
             user.active_subscription.buyable if user.active_subscription else None
         )
         if (
-                active_subscription_buyable
-                and active_subscription_buyable.type != BuyableType.ONE_TIME_PURCHASE
+            active_subscription_buyable
+            and active_subscription_buyable.type != BuyableType.ONE_TIME_PURCHASE
         ):
             # New structured error format - provides better business logic error
             raise CustomException.business_logic_error(

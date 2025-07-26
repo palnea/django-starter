@@ -82,7 +82,9 @@ class PasswordService:
 
         if email and phone:
             raise CustomException(
-                detail={"error": _("Email and phone cannot be provided at the same time")},
+                detail={
+                    "error": _("Email and phone cannot be provided at the same time")
+                },
                 code=ErrorCode.INVALID_INPUT,
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message=_("Enter email or phone not both"),

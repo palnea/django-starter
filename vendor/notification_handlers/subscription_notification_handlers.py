@@ -98,7 +98,9 @@ class VendorNotificationHandler:
         if not self._verified_data:
             raise CustomException(
                 detail={
-                    "verified_data": _("Verification should be done before reaching product")
+                    "verified_data": _(
+                        "Verification should be done before reaching product"
+                    )
                 },
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -120,7 +122,9 @@ class VendorNotificationHandler:
             return self._payment_transaction
         if self._vendor is None:
             raise CustomException(
-                detail={"error": _("Reached payment transaction before setting vendor")},
+                detail={
+                    "error": _("Reached payment transaction before setting vendor")
+                },
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -131,7 +135,9 @@ class VendorNotificationHandler:
     def original_payment_transaction(self) -> PaymentTransaction:
         if self._vendor is None:
             raise CustomException(
-                detail={"error": _("Reached payment transaction before setting vendor")},
+                detail={
+                    "error": _("Reached payment transaction before setting vendor")
+                },
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

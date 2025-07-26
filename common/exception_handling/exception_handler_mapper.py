@@ -37,7 +37,7 @@ from common.response.response_information_codes.error_code import ErrorCode
 def translate_message(message_key):
     """
     Translate message at runtime based on current language context.
-    This allows us to mark strings for translation while maintaining 
+    This allows us to mark strings for translation while maintaining
     dynamic language detection in exception handlers.
     """
     return gettext(message_key)
@@ -166,7 +166,10 @@ EXCEPTION_HANDLER_MAPPER = {
         "Bad request!",
     ),
     RequestAborted: lambda x: ExceptionHandlingParameters(
-        translate_message("Request aborted!"), 499, ErrorCode.REQUEST_ABORTED, "Request aborted!"
+        translate_message("Request aborted!"),
+        499,
+        ErrorCode.REQUEST_ABORTED,
+        "Request aborted!",
     ),
     SynchronousOnlyOperation: lambda x: ExceptionHandlingParameters(
         translate_message("SynchronousOnlyOperation!"),
