@@ -6,6 +6,7 @@ import jwt
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 from moneyed import Currency
 from rest_framework import status
 from structlog import get_logger
@@ -166,7 +167,7 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
             ]
         ):
             raise CustomException(
-                detail={"general": ["Google receipt data has missing fields."]},
+                detail={"general": [_("Google receipt data has missing fields.")]},
                 code=ErrorCode.INVALID_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -255,7 +256,7 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
         # self.validate_receipt_data() Cannot be used due to rsa validation failure
         if self.verified_response is None:
             raise CustomException(
-                detail={"error": "Called prepare transaction before verification"},
+                detail={"error": _("Called prepare transaction before verification")},
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -329,7 +330,7 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
 
         if not self.receipt.get("TransactionID"):
             raise CustomException(
-                detail={"general": ["Apple receipt data has missing fields."]},
+                detail={"general": [_("Apple receipt data has missing fields.")]},
                 code=ErrorCode.INVALID_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -481,7 +482,7 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
     def prepare_transaction_creation_for_receipt(self):
         if self.verified_response is None:
             raise CustomException(
-                detail={"error": "Called prepare transaction before verification"},
+                detail={"error": _("Called prepare transaction before verification")},
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

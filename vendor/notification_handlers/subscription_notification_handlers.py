@@ -5,6 +5,7 @@ from typing import Dict, Union
 
 from django.db import transaction
 from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from structlog import get_logger
 
@@ -67,13 +68,13 @@ class VendorNotificationHandler:
             return self._product_subscription
         if self.original_payment_transaction is None:
             raise CustomException(
-                detail={"error": "Payment transaction not created yet"},
+                detail={"error": _("Payment transaction not created yet")},
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         if self._vendor is None:
             raise CustomException(
-                detail={"error": "Reached user subscription before setting vendor"},
+                detail={"error": _("Reached user subscription before setting vendor")},
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -97,7 +98,7 @@ class VendorNotificationHandler:
         if not self._verified_data:
             raise CustomException(
                 detail={
-                    "verified_data": "Verification should be done before reaching product"
+                    "verified_data": _("Verification should be done before reaching product")
                 },
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -119,7 +120,7 @@ class VendorNotificationHandler:
             return self._payment_transaction
         if self._vendor is None:
             raise CustomException(
-                detail={"error": "Reached payment transaction before setting vendor"},
+                detail={"error": _("Reached payment transaction before setting vendor")},
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -130,7 +131,7 @@ class VendorNotificationHandler:
     def original_payment_transaction(self) -> PaymentTransaction:
         if self._vendor is None:
             raise CustomException(
-                detail={"error": "Reached payment transaction before setting vendor"},
+                detail={"error": _("Reached payment transaction before setting vendor")},
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

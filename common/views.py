@@ -109,7 +109,7 @@ class TranslationViewSet(ModelViewSet):
         ).first()
         if not translation:
             raise CustomException(
-                detail={"error": "An error occured"},
+                detail={"error": _("An error occurred")},
                 code=ErrorCode.UNKNOWN_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -141,10 +141,10 @@ class TranslationViewSet(ModelViewSet):
             else:
                 raise CustomException.validation_error(
                     field_errors={
-                        "root": ["A translation for this root already exists."]
+                        "root": [_("A translation for this root already exists.")]
                     },
-                    general_message="A translation for this root already exists.",
-                    title="Translation already exists",
+                    general_message=_("A translation for this root already exists."),
+                    title=_("Translation already exists"),
                 )
 
         view_response = ViewResponse(

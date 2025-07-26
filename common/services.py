@@ -22,7 +22,7 @@ class TranslationService:
 
         if not root:
             raise CustomException(
-                detail={"root": "Root must be provided"},
+                detail={"root": _("Root must be provided")},
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message=_("Root must be provided"),
@@ -37,7 +37,7 @@ class TranslationService:
                 ).first()
                 if not root_translation:
                     raise CustomException(
-                        detail={"error": "An error occured"},
+                        detail={"error": _("An error occurred")},
                         code=ErrorCode.UNKNOWN_ERROR,
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     )
@@ -93,7 +93,7 @@ class TranslatedFileService:
 
         if root is None:
             raise CustomException(
-                detail={"root": "Root must be provided"},
+                detail={"root": _("Root must be provided")},
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message=_("Root must be provided"),

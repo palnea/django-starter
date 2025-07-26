@@ -18,8 +18,8 @@ class ContactVerificationSerializer(serializers.Serializer):
         if email is None and phone is None:
             raise CustomException(
                 detail={
-                    "email": ["Email should be provided if phone is empty"],
-                    "phone": ["Phone should be provided if email is empty"],
+                    "email": [_("Email should be provided if phone is empty")],
+                    "phone": [_("Phone should be provided if email is empty")],
                 },
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -29,8 +29,8 @@ class ContactVerificationSerializer(serializers.Serializer):
         if email is not None and phone is not None:
             raise CustomException(
                 detail={
-                    "email": ["Email should be empty if phone is provided"],
-                    "phone": ["Phone should be empty if email is provided"],
+                    "email": [_("Email should be empty if phone is provided")],
+                    "phone": [_("Phone should be empty if email is provided")],
                 },
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,

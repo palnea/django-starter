@@ -56,8 +56,8 @@ class UserLoginSerializer(serializers.Serializer):
             # New structured error format - provides better field-based errors
             raise CustomException.validation_error(
                 field_errors={
-                    "email": ["Cannot be empty if no phone provided"],
-                    "phone": ["Cannot be empty if no email provided"],
+                    "email": [_("Cannot be empty if no phone provided")],
+                    "phone": [_("Cannot be empty if no email provided")],
                 },
                 title=_("Contact Information Required"),
                 instance="/api/v1/auth/login",
@@ -67,8 +67,8 @@ class UserLoginSerializer(serializers.Serializer):
             # New structured error format - provides better field-based errors
             raise CustomException.validation_error(
                 field_errors={
-                    "email": ["Should not be provided if phone provided"],
-                    "phone": ["Should not be provided if email provided"],
+                    "email": [_("Should not be provided if phone provided")],
+                    "phone": [_("Should not be provided if email provided")],
                 },
                 title=_("Only One Contact Method Allowed"),
                 instance="/api/v1/auth/login",

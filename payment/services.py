@@ -13,6 +13,7 @@ from payment.types import BuyableType
 from payment.verifiers.appstore import AppStoreValidator
 from payment.verifiers.errors import InAppPyValidationError
 from user.models import User
+from django.utils.translation import gettext_lazy as _
 
 log = get_logger(__name__)
 
@@ -82,8 +83,8 @@ class PaymentService:
             user.active_subscription.buyable if user.active_subscription else None
         )
         if (
-            active_subscription_buyable
-            and active_subscription_buyable.type != BuyableType.ONE_TIME_PURCHASE
+                active_subscription_buyable
+                and active_subscription_buyable.type != BuyableType.ONE_TIME_PURCHASE
         ):
             # New structured error format - provides better business logic error
             raise CustomException.business_logic_error(
