@@ -1,3 +1,18 @@
+"""
+Exception Handler Mapper
+
+This module maps Django and DRF exceptions to structured error responses.
+
+⚠️  IMPORTANT: When adding new exception handlers, follow the guide in README.md
+    to ensure proper internationalization and avoid test failures.
+
+The translation system works as follows:
+1. Mark ALL strings for translation in the section below
+2. Use plain strings (not gettext_lazy) in exception handlers
+3. Translation happens at response creation time in custom_exception_handler.py
+4. Tests will validate that all strings are properly marked and translated
+"""
+
 from django.contrib.sessions.exceptions import SessionInterrupted
 from django.core.exceptions import (
     ObjectDoesNotExist,

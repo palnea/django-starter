@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+"""
+Pre-commit hook to validate exception handler translations.
+
+This script can be run manually or as part of a pre-commit hook to ensure
+that all exception handler strings are properly marked for translation.
+
+Usage:
+    python scripts/check_exception_translations.py
+
+Returns:
+    0 if all checks pass
+    1 if validation fails
+"""
+
+import os
+import sys
+import subprocess
+import django
+from pathlib import Path
+
+# Add the project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Setup Django
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "manage.settings")
+django.setup()
+
+
+def run_translation_tests():
+    """Run the specific translation validation tests."""
+    test_commands = [
+        "python manage.py test custom_test.test_exception_translations.ExceptionTranslationTestCase.test_all_handler_strings_are_marked_for_translation -v 2",
+        "python manage.py test custom_test.test_exception_translations.ExceptionTranslationTestCase.test_marked_strings_have_translations_in_all_languages -v 2",
+        "python manage.py test custom_test.test_exception_translations.ExceptionHandlerComplianceTestCase.test_exception_handler_mapper_structure_compliance -v 2",
+    ]
+
+    print("🔍 Checking exception handler translations...")
+
+    for command in test_commands:
+        print(f"\n▶️  Running: {command}")
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            print(f"❌ Test failed!")
+            print("STDOUT:")
+            print(result.stdout)
+            print("\nSTDERR:")
+            print(result.stderr)
+            return False
+        else:
+            print("✅ Test passed!")
+
+    return True
+
+
+def check_makemessages_needed():
+    """Check if makemessages needs to be run."""
+    print("\n🔍 Checking if makemessages needs to be run...")
+
+    # Run makemessages in dry-run mode to see if there are changes
+    result = subprocess.run(
+        "python manage.py makemessages --all --dry-run",
+        shell=True,
+        capture_output=True,
+        text=True,
+    )
+
+    if "processing" in result.stdout.lower():
+        print("⚠️  New translatable strings detected!")
+        print("Please run: python manage.py makemessages --all")
+        print("Then add translations and run: python manage.py compilemessages")
+        return False
+    else:
+        print("✅ No new translatable strings detected")
+        return True
+
+
+def main():
+    """Main validation function."""
+    print("🚀 Exception Handler Translation Validator")
+    print("=" * 50)
+
+    success = True
+
+    # Run translation tests
+    if not run_translation_tests():
+        success = False
+
+    # Check if makemessages is needed
+    if not check_makemessages_needed():
+        success = False
+
+    print("\n" + "=" * 50)
+
+    if success:
+        print("✅ All translation checks passed!")
+        print("\nYour exception handlers are properly internationalized.")
+        return 0
+    else:
+        print("❌ Translation validation failed!")
+        print("\nPlease fix the issues above before committing.")
+        print("See common/exception_handling/README.md for guidance.")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
