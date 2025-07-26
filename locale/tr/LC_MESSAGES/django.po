@@ -277,8 +277,6 @@ msgstr "Email Doğrulama Kodu"
 msgid "phone verification message"
 msgstr "MyAp için telefon numarası doğrulama kodunuz: {code}"
 
-#, fuzzy
-#~| msgid "Email Verification Code"
 msgid "Verification code header"
 msgstr "MyApp Doğrulama Kodu"
 
