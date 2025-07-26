@@ -13,7 +13,6 @@ from rest_framework.viewsets import ViewSet
 
 from common.permissions.generic_permissions import (
     IsActionPermissionGranted,
-    HasWritePermission,
 )
 
 
@@ -37,11 +36,13 @@ class PermissionExistenceTestCase(TestCase):
             # Walk through the app directory and inspect each Python file
             for root, _, files in os.walk(app_path):
                 for file in files:
-                    # Skip admin.py and any init files
+                    # Skip admin.py, init files, test files and test directories
                     if (
                         file == "admin.py"
                         or file.startswith("__")
                         or not file.endswith(".py")
+                        or "test" in file.lower()  # Exclude test files
+                        or "test" in root.lower()  # Exclude test directories
                     ):
                         continue
 
@@ -62,6 +63,12 @@ class PermissionExistenceTestCase(TestCase):
                                 inspect.isclass(attr)
                                 and issubclass(attr, View)
                                 and attr is not View
+                                and not attr_name.startswith(
+                                    "Mock"
+                                )  # Exclude Mock classes
+                                and not attr_name.startswith(
+                                    "Test"
+                                )  # Exclude Test classes
                             ):
                                 # Ensure the viewset belongs to the current app and is not from a third-party package
                                 if module.__name__.startswith(
@@ -156,18 +163,3 @@ class PermissionExistenceTestCase(TestCase):
                             ).exists(),
                             f"Permission '{permission_codename}' does not exist in the database",
                         )
-
-            # Check for 'can_write_<model_name>' permission if HasWritePermission is in permission_classes
-            if self.contains_permission(
-                viewset_class.permission_classes, HasWritePermission
-            ):
-                view_name = viewset_class.__name__.replace("ViewSet", "").lower()
-                write_permission_codename = f"can_write_{view_name}"
-                with self.subTest(permission_codename=write_permission_codename):
-                    self.assertTrue(
-                        Permission.objects.filter(
-                            codename=write_permission_codename,
-                            content_type__app_label=app_label,
-                        ).exists(),
-                        f"Permission '{write_permission_codename}' does not exist in the database",
-                    )

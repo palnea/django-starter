@@ -278,8 +278,6 @@ msgstr "Email Verification Code"
 msgid "phone verification message"
 msgstr "Phone verification code for MyApp: {code}"
 
-#, fuzzy
-#~| msgid "Email Verification Code"
 msgid "Verification code header"
 msgstr "MyApp Verification Code"
 
