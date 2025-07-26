@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 00:48+0300\n"
+"POT-Creation-Date: 2025-07-26 18:25+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,63 +17,124 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: authy/helpers/token_helper.py:61
+#: authy/helpers/token_helper.py:59
 msgid "Invalid login credentials"
 msgstr "Hatalı giriş bilgileri"
 
-#: authy/managers.py:23 authy/managers.py:25
+#: authy/managers.py:24 authy/managers.py:26
 msgid "The password must be set"
 msgstr "Şifre girilmesi zorunludur"
 
-#: authy/models.py:18
-msgid "active"
-msgstr "aktif"
+#: authy/managers.py:41
+msgid "The Email must be set"
+msgstr "E-posta adresi girilmesi zorunludur"
 
-#: authy/models.py:21
-msgid ""
-"Designates whether this user should be treated as active. Unselect this "
-"instead of deleting accounts."
-msgstr ""
-"Kullanıcının aktif olup olmadığını belirtir. Kullanıcıları silmek yerine bu "
-"alanın seçimini kaldırın."
+#: authy/managers.py:57
+msgid "Superuser must have is_staff=True."
+msgstr "Süper kullanıcının is_staff=True olması gerekir."
 
-#: authy/serializers.py:63 authy/serializers.py:152 authy/services.py:89
-#: contact_verification/serializers.py:26
-msgid "Email or phone should be provided"
-msgstr "E-posta ya da telefon numarası girilmelidir!"
+#: authy/managers.py:59
+msgid "Superuser must have is_superuser=True."
+msgstr "Süper kullanıcının is_superuser=True olması gerekir."
 
-#: authy/serializers.py:74 authy/services.py:97
-#: contact_verification/serializers.py:37
-msgid "Enter email or phone not both"
-msgstr "E-Posta ve telefon beraber girilemez!"
+#: authy/serializers.py:59 authy/serializers.py:145
+msgid "Cannot be empty if no phone provided"
+msgstr "Telefon numarası verilmemişse boş olamaz"
 
-#: authy/serializers.py:95
+#: authy/serializers.py:60 authy/serializers.py:146
+msgid "Cannot be empty if no email provided"
+msgstr "E-posta verilmemişse boş olamaz"
+
+#: authy/serializers.py:62 authy/serializers.py:148
+msgid "Contact Information Required"
+msgstr "İletişim Bilgisi Gerekli"
+
+#: authy/serializers.py:70
+msgid "Should not be provided if phone provided"
+msgstr "Telefon verilmişse bu alan verilmemelidir"
+
+#: authy/serializers.py:71
+msgid "Should not be provided if email provided"
+msgstr "E-posta verilmişse bu alan verilmemelidir"
+
+#: authy/serializers.py:73
+msgid "Only One Contact Method Allowed"
+msgstr "Sadece Bir İletişim Yöntemi İzinli"
+
+#: authy/serializers.py:92
 msgid "User with this email doesn't exist"
 msgstr "Bu e-postaya sahip kullanıcı bulunmamaktadır"
 
-#: authy/serializers.py:97
+#: authy/serializers.py:94
 msgid "User with this phone doesn't exist"
 msgstr "Bu telefon numarasına sahip kullanıcı bulunmamaktadır"
 
-#: authy/serializers.py:106
+#: authy/serializers.py:98
+msgid "User Not Found"
+msgstr "İçeriğe ulaşılamadı!"
+
+#: authy/serializers.py:105
 msgid "Email is not verified"
 msgstr "Lütfen e-posta adresinizi doğrulayınız."
 
-#: authy/serializers.py:114
+#: authy/serializers.py:106
+msgid "Email Verification Required"
+msgstr "E-posta Doğrulaması Gerekli"
+
+#: authy/serializers.py:112
 msgid "Phone is not verified"
 msgstr "Lütfen telefon numaranızı doğrulayınız."
 
-#: authy/serializers.py:160
-msgid "Passwords doesn't match"
-msgstr "Şifreler birbiriyle uyuşmuyor"
+#: authy/serializers.py:113
+msgid "Phone Verification Required"
+msgstr "Telefon Doğrulaması Gerekli"
 
-#: authy/services.py:64
-msgid "Could not send the verification code"
+#: authy/serializers.py:154
+msgid "Password doesn't match"
+msgstr "Şifreler uyuşmuyor"
+
+#: authy/serializers.py:155
+msgid "Password Mismatch"
+msgstr "Şifreler uyuşmuyor"
+
+#: authy/serializers.py:202
+msgid "Password Change Failed"
+msgstr "Şifre değiştirme başarısız"
+
+#: authy/serializers.py:287
+msgid "Google Authentication Failed"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+#: authy/serializers.py:289
+msgid ""
+"Google client ID doesn't match with system's client ID. Please try logging "
+"in again."
 msgstr ""
+"Google client ID sistem client ID'si ile uyuşmuyor. Lütfen tekrar giriş "
+"yapmayı deneyin."
 
-#: authy/services.py:121
-#, fuzzy
-#| msgid "The password must be set"
+#: authy/services.py:55
+msgid "Could not send the verification code"
+msgstr "Doğrulama kodu gönderilemedi"
+
+#: authy/services.py:80 contact_verification/serializers.py:26
+msgid "Email or phone should be provided"
+msgstr "E-posta ya da telefon numarası girilmelidir!"
+
+#: authy/services.py:85
+msgid "Email and phone cannot be provided at the same time"
+msgstr "E-posta ve telefon aynı anda verilemez"
+
+#: authy/services.py:88 contact_verification/serializers.py:37
+msgid "Enter email or phone not both"
+msgstr "E-Posta ve telefon beraber girilemez!"
+
+#: authy/services.py:98 contact_verification/services.py:151
+#: contact_verification/services.py:154 user/services.py:19
+msgid "User not found"
+msgstr "İçeriğe ulaşılamadı!"
+
+#: authy/services.py:111
 msgid "Reset password email message"
 msgstr ""
 "MyApp için şifre güncelleme talebinizi aldık.\n"
@@ -83,15 +143,15 @@ msgstr ""
 "\n"
 "Giriş yaptıktan sonra şifrenizi değiştirmenizi öneririz."
 
-#: authy/services.py:122
+#: authy/services.py:112
 msgid "Reset password title"
 msgstr "MyApp Şifre Sıfırlama"
 
-#: authy/services.py:128
-#, fuzzy
-#| msgid "The password must be set"
+#: authy/services.py:118
 msgid "Reset password sms message"
-msgstr "Şifre girilmesi zorunludur"
+msgstr ""
+"MyApp için yeni şifreniz: {password}. Giriş yaptıktan sonra değiştirmenizi "
+"öneririz."
 
 #: authy/views.py:52
 msgid "Logged in successfully."
@@ -101,11 +161,314 @@ msgstr "Giriş başarılı."
 msgid "Registered successfully."
 msgstr "Kayıt başarılı."
 
-#: common/custom_exceptions/custom_exception.py:15
-#: common/custom_exceptions/custom_exception.py:17
+#: common/custom_exceptions/custom_exception.py:21
+#: common/custom_exceptions/custom_exception.py:23
 #: common/response/view_response.py:147
 msgid "A server error occurred."
 msgstr "Sunucu hatası oluştu."
+
+#: common/custom_exceptions/custom_exception.py:85
+#: common/custom_exceptions/custom_exception.py:237
+msgid "Validation failed"
+msgstr "Doğrulama başarısız"
+
+#: common/custom_exceptions/custom_exception.py:88
+#: common/exception_handling/exception_handler_mapper.py:62
+#: common/response/view_response.py:129
+msgid "Request parameters are not valid!"
+msgstr "Gönderilen parametreler geçerli değil!"
+
+#: common/custom_exceptions/custom_exception.py:90
+#: common/custom_exceptions/custom_exception.py:239
+#: common/exception_handling/custom_exception_handler.py:155
+#: common/exception_handling/custom_exception_handler.py:163
+#: common/exception_handling/custom_exception_handler.py:213
+#: common/response/structured_error_response.py:124
+#: common/test/test_structured_errors.py:380
+#: common/test/test_structured_errors.py:399
+msgid "Validation Error"
+msgstr "Doğrulama Hatası"
+
+#: common/custom_exceptions/custom_exception.py:122
+msgid "Authentication credentials were missing or invalid."
+msgstr "Kimlik doğrulama bilgileri eksik veya geçersiz."
+
+#: common/custom_exceptions/custom_exception.py:125
+#: common/custom_exceptions/custom_exception.py:126
+msgid "Authentication Failed"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+#: common/custom_exceptions/custom_exception.py:137
+msgid "You do not have permission to perform this action."
+msgstr "Bu işlem için izniniz yok!"
+
+#: common/custom_exceptions/custom_exception.py:140
+#: common/custom_exceptions/custom_exception.py:141
+msgid "Access Denied"
+msgstr "Erişim Reddedildi"
+
+#: common/custom_exceptions/custom_exception.py:152
+msgid "The requested resource was not found."
+msgstr "İstenen kaynak bulunamadı."
+
+#: common/custom_exceptions/custom_exception.py:155
+#: common/custom_exceptions/custom_exception.py:156
+msgid "Not Found"
+msgstr "İçeriğe ulaşılamadı!"
+
+#: common/custom_exceptions/custom_exception.py:193
+#: common/response/structured_error_response.py:107
+msgid "Multiple Issues Found"
+msgstr "Birden Fazla Sorun Bulundu"
+
+#: common/custom_exceptions/custom_exception.py:194
+#: common/response/structured_error_response.py:109
+msgid "Multiple issues were identified with your request."
+msgstr "İsteğinizde birden fazla sorun tespit edildi."
+
+#: common/examples/generic_error_examples.py:123
+msgid "Insufficient Funds"
+msgstr "Yetersiz Bakiye"
+
+#: common/examples/generic_error_examples.py:136
+msgid "Transaction Limit Exceeded"
+msgstr "İşlem Limiti Aşıldı"
+
+#: common/examples/generic_error_examples.py:138
+msgid ""
+"Trial accounts are limited to transactions of $100 or less. Please upgrade "
+"your account to process larger transactions."
+msgstr ""
+"Deneme hesapları 100$ veya daha az işlemlerle sınırlıdır. Daha büyük "
+"işlemler için hesabınızı yükseltin."
+
+#: common/examples/generic_error_examples.py:176
+msgid "System Maintenance in Progress"
+msgstr "Sistem Bakımı Devam Ediyor"
+
+#: common/examples/generic_error_examples.py:178
+msgid ""
+"Our systems are currently undergoing scheduled maintenance. Please try again "
+"in 30 minutes. We apologize for any inconvenience."
+msgstr ""
+"Sistemlerimiz şu anda planlanmış bakım altında. Lütfen 30 dakika sonra "
+"tekrar deneyin. Rahatsızlık için özür dileriz."
+
+#: common/examples/generic_error_examples.py:192
+msgid "High Traffic Volume"
+msgstr "Yüksek Trafik Hacmi"
+
+#: common/examples/generic_error_examples.py:194
+msgid ""
+"Our servers are experiencing high traffic. Your request has been queued and "
+"will be processed shortly. Please do not retry immediately."
+msgstr ""
+"Sunucularımız yoğun trafik yaşıyor. İsteğiniz kuyruğa alındı ve kısa sürede "
+"işlenecek. Lütfen hemen tekrar denemeyin."
+
+#: common/examples/generic_error_examples.py:229 payment/services.py:91
+msgid "Active Subscription Exists"
+msgstr "Aktif Abonelik Mevcut"
+
+#: common/examples/generic_error_examples.py:231
+msgid ""
+"You already have an active subscription. To change your plan, please use the "
+"upgrade option or cancel your current subscription first."
+msgstr ""
+"Zaten aktif bir aboneliğiniz var. Planınızı değiştirmek için yükseltme "
+"seçeneğini kullanın veya mevcut aboneliğinizi iptal edin."
+
+#: common/examples/generic_error_examples.py:248
+msgid "Account Too New for Premium"
+msgstr "Hesap Premium İçin Çok Yeni"
+
+#: common/examples/generic_error_examples.py:250
+#, python-brace-format
+msgid ""
+"Premium subscriptions are only available to accounts that have been active "
+"for at least 30 days. Your account is {days} days old."
+msgstr ""
+"Premium abonelikler en az 30 gün aktif olan hesaplar için geçerlidir. "
+"Hesabınız {days} günlük."
+
+#: common/examples/generic_error_examples.py:291
+msgid "Authentication Required"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+#: common/examples/generic_error_examples.py:293
+msgid ""
+"This endpoint requires authentication. Please provide a valid access token "
+"in the Authorization header."
+msgstr ""
+"Bu endpoint kimlik doğrulama gerektirir. Lütfen Authorization header'ında "
+"geçerli bir access token sağlayın."
+
+#: common/examples/generic_error_examples.py:300
+msgid "Session Expired"
+msgstr "Oturum kesintiye uğradı!"
+
+#: common/examples/generic_error_examples.py:302
+msgid "Your authentication token has expired. Please log in again to continue."
+msgstr ""
+"Kimlik doğrulama token'ınızın süresi doldu. Devam etmek için lütfen tekrar "
+"giriş yapın."
+
+#: common/examples/generic_error_examples.py:309
+msgid "Invalid Authentication"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+#: common/examples/generic_error_examples.py:311
+msgid ""
+"The provided authentication token is invalid or malformed. Please check your "
+"credentials and try again."
+msgstr ""
+"Verilen kimlik doğrulama token'ı geçersiz veya hatalı. Lütfen bilgilerinizi "
+"kontrol edip tekrar deneyin."
+
+#: common/examples/generic_error_examples.py:335
+msgid "Account Suspended"
+msgstr "Hesap Askıya Alındı"
+
+#: common/examples/generic_error_examples.py:337
+msgid ""
+"Your account has been temporarily suspended. Please contact support for "
+"assistance."
+msgstr ""
+"Hesabınız geçici olarak askıya alındı. Lütfen yardım için desteğe başvurun."
+
+#: common/examples/generic_error_examples.py:344
+msgid "Insufficient Permissions"
+msgstr "Yetersiz İzinler"
+
+#: common/examples/generic_error_examples.py:346
+msgid ""
+"You need administrator privileges to delete resources. Please contact your "
+"system administrator if you believe this is an error."
+msgstr ""
+"Kaynakları silmek için yönetici ayrıcalıklarına ihtiyacınız var. Bu bir hata "
+"olduğunu düşünüyorsanız sistem yöneticinize başvurun."
+
+#: common/examples/generic_error_examples.py:353
+msgid "Export Permission Required"
+msgstr "Dışa Aktarma İzni Gerekli"
+
+#: common/examples/generic_error_examples.py:355
+msgid ""
+"Data export functionality requires special permissions. Please request "
+"export access from your administrator."
+msgstr ""
+"Veri dışa aktarma işlevi özel izinler gerektirir. Lütfen yöneticinizden dışa "
+"aktarma erişimi talep edin."
+
+#: common/exception_handling/custom_exception_handler.py:314
+msgid "Server Error"
+msgstr "Sunucu Hatası"
+
+#: common/exception_handling/custom_exception_handler.py:315
+msgid "An internal server error occurred. Please try again later."
+msgstr "Dahili sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin."
+
+#: common/exception_handling/exception_handler_mapper.py:48
+msgid "Already exist!"
+msgstr "Zaten var!"
+
+#: common/exception_handling/exception_handler_mapper.py:49
+msgid "Already exists!"
+msgstr "Zaten mevcut!"
+
+#: common/exception_handling/exception_handler_mapper.py:50
+msgid "Integrity Error!"
+msgstr "Bütünlük Hatası!"
+
+#: common/exception_handling/exception_handler_mapper.py:51
+msgid "Unknown error!"
+msgstr "Bilinmeyen hata!"
+
+#: common/exception_handling/exception_handler_mapper.py:52
+#: common/response/view_response.py:106
+msgid "An error occured!"
+msgstr "Bir hata oluştu!"
+
+#: common/exception_handling/exception_handler_mapper.py:53
+msgid "Object doesn't exist!"
+msgstr "Nesne mevcut değil!"
+
+#: common/exception_handling/exception_handler_mapper.py:54
+#: common/test/test_structured_errors.py:258 user/services.py:22
+msgid "Content not found!"
+msgstr "İçeriğe ulaşılamadı!"
+
+#: common/exception_handling/exception_handler_mapper.py:55
+msgid "This operations is not permitted!"
+msgstr "Bu işlem izin verilmiyor!"
+
+#: common/exception_handling/exception_handler_mapper.py:56
+#, fuzzy
+#| msgid "You do not have permission to perform this action."
+msgid "You don't have permission for this action!"
+msgstr "Bu işlem için izniniz yok!"
+
+#: common/exception_handling/exception_handler_mapper.py:57
+msgid "View doesn't exist!"
+msgstr "Görünüm mevcut değil!"
+
+#: common/exception_handling/exception_handler_mapper.py:58
+msgid "Middleware not used!"
+msgstr "Middleware kullanılmıyor!"
+
+#: common/exception_handling/exception_handler_mapper.py:59
+msgid "Improperly configured!"
+msgstr "Yanlış yapılandırılmış!"
+
+#: common/exception_handling/exception_handler_mapper.py:60
+msgid "Field Error!"
+msgstr "Alan Hatası!"
+
+#: common/exception_handling/exception_handler_mapper.py:61
+msgid "Data is not valid!"
+msgstr "Veri geçerli değil!"
+
+#: common/exception_handling/exception_handler_mapper.py:63
+msgid "Bad request!"
+msgstr "Hatalı istek!"
+
+#: common/exception_handling/exception_handler_mapper.py:64
+msgid "Request aborted!"
+msgstr "İstek iptal edildi!"
+
+#: common/exception_handling/exception_handler_mapper.py:65
+msgid "SynchronousOnlyOperation!"
+msgstr "Sadece Senkron İşlem!"
+
+#: common/exception_handling/exception_handler_mapper.py:66
+msgid "Upload is aborted!"
+msgstr "Yükleme iptal edildi!"
+
+#: common/exception_handling/exception_handler_mapper.py:67
+msgid "Session interrupted!"
+msgstr "Oturum kesintiye uğradı!"
+
+#: common/exception_handling/exception_handler_mapper.py:68
+msgid "Something bad occurred on transaction management!"
+msgstr "İşlem yönetiminde kötü bir şey oldu!"
+
+#: common/exception_handling/exception_handler_mapper.py:69
+msgid "No content!"
+msgstr "İçerik yok!"
+
+#: common/exception_handling/exception_handler_mapper.py:70
+#, fuzzy
+#| msgid "Authentication Failed"
+msgid "Authentication failed!"
+msgstr "Kimlik doğrulama başarısız oldu!"
+
+#: common/exception_handling/exception_handler_mapper.py:71
+msgid "Not authenticated!"
+msgstr "Kimlik doğrulanmadı!"
+
+#: common/exception_handling/exception_handler_mapper.py:72
+msgid "Unsupported media type!"
+msgstr "Desteklenmeyen medya türü!"
 
 #: common/models.py:33
 #, python-format
@@ -136,20 +499,30 @@ msgstr "Karakter Kodlaması"
 msgid "Writing Direction"
 msgstr "Yazı Yönü"
 
+#: common/response/structured_error_response.py:125
+#: common/test/test_structured_errors.py:381
+#: common/test/test_structured_errors.py:400
+msgid "The request data is invalid."
+msgstr "İstek verisi geçersiz."
+
+#: common/response/structured_error_response.py:127
+msgid "Validation Errors"
+msgstr "Doğrulama Hataları"
+
+#: common/response/structured_error_response.py:129
+msgid "Multiple fields have validation errors."
+msgstr "Birden fazla alanda doğrulama hatası var."
+
 #: common/response/view_response.py:75 contact_verification/views.py:113
 #: contact_verification/views.py:144
 msgid "Success"
 msgstr "Başarılı"
 
-#: common/response/view_response.py:106
-msgid "An error occured!"
-msgstr "Bir hata oluştu!"
+#: common/serializers.py:29 common/serializers.py:112
+msgid "English Locale Missing"
+msgstr "İngilizce Dil Ayarı Eksik"
 
-#: common/response/view_response.py:129
-msgid "Request parameters are not valid!"
-msgstr "Gönderilen parametreler geçerli değil!"
-
-#: common/serializers.py:33 common/serializers.py:107
+#: common/serializers.py:31 common/serializers.py:114
 msgid ""
 "The locale that refers to English language doesn't exist. Please create a "
 "locale with 'en' code first!"
@@ -157,45 +530,84 @@ msgstr ""
 "İngilizce diline ait dil kaydı bulunamadı. Lütfen önce 'en' kodlu ingilizce "
 "dil kaydını oluşturun"
 
-#: common/serializers.py:42 common/serializers.py:116
+#: common/serializers.py:40 common/serializers.py:123
 msgid "Root object locale id must be {} which refers to English language"
 msgstr "Ana kelime locale idsi {} (İngilizce) olmalı."
 
-#: common/serializers.py:79 common/serializers.py:155
+#: common/serializers.py:44 common/serializers.py:127
+msgid "Invalid Locale"
+msgstr "Geçersiz Dil Ayarı"
+
+#: common/serializers.py:88 common/serializers.py:180
 msgid ""
 "If this is the first time to create a translation it should be in English"
 msgstr "Bir kelimeyi sözlüğe eklemek için önce İngilizce'sini eklemelisiniz."
 
-#: common/services.py:28 common/services.py:99
+#: common/services.py:25 common/services.py:28 common/services.py:96
+#: common/services.py:99
 msgid "Root must be provided"
 msgstr "Ana kelime boş olamaz"
 
-#: common/views.py:147 common/views.py:216 common/views.py:305
-#: common/views.py:371 common/views.py:418 payment/views.py:185
+#: common/services.py:40 common/views.py:112
+msgid "An error occurred"
+msgstr "Bir hata oluştu!"
+
+#: common/test/test_generic_errors.py:415
+msgid "Internationalized Title"
+msgstr "Uluslararasılaştırılmış Başlık"
+
+#: common/test/test_generic_errors.py:416
+msgid "This is an internationalized error detail message."
+msgstr "Bu uluslararasılaştırılmış bir hata detay mesajıdır."
+
+#: common/views.py:144 common/views.py:146
+msgid "A translation for this root already exists."
+msgstr "Bu kök için zaten bir çeviri mevcut."
+
+#: common/views.py:147
+msgid "Translation already exists"
+msgstr "Oluşturmaya çalıştığın şey zaten var!"
+
+#: common/views.py:155 common/views.py:224 common/views.py:313
+#: common/views.py:379 common/views.py:426 payment/views.py:188
 msgid "Created successfully!"
 msgstr "Kayıt başarıyla oluşturuldu!"
 
-#: common/views.py:167 common/views.py:325 common/views.py:438
-#: payment/views.py:205 user/views.py:120
+#: common/views.py:175 common/views.py:333 common/views.py:446
+#: payment/views.py:208 user/views.py:151
 msgid "Updated successfully!"
 msgstr "Güncelleme işlemi başarılı!"
 
-#: common/views.py:184 common/views.py:188 common/views.py:342
-#: common/views.py:346 common/views.py:454 common/views.py:456
-#: payment/views.py:222 payment/views.py:226 user/views.py:139
-#: user/views.py:143
+#: common/views.py:192 common/views.py:196 common/views.py:350
+#: common/views.py:354 common/views.py:462 common/views.py:464
+#: payment/views.py:225 payment/views.py:229 user/views.py:170
+#: user/views.py:174
 msgid "Deleted successfully!"
 msgstr "Silindi!"
 
 #: contact_verification/models.py:99
-#, fuzzy
-#| msgid "email verification message"
 msgid "Verification code message"
 msgstr "MyApp için doğrulama kodunuz: {code}"
 
 #: contact_verification/models.py:104
 msgid "Verify Your Email"
-msgstr ""
+msgstr "E-postanızı Doğrulayın"
+
+#: contact_verification/serializers.py:21
+msgid "Email should be provided if phone is empty"
+msgstr "E-posta ya da telefon numarası girilmelidir!"
+
+#: contact_verification/serializers.py:22
+msgid "Phone should be provided if email is empty"
+msgstr "E-posta ya da telefon numarası girilmelidir!"
+
+#: contact_verification/serializers.py:32
+msgid "Email should be empty if phone is provided"
+msgstr "E-posta ya da telefon numarası girilmelidir!"
+
+#: contact_verification/serializers.py:33
+msgid "Phone should be empty if email is provided"
+msgstr "E-posta ya da telefon numarası girilmelidir!"
 
 #: contact_verification/services.py:51
 msgid "Code is sent. Check your email."
@@ -205,29 +617,30 @@ msgstr "Kod gönderilmiştir. E-Postanızı kontrol ediniz."
 msgid "Code is sent. Check your messages."
 msgstr "Kod gönderilmiştir. Mesajlarınızı kontrol ediniz."
 
+#: contact_verification/services.py:70
+msgid "UUID is invalid"
+msgstr "UUID geçersiz"
+
 #: contact_verification/services.py:73
 msgid "Please request a new code"
 msgstr "Lütfen yeni bir kod talep ediniz."
 
-#: contact_verification/services.py:81 contact_verification/services.py:137
+#: contact_verification/services.py:78 contact_verification/services.py:81
+#: contact_verification/services.py:134 contact_verification/services.py:137
 msgid "Code is invalid or expired"
 msgstr "Kod hatalı ya da süresi geçti"
+
+#: contact_verification/services.py:88
+msgid "Exceeded limit of attempts"
+msgstr "Deneme sınırı aşıldı"
 
 #: contact_verification/services.py:91
 msgid "You entered the wrong code too many times"
 msgstr "Yanlış kod numarasını çok kez denediniz. Yeni kod talep ediniz."
 
-#: contact_verification/services.py:102
-#, fuzzy
-#| msgid "Code is invalid or expired"
+#: contact_verification/services.py:99 contact_verification/services.py:102
 msgid "Code is incorrect"
 msgstr "Kod hatalı ya da süresi geçti"
-
-#: contact_verification/services.py:154
-#, fuzzy
-#| msgid "Content not found!"
-msgid "User not found"
-msgstr "İçeriğe ulaşılamadı!"
 
 #: contact_verification/templates/emails/verification_email.html:79
 msgid "Verify your email address"
@@ -250,7 +663,8 @@ msgstr "Bu kod %(time)s dakika içinde geçerliliğini yitirecektir."
 #: contact_verification/templates/emails/verification_email.html:91
 msgid ""
 "If you did not request this verification code, please ignore this email."
-msgstr "Bu doğrulama kodunu talep etmediyseniz, lütfen bu e-postayı dikkate almayın."
+msgstr ""
+"Bu doğrulama kodunu talep etmediyseniz, lütfen bu e-postayı dikkate almayın."
 
 #: contact_verification/templates/emails/verification_email.html:94
 msgid "This is an automated message, please do not reply to this email."
@@ -260,67 +674,84 @@ msgstr "Bu otomatik bir mesajdır, lütfen bu e-postaya yanıt vermeyin."
 msgid "All rights reserved."
 msgstr "Tüm hakları saklıdır."
 
-#: user/models.py:145 user/validators.py:37
+#: payment/serializers.py:32
+msgid "Cannot be null or empty"
+msgstr "Boş veya null olamaz"
+
+#: payment/services.py:59
+msgid "Receipt Verification Failed"
+msgstr "MyApp için e-posta doğrulama kodunuz: {code}"
+
+#: payment/services.py:93
+msgid ""
+"You already have an active subscription. Please cancel your current "
+"subscription before purchasing a new one."
+msgstr ""
+"Zaten aktif bir aboneliğiniz var. Yeni bir abonelik satın almadan önce "
+"mevcut aboneliğinizi iptal edin."
+
+#: payment/subscription/strategies.py:170
+msgid "Google receipt data has missing fields."
+msgstr "Google makbuz verisinde eksik alanlar var."
+
+#: payment/subscription/strategies.py:259
+#: payment/subscription/strategies.py:485
+msgid "Called prepare transaction before verification"
+msgstr "Doğrulamadan önce işlem hazırlama çağrıldı"
+
+#: payment/subscription/strategies.py:333
+msgid "Apple receipt data has missing fields."
+msgstr "Apple makbuz verisinde eksik alanlar var."
+
+#: user/admin.py:12
+msgid "Personal info"
+msgstr "Kişisel"
+
+#: user/admin.py:13
+msgid "Verification"
+msgstr "Email Doğrulama Kodu"
+
+#: user/admin.py:15
+msgid "Permissions"
+msgstr "İzinler"
+
+#: user/admin.py:26
+msgid "Important dates"
+msgstr "Önemli tarihler"
+
+#: user/admin.py:27
+msgid "Other"
+msgstr "Diğer"
+
+#: user/models.py:53
+msgid "active"
+msgstr "aktif"
+
+#: user/models.py:56
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+"Kullanıcının aktif olup olmadığını belirtir. Kullanıcıları silmek yerine bu "
+"alanın seçimini kaldırın."
+
+#: user/models.py:170 user/validators.py:35
 msgid "Validation error occured. Please check the fields."
 msgstr "Doğrulama hatası oluştu. Lütfen alanları kontrol edin."
 
-#: user/services.py:22
-msgid "Content not found!"
-msgstr "İçeriğe ulaşılamadı!"
+#: vendor/notification_handlers/subscription_notification_handlers.py:71
+msgid "Payment transaction not created yet"
+msgstr "Ödeme işlemi henüz oluşturulmadı"
 
-msgid "email verification message"
-msgstr "MyApp için e-posta doğrulama kodunuz: {code}"
+#: vendor/notification_handlers/subscription_notification_handlers.py:77
+msgid "Reached user subscription before setting vendor"
+msgstr "Vendor ayarlanmadan önce kullanıcı aboneliğine ulaşıldı"
 
-msgid "Email Verification Code"
-msgstr "Email Doğrulama Kodu"
+#: vendor/notification_handlers/subscription_notification_handlers.py:101
+msgid "Verification should be done before reaching product"
+msgstr "Ürüne ulaşmadan önce doğrulama yapılmalı"
 
-msgid "phone verification message"
-msgstr "MyAp için telefon numarası doğrulama kodunuz: {code}"
-
-msgid "Verification code header"
-msgstr "MyApp Doğrulama Kodu"
-
-msgid "Public"
-msgstr "Genel"
-
-msgid "Private"
-msgstr "Özel"
-
-msgid "Already exist!"
-msgstr "Oluşturmaya çalıştığın şey zaten var!"
-
-msgid "You don't have permission for this action!"
-msgstr "Bu işlem için izniniz yok!"
-
-msgid "Bad request!"
-msgstr "Hatalı istek!"
-
-msgid "Request aborted!"
-msgstr "İstek yarıda kesildi!"
-
-msgid "Upload is aborted!"
-msgstr "Yükleme işlemi yarıda kesildi!"
-
-msgid "Session interrupted!"
-msgstr "Oturum kesintiye uğradı!"
-
-msgid "Authentication failed!"
-msgstr "Kimlik doğrulama başarısız oldu!"
-
-msgid "Not authenticated!"
-msgstr "Giriş yapmalısınız!"
-
-msgid "Unsupported media type!"
-msgstr "Desteklenmeyen dosya yapısı!"
-
-msgid "Incorrect password"
-msgstr "Hatalı şifre"
-
-msgid "Personal"
-msgstr "Kişisel"
-
-msgid "Business"
-msgstr "Kurumsal"
-
-msgid "Internal"
-msgstr "Dahili"
+#: vendor/notification_handlers/subscription_notification_handlers.py:123
+#: vendor/notification_handlers/subscription_notification_handlers.py:134
+msgid "Reached payment transaction before setting vendor"
+msgstr "Vendor ayarlanmadan önce ödeme işlemine ulaşıldı"
