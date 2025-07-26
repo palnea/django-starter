@@ -39,7 +39,7 @@ class ShortCircuitOr:
     once the first permission passes, preventing unwanted side effects.
 
     Usage:
-        permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithView, IsOwnerWithoutSideEffects)]
+        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
     """
 
     def __init__(self, *permissions):
@@ -57,8 +57,8 @@ class ShortCircuitOrPermission(permissions.BasePermission):
     - | will evaluate all permissions and return True if any pass
 
     Example:
-        permission_classes = [ShortCircuitOr(DjangoModelPermissionsWithView, IsOwnerWithoutSideEffects)] // Won't evaluate IsOwnerWithoutSideEffects if DjangoModelPermissionsWithView passes
-        permission_classes = [DjangoModelPermissionsWithView | IsOwnerWithoutSideEffects] // Will evaluate both permissions and return True if any pass
+        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)] // Won't evaluate IsOwnerWithoutSideEffects if ActionAwareModelPermissions passes
+        permission_classes = [ActionAwareModelPermissions | IsOwnerWithoutSideEffects] // Will evaluate both permissions and return True if any pass
     """
 
     def __init__(self, permission_classes):
@@ -85,7 +85,7 @@ class ConditionalPermission(permissions.BasePermission):
 
     Usage:
         permission_classes = [ConditionalPermission({
-            lambda r, v: r.user.has_perm('user.view_user'): DjangoModelPermissionsWithView,
+            lambda r, v: r.user.has_perm('user.view_user'): ActionAwareModelPermissions,
             lambda r, v: True: IsOwnerWithoutSideEffects  # Default case
         })]
     """
