@@ -83,7 +83,7 @@ class ExceptionHandlingParameters(object):
         self.error_msg = error_msg
         self.response_status = response_status
         self.response_information_code = response_information_code
-        self.response_message = translate_message(response_message)
+        self.response_message = response_message
 
 
 class APIExceptionHandlingParameters(object):
@@ -91,19 +91,19 @@ class APIExceptionHandlingParameters(object):
         self, response_information_code: ErrorCode, response_message: str
     ) -> None:
         self.response_information_code = response_information_code
-        self.response_message = translate_message(response_message)
+        self.response_message = response_message
 
 
 def get_integrity_error_parameters(error: Exception):
     if "duplicate key" in str(error):
         return ExceptionHandlingParameters(
-            translate_message("Already exists!"),
+            "Already exists!",
             status.HTTP_400_BAD_REQUEST,
             ErrorCode.DUPLICATE_KEY_ERROR,
             "Already exist!",
         )
     return ExceptionHandlingParameters(
-        translate_message("Integrity Error!"),
+        "Integrity Error!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.INTEGRITY_ERROR,
     )
@@ -111,92 +111,92 @@ def get_integrity_error_parameters(error: Exception):
 
 EXCEPTION_HANDLER_MAPPER = {
     Exception: lambda x: ExceptionHandlingParameters(
-        translate_message("Unknown error!"),
+        "Unknown error!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.UNKNOWN_ERROR,
         "An error occured!",
     ),
     IntegrityError: get_integrity_error_parameters,
     ObjectDoesNotExist: lambda x: ExceptionHandlingParameters(
-        translate_message("Object doesn't exist!"),
+        "Object doesn't exist!",
         status.HTTP_404_NOT_FOUND,
         ErrorCode.NOT_FOUND_ERROR,
         "Content not found!",
     ),
     PermissionDenied: lambda x: ExceptionHandlingParameters(
-        translate_message("This operations is not permitted!"),
+        "This operations is not permitted!",
         status.HTTP_403_FORBIDDEN,
         ErrorCode.PERMISSION_DENIED,
         "You don't have permission for this action!",
     ),
     ViewDoesNotExist: lambda x: ExceptionHandlingParameters(
-        translate_message("View doesn't exist!"),
+        "View doesn't exist!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.VIEW_DOESNT_EXIST,
         "An error occured!",
     ),
     MiddlewareNotUsed: lambda x: ExceptionHandlingParameters(
-        translate_message("Middleware not used!"),
+        "Middleware not used!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.MIDDLEWARE_NOT_USED,
         "An error occured!",
     ),
     ImproperlyConfigured: lambda x: ExceptionHandlingParameters(
-        translate_message("Improperly configured!"),
+        "Improperly configured!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.IMPROPERLY_CONFIGURED,
         "An error occured!",
     ),
     FieldError: lambda x: ExceptionHandlingParameters(
-        translate_message("Field Error!"),
+        "Field Error!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.FIELD_ERROR,
         "An error occured!",
     ),
     CoreValidationError: lambda x: ExceptionHandlingParameters(
-        translate_message("Data is not valid!"),
+        "Data is not valid!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.INVALID_INPUT,
         "Request parameters are not valid!",
     ),
     BadRequest: lambda x: ExceptionHandlingParameters(
-        translate_message("Bad request!"),
+        "Bad request!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.BAD_REQUEST,
         "Bad request!",
     ),
     RequestAborted: lambda x: ExceptionHandlingParameters(
-        translate_message("Request aborted!"),
+        "Request aborted!",
         499,
         ErrorCode.REQUEST_ABORTED,
         "Request aborted!",
     ),
     SynchronousOnlyOperation: lambda x: ExceptionHandlingParameters(
-        translate_message("SynchronousOnlyOperation!"),
+        "SynchronousOnlyOperation!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.INTERNAL_SERVER_ERROR,
         "An error occured!",
     ),
     UnreadablePostError: lambda x: ExceptionHandlingParameters(
-        translate_message("Upload is aborted!"),
+        "Upload is aborted!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.FILE_UNREADABLE,
         "Upload is aborted!",
     ),
     SessionInterrupted: lambda x: ExceptionHandlingParameters(
-        translate_message("Session interrupted!"),
+        "Session interrupted!",
         status.HTTP_400_BAD_REQUEST,
         ErrorCode.SESSION_INTERRUPTED,
         "Session interrupted!",
     ),
     TransactionManagementError: lambda x: ExceptionHandlingParameters(
-        translate_message("Something bad occurred on transaction management!"),
+        "Something bad occurred on transaction management!",
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         ErrorCode.TRANSACTION_MANAGEMENT_ERROR,
         "An error occured!",
     ),
     Http404: lambda x: ExceptionHandlingParameters(
-        translate_message("No content!"),
+        "No content!",
         status.HTTP_404_NOT_FOUND,
         ErrorCode.NOT_FOUND_ERROR,
         "Content not found!",

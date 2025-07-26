@@ -289,7 +289,7 @@ def create_structured_response_from_django_exception(
 
     general_error = GeneralError(
         title=_(exception_parameters.response_message),
-        detail=exception_parameters.error_msg,
+        detail=_(exception_parameters.error_msg),
         code=exception_parameters.response_information_code.value,
     )
 

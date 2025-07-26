@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-26 18:25+0300\n"
+"POT-Creation-Date: 2025-07-27 02:21+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,20 +121,20 @@ msgstr "Doğrulama kodu gönderilemedi"
 msgid "Email or phone should be provided"
 msgstr "E-posta ya da telefon numarası girilmelidir!"
 
-#: authy/services.py:85
+#: authy/services.py:86
 msgid "Email and phone cannot be provided at the same time"
 msgstr "E-posta ve telefon aynı anda verilemez"
 
-#: authy/services.py:88 contact_verification/serializers.py:37
+#: authy/services.py:90 contact_verification/serializers.py:37
 msgid "Enter email or phone not both"
 msgstr "E-Posta ve telefon beraber girilemez!"
 
-#: authy/services.py:98 contact_verification/services.py:151
+#: authy/services.py:100 contact_verification/services.py:151
 #: contact_verification/services.py:154 user/services.py:19
 msgid "User not found"
 msgstr "İçeriğe ulaşılamadı!"
 
-#: authy/services.py:111
+#: authy/services.py:113
 msgid "Reset password email message"
 msgstr ""
 "MyApp için şifre güncelleme talebinizi aldık.\n"
@@ -143,11 +143,11 @@ msgstr ""
 "\n"
 "Giriş yaptıktan sonra şifrenizi değiştirmenizi öneririz."
 
-#: authy/services.py:112
+#: authy/services.py:114
 msgid "Reset password title"
 msgstr "MyApp Şifre Sıfırlama"
 
-#: authy/services.py:118
+#: authy/services.py:120
 msgid "Reset password sms message"
 msgstr ""
 "MyApp için yeni şifreniz: {password}. Giriş yaptıktan sonra değiştirmenizi "
@@ -403,8 +403,6 @@ msgid "This operations is not permitted!"
 msgstr "Bu işlem izin verilmiyor!"
 
 #: common/exception_handling/exception_handler_mapper.py:56
-#, fuzzy
-#| msgid "You do not have permission to perform this action."
 msgid "You don't have permission for this action!"
 msgstr "Bu işlem için izniniz yok!"
 
@@ -457,8 +455,6 @@ msgid "No content!"
 msgstr "İçerik yok!"
 
 #: common/exception_handling/exception_handler_mapper.py:70
-#, fuzzy
-#| msgid "Authentication Failed"
 msgid "Authentication failed!"
 msgstr "Kimlik doğrulama başarısız oldu!"
 
@@ -747,11 +743,11 @@ msgstr "Ödeme işlemi henüz oluşturulmadı"
 msgid "Reached user subscription before setting vendor"
 msgstr "Vendor ayarlanmadan önce kullanıcı aboneliğine ulaşıldı"
 
-#: vendor/notification_handlers/subscription_notification_handlers.py:101
+#: vendor/notification_handlers/subscription_notification_handlers.py:102
 msgid "Verification should be done before reaching product"
 msgstr "Ürüne ulaşmadan önce doğrulama yapılmalı"
 
-#: vendor/notification_handlers/subscription_notification_handlers.py:123
-#: vendor/notification_handlers/subscription_notification_handlers.py:134
+#: vendor/notification_handlers/subscription_notification_handlers.py:126
+#: vendor/notification_handlers/subscription_notification_handlers.py:139
 msgid "Reached payment transaction before setting vendor"
 msgstr "Vendor ayarlanmadan önce ödeme işlemine ulaşıldı"
