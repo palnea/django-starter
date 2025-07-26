@@ -153,9 +153,6 @@ The system supports the following error types:
 Enable structured responses in your Django settings:
 
 ```python
-# Enable structured error responses (default: True)
-USE_STRUCTURED_ERROR_RESPONSES = True
-
 # Your existing DRF settings
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'common.exception_handling.custom_exception_handler.custom_exception_handler',
@@ -191,7 +188,6 @@ raise CustomException.not_found_error(
 The system maintains full backward compatibility:
 
 - Existing `CustomException` usage continues to work
-- Set `USE_STRUCTURED_ERROR_RESPONSES = False` to disable structured responses
 - All existing error codes and messages are preserved
 
 ## Testing

@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.db.models import Q, Count
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
@@ -126,18 +127,22 @@ class TranslationViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             response = super().create(request, *args, **kwargs)
-        except Exception as create_exception:
+        except IntegrityError as integrity_error:
             query_params = request.query_params.copy()
             return_existing_one = ValueConverter.str2bool(
                 query_params.get("return_existing_one", "False"), empty_is_true=True
             )
 
             if return_existing_one:
-                response = self.handle_locale_text_duplication(
-                    request, create_exception
-                )
+                response = self.handle_locale_text_duplication(request, integrity_error)
             else:
-                raise create_exception
+                raise CustomException.validation_error(
+                    field_errors={
+                        "root": ["A translation for this root already exists."]
+                    },
+                    general_message="A translation for this root already exists.",
+                    title="Translation already exists",
+                )
 
         view_response = ViewResponse(
             response_body=response.data,

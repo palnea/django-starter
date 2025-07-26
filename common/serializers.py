@@ -27,16 +27,22 @@ class TranslationBulkCreateSerializer(serializers.Serializer):
         if not english_locale:
             raise CustomException.business_logic_error(
                 title=_("English Locale Missing"),
-                detail=_("The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"),
-                instance="/api/v1/translations"
+                detail=_(
+                    "The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"
+                ),
+                instance="/api/v1/translations",
             )
         if not attrs.get("root").get("locale_id") == english_locale.id:
             raise CustomException.validation_error(
                 field_errors={
-                    "locale_id": [_("Root object locale id must be {} which refers to English language").format(english_locale.id)]
+                    "locale_id": [
+                        _(
+                            "Root object locale id must be {} which refers to English language"
+                        ).format(english_locale.id)
+                    ]
                 },
                 title=_("Invalid Locale"),
-                instance="/api/v1/translations"
+                instance="/api/v1/translations",
             )
 
         return attrs
@@ -104,16 +110,22 @@ class TranslatedFileBulkCreateSerializer(serializers.Serializer):
         if not english_locale:
             raise CustomException.business_logic_error(
                 title=_("English Locale Missing"),
-                detail=_("The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"),
-                instance="/api/v1/translated-files"
+                detail=_(
+                    "The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"
+                ),
+                instance="/api/v1/translated-files",
             )
         if not attrs.get("root").get("locale_id") == english_locale.id:
             raise CustomException.validation_error(
                 field_errors={
-                    "locale_id": [_("Root object locale id must be {} which refers to English language").format(english_locale.id)]
+                    "locale_id": [
+                        _(
+                            "Root object locale id must be {} which refers to English language"
+                        ).format(english_locale.id)
+                    ]
                 },
                 title=_("Invalid Locale"),
-                instance="/api/v1/translated-files"
+                instance="/api/v1/translated-files",
             )
 
         return attrs

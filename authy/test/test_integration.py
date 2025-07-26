@@ -137,7 +137,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertTrue(User.objects.filter(phone=self.user.phone).exists())
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data.get("response_body").get("access"), None)
+        self.assertEqual(response.data.get("response_body"), None)
 
     def test_login_with_email(self):
         data = {"email": self.email_user.email, "password": self.email_password}
@@ -164,7 +164,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data.get("response_body").get("access"), None)
+        self.assertEqual(response.data.get("response_body"), None)
 
     def test_login_unverified_user_fails_for_veification(self):
         self.email_user.email_verified = False
@@ -176,7 +176,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data.get("response_body").get("access"), None)
+        self.assertEqual(response.data.get("response_body"), None)
 
     def test_login_unverified_user_succeeds(self):
         self.email_user.email_verified = False

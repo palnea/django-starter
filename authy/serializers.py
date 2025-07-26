@@ -57,10 +57,10 @@ class UserLoginSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={
                     "email": ["Cannot be empty if no phone provided"],
-                    "phone": ["Cannot be empty if no email provided"]
+                    "phone": ["Cannot be empty if no email provided"],
                 },
                 title=_("Contact Information Required"),
-                instance="/api/v1/auth/login"
+                instance="/api/v1/auth/login",
             )
 
         if email and phone:
@@ -68,10 +68,10 @@ class UserLoginSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={
                     "email": ["Should not be provided if phone provided"],
-                    "phone": ["Should not be provided if email provided"]
+                    "phone": ["Should not be provided if email provided"],
                 },
                 title=_("Only One Contact Method Allowed"),
-                instance="/api/v1/auth/login"
+                instance="/api/v1/auth/login",
             )
 
         if data.get("verification_code") and data.get("verification_id"):
@@ -96,21 +96,22 @@ class UserLoginSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={field_name: [str(error_message)]},
                 title=_("User Not Found"),
-                instance="/api/v1/auth/login"
+                instance="/api/v1/auth/login",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
         if email and not user.email_verified:
             raise CustomException.validation_error(
                 field_errors={"email": [_("Email is not verified")]},
                 title=_("Email Verification Required"),
-                instance="/api/v1/auth/login"
+                instance="/api/v1/auth/login",
             )
 
         if phone and not user.phone_verified:
             raise CustomException.validation_error(
                 field_errors={"phone": [_("Phone is not verified")]},
                 title=_("Phone Verification Required"),
-                instance="/api/v1/auth/login"
+                instance="/api/v1/auth/login",
             )
 
         return authenticate_user(user, password)
@@ -142,17 +143,17 @@ class UserRegisterSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={
                     "email": [_("Cannot be empty if no phone provided")],
-                    "phone": [_("Cannot be empty if no email provided")]
+                    "phone": [_("Cannot be empty if no email provided")],
                 },
                 title=_("Contact Information Required"),
-                instance="/api/v1/auth/register"
+                instance="/api/v1/auth/register",
             )
 
         if not password == verify_password:
             raise CustomException.validation_error(
                 field_errors={"verify_password": [_("Password doesn't match")]},
                 title=_("Password Mismatch"),
-                instance="/api/v1/auth/register"
+                instance="/api/v1/auth/register",
             )
 
         validation = {
@@ -199,7 +200,7 @@ class UpdatePasswordSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors=errors,
                 title=_("Password Change Failed"),
-                instance="/api/v1/auth/change-password"
+                instance="/api/v1/auth/change-password",
             )
 
         user.set_password(new_password)
@@ -284,8 +285,10 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
         if user_data["aud"] != settings.GOOGLE_CLIENT_ID:
             raise CustomException.authentication_error(
                 title=_("Google Authentication Failed"),
-                detail=_("Google client ID doesn't match with system's client ID. Please try logging in again."),
-                instance="/api/v1/auth/google"
+                detail=_(
+                    "Google client ID doesn't match with system's client ID. Please try logging in again."
+                ),
+                instance="/api/v1/auth/google",
             )
 
         try:

@@ -60,9 +60,9 @@ class PaymentService:
                     code=ErrorCode.INVALID_RECEIPT,
                     instance="/api/v1/purchases",
                     extra_data={
-                        "store": data.get('store', None),
-                        "receipt_status": "verification_failed"
-                    }
+                        "store": data.get("store", None),
+                        "receipt_status": "verification_failed",
+                    },
                 )
             purchase_strategy.prepare_transaction_creation_for_receipt()
         except Exception as e:
@@ -88,12 +88,18 @@ class PaymentService:
             # New structured error format - provides better business logic error
             raise CustomException.business_logic_error(
                 title=_("Active Subscription Exists"),
-                detail=_("You already have an active subscription. Please cancel your current subscription before purchasing a new one."),
+                detail=_(
+                    "You already have an active subscription. Please cancel your current subscription before purchasing a new one."
+                ),
                 code=ErrorCode.ACTIVE_SUBSCRIPTION_EXISTS,
                 status_code=status.HTTP_409_CONFLICT,
                 instance="/api/v1/subscriptions",
                 extra_data={
                     "existing_subscription_type": active_subscription_buyable.type,
-                    "subscription_id": user.active_subscription.id if user.active_subscription else None
-                }
+                    "subscription_id": (
+                        user.active_subscription.id
+                        if user.active_subscription
+                        else None
+                    ),
+                },
             )
