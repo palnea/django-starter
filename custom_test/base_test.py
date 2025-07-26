@@ -51,7 +51,11 @@ class CustomIntegrationTestCase(TestCase):
         return user, password
 
     def login_user(self, user: User, password: str):
-        data = {"phone": user.phone, "password": password}
+        if user.phone:
+            phone_str = str(user.phone)
+            data = {"phone": phone_str, "password": password}
+        else:
+            data = {"email": user.email, "password": password}
         url = reverse("login")
         response = self.client.post(url, data, format="json")
         return response.data["response_body"]
