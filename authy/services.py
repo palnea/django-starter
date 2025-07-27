@@ -48,11 +48,11 @@ class RegistrationService:
                 contact_verification_id = str(code.get("id"))
                 contact_verification.send_code()
         except Exception as e:
-            raise CustomException(
-                detail={"error": str(e)},
+            raise CustomException.business_logic_error(
+                title=_("Could not send the verification code"),
+                detail=str(e),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=_("Could not send the verification code"),
             )
 
         return {
@@ -70,24 +70,21 @@ class PasswordService:
         phone = data.get("phone", None)
 
         if not email and not phone:
-            raise CustomException(
-                detail={
-                    "email": "Cannot be null if phone is null",
-                    "phone": "Cannot be null if email is null",
+            raise CustomException.validation_error(
+                field_errors={
+                    "email": [_("Cannot be null if phone is null")],
+                    "phone": [_("Cannot be null if email is null")],
                 },
-                code=ErrorCode.INVALID_INPUT,
+                title=_("Email or phone should be provided"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Email or phone should be provided"),
             )
 
         if email and phone:
-            raise CustomException(
-                detail={
-                    "error": _("Email and phone cannot be provided at the same time")
-                },
+            raise CustomException.business_logic_error(
+                title=_("Enter email or phone not both"),
+                detail=_("Email and phone cannot be provided at the same time"),
                 code=ErrorCode.INVALID_INPUT,
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Enter email or phone not both"),
             )
 
         user = (
@@ -96,10 +93,9 @@ class PasswordService:
             else User.objects.filter(phone=phone).first()
         )
         if not user:
-            raise CustomException(
-                detail={"error": _("User not found")},
-                code=ErrorCode.NOT_FOUND_ERROR,
-                status_code=status.HTTP_404_NOT_FOUND,
+            raise CustomException.not_found_error(
+                title=_("User not found"),
+                detail=_("User not found"),
             )
 
         password = random_numeric_string(6)

@@ -52,7 +52,6 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get("response_code"), "MSG_GENERAL_SUCCESS")
         contact_verification.refresh_from_db()
         self.assertEqual(
             contact_verification.status, ContactVerification.Status.VERIFIED.value
@@ -85,8 +84,105 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         data["code"] = contact_verification.code
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 400)
+
+        # Test structured error response
+        self.assertEqual(response.data.get("type"), "validation_error")
         self.assertEqual(
-            response.data.get("response_code"), "ERR_GENERAL_VALIDATION_ERROR"
+            response.data.get("title"), "You tried with wrong codes for too many times."
+        )
+        self.assertIn("errors", response.data)
+        self.assertIn("attempts", response.data["errors"])
+        self.assertEqual(
+            response.data["errors"]["attempts"][0]["message"],
+            "Exceeded limit of attempts",
+        )
+
+    def test_contact_verification_missing_email_and_phone_structured_response(self):
+        """Test structured error response when both email and phone are missing"""
+        data = {}  # No email or phone provided
+
+        url = reverse("contact-verification")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        # Validate structured error response
+        self.assertEqual(response.data.get("type"), "validation_error")
+        self.assertEqual(
+            response.data.get("title"), "Email or phone should be provided"
+        )
+        self.assertIn("errors", response.data)
+        self.assertIn("email", response.data["errors"])
+        self.assertIn("phone", response.data["errors"])
+        self.assertEqual(
+            response.data["errors"]["email"][0]["message"],
+            "Email or phone should be provided",
+        )
+        self.assertEqual(
+            response.data["errors"]["phone"][0]["message"],
+            "Email or phone should be provided",
+        )
+
+    def test_contact_verification_both_email_and_phone_structured_response(self):
+        """Test structured error response when both email and phone are provided"""
+        data = {"email": "test@example.com", "phone": "+905553330000"}
+
+        url = reverse("contact-verification")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        # Validate structured error response
+        self.assertEqual(response.data.get("type"), "validation_error")
+        self.assertEqual(response.data.get("title"), "Enter email or phone not both")
+        self.assertIn("errors", response.data)
+        self.assertIn("email", response.data["errors"])
+        self.assertIn("phone", response.data["errors"])
+        self.assertEqual(
+            response.data["errors"]["email"][0]["message"],
+            "Email or phone should be provided",
+        )
+        self.assertEqual(
+            response.data["errors"]["phone"][0]["message"],
+            "Email or phone should be provided",
+        )
+
+    def test_verify_invalid_uuid_structured_response(self):
+        """Test structured error response for invalid UUID"""
+        data = {"uuid": "invalid-uuid-12345", "code": "123456"}
+
+        url = reverse("verify-contact")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        # Validate structured error response
+        self.assertEqual(response.data.get("type"), "validation_error")
+        self.assertEqual(response.data.get("title"), "Validation Error")
+        self.assertIn("errors", response.data)
+        self.assertIn("uuid", response.data["errors"])
+        self.assertEqual(
+            response.data["errors"]["uuid"][0]["message"], "Must be a valid UUID."
+        )
+
+    def test_verify_incorrect_code_structured_response(self):
+        """Test structured error response for incorrect verification code"""
+        contact_verification = ContactVerification.objects.create(
+            medium=CommunicationMedium.PHONE.value,
+            receiver_address="+905553330000",
+            code="123456",
+        )
+
+        data = {"uuid": contact_verification.id, "code": "wrong-code"}
+
+        url = reverse("verify-contact")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        # Validate structured error response
+        self.assertEqual(response.data.get("type"), "validation_error")
+        self.assertEqual(response.data.get("title"), "Code is invalid or expired")
+        self.assertIn("errors", response.data)
+        self.assertIn("code", response.data["errors"])
+        self.assertEqual(
+            response.data["errors"]["code"][0]["message"], "Code is invalid or expired"
         )
 
     @patch("communications.clients.email.DjangoEmailClient.send_email")

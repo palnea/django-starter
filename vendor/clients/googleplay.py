@@ -3,6 +3,7 @@ from typing import Dict
 
 import httplib2
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 from rest_framework import status
@@ -66,9 +67,9 @@ class GooglePlayClient:
             return ServiceAccountCredentials.from_json_keyfile_dict(
                 play_console_credentials, scope_str
             )
-        raise CustomException(
-            detail=f"Unknown play console credentials format: {repr(play_console_credentials)}, "
-            "expected 'dict' type",
+        raise CustomException.business_logic_error(
+            title=_("Google Play Console Credentials Error"),
+            detail=f"Unknown play console credentials format: {repr(play_console_credentials)}, expected 'dict' type",
             code=ErrorCode.GOOGLE_PLAY_CONSOLE_CREDENTIALS_NOT_FOUND,
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )

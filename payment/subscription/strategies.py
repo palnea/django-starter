@@ -72,8 +72,9 @@ class MobilePurchaseStrategy:
                 platform=self.platform,
                 vendor=self.vendor,
             )
-            raise CustomException(
-                "Called create_transaction before prepare_for_transaction",
+            raise CustomException.business_logic_error(
+                title=_("Transaction Creation Error"),
+                detail=_("Called create_transaction before prepare_for_transaction"),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -166,8 +167,9 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
                 self.receipt.get("Payload", {}).get("json", {}).get("productId"),
             ]
         ):
-            raise CustomException(
-                detail={"general": [_("Google receipt data has missing fields.")]},
+            raise CustomException.business_logic_error(
+                title=_("Invalid Receipt"),
+                detail=_("Google receipt data has missing fields."),
                 code=ErrorCode.INVALID_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -229,8 +231,9 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
 
     def validate_receipt_data(self) -> dict:
         if not self.receipt:
-            raise CustomException(
-                "Provided receipt cannot be empty or null",
+            raise CustomException.business_logic_error(
+                title=_("Empty Receipt"),
+                detail=_("Provided receipt cannot be empty or null"),
                 code=ErrorCode.EMPTY_OR_NULL_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -245,8 +248,9 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
                 self.receipt.get("Payload", {}).get("signature"),
             )
         except InAppPyValidationError as e:
-            raise CustomException(
-                "Provided receipt is not valid",
+            raise CustomException.business_logic_error(
+                title=_("Invalid Receipt"),
+                detail=_("Provided receipt is not valid"),
                 code=ErrorCode.INVALID_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -255,8 +259,9 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
     def prepare_transaction_creation_for_receipt(self):
         # self.validate_receipt_data() Cannot be used due to rsa validation failure
         if self.verified_response is None:
-            raise CustomException(
-                detail={"error": _("Called prepare transaction before verification")},
+            raise CustomException.business_logic_error(
+                title=_("Verification Required"),
+                detail=_("Called prepare transaction before verification"),
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -329,8 +334,9 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
         self._platform = PlatformType.IOS_FAMILY
 
         if not self.receipt.get("TransactionID"):
-            raise CustomException(
-                detail={"general": [_("Apple receipt data has missing fields.")]},
+            raise CustomException.business_logic_error(
+                title=_("Invalid Receipt"),
+                detail=_("Apple receipt data has missing fields."),
                 code=ErrorCode.INVALID_RECEIPT,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
@@ -339,15 +345,18 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
         self, subscription_group_id: str, product_key: str, country_code: str
     ) -> Dict:
         if subscription_group_id is None or product_key is None or country_code is None:
-            raise CustomException(
-                detail={
-                    "error": "Non of these attributes can be null. (subscription_group_id, product_key, country_code)",
-                    "values": {
-                        "subscription_group_id": subscription_group_id,
-                        "product_key": product_key,
-                        "country_code": country_code,
-                    },
-                }
+            raise CustomException.business_logic_error(
+                title=_("Missing Required Parameters"),
+                detail=_(
+                    "None of these attributes can be null: subscription_group_id, product_key, country_code"
+                ),
+                code=ErrorCode.INTERNAL_SERVER_ERROR,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                extra_data={
+                    "subscription_group_id": subscription_group_id,
+                    "product_key": product_key,
+                    "country_code": country_code,
+                },
             )
 
         connect_api_client = AppStoreConnectAPI(http_timeout=20)
@@ -362,13 +371,16 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
             None,
         )
         if buyable is None:
-            raise CustomException(
-                detail={
-                    "error": f"No product can be gotten for product_key: {product_key}, subscription_group_id: {subscription_group_id}",
-                    "subscription_list": subscriptions,
-                },
+            raise CustomException.business_logic_error(
+                title=_("Product Not Found"),
+                detail=f"No product can be found for product_key: {product_key}, subscription_group_id: {subscription_group_id}",
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                extra_data={
+                    "product_key": product_key,
+                    "subscription_group_id": subscription_group_id,
+                    "subscription_list": subscriptions,
+                },
             )
         product_id = buyable.get("id")
         price_info = connect_api_client.list_subscription_price(
@@ -381,13 +393,17 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
         )
         currency = territory.get("attributes", {}).get("currency")
         if currency is None:
-            raise CustomException(
-                detail={
-                    "error": f"No currency can be gotten for product_key: {product_key}, product_id: {product_id}, country_code: {country_code}",
-                    "price_info": price_info,
-                },
+            raise CustomException.business_logic_error(
+                title=_("Currency Not Found"),
+                detail=f"No currency can be found for product_key: {product_key}, product_id: {product_id}, country_code: {country_code}",
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                extra_data={
+                    "product_key": product_key,
+                    "product_id": product_id,
+                    "country_code": country_code,
+                    "price_info": price_info,
+                },
             )
         subscription_price_point = next(
             filter(
@@ -399,13 +415,17 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
             "customerPrice", None
         )
         if price is None:
-            raise CustomException(
-                detail={
-                    "error": f"No price can be gotten for product_key: {product_key}, product_id: {product_id}, country_code: {country_code}",
-                    "price_info": price_info,
-                },
+            raise CustomException.business_logic_error(
+                title=_("Price Not Found"),
+                detail=f"No price can be found for product_key: {product_key}, product_id: {product_id}, country_code: {country_code}",
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                extra_data={
+                    "product_key": product_key,
+                    "product_id": product_id,
+                    "country_code": country_code,
+                    "price_info": price_info,
+                },
             )
 
         return {
@@ -481,8 +501,9 @@ class ApplePurchaseStrategy(MobilePurchaseStrategy):
 
     def prepare_transaction_creation_for_receipt(self):
         if self.verified_response is None:
-            raise CustomException(
-                detail={"error": _("Called prepare transaction before verification")},
+            raise CustomException.business_logic_error(
+                title=_("Verification Required"),
+                detail=_("Called prepare transaction before verification"),
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

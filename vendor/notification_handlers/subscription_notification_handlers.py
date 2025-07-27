@@ -67,14 +67,16 @@ class VendorNotificationHandler:
         if self._product_subscription:
             return self._product_subscription
         if self.original_payment_transaction is None:
-            raise CustomException(
-                detail={"error": _("Payment transaction not created yet")},
+            raise CustomException.business_logic_error(
+                title=_("Payment Transaction Missing"),
+                detail=_("Payment transaction not created yet"),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         if self._vendor is None:
-            raise CustomException(
-                detail={"error": _("Reached user subscription before setting vendor")},
+            raise CustomException.business_logic_error(
+                title=_("Vendor Not Set"),
+                detail=_("Reached user subscription before setting vendor"),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -96,12 +98,9 @@ class VendorNotificationHandler:
     @cached_property
     def product(self):
         if not self._verified_data:
-            raise CustomException(
-                detail={
-                    "verified_data": _(
-                        "Verification should be done before reaching product"
-                    )
-                },
+            raise CustomException.business_logic_error(
+                title=_("Verification Required"),
+                detail=_("Verification should be done before reaching product"),
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -121,10 +120,9 @@ class VendorNotificationHandler:
         if self._payment_transaction:
             return self._payment_transaction
         if self._vendor is None:
-            raise CustomException(
-                detail={
-                    "error": _("Reached payment transaction before setting vendor")
-                },
+            raise CustomException.business_logic_error(
+                title=_("Vendor Not Set"),
+                detail=_("Reached payment transaction before setting vendor"),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
@@ -134,10 +132,9 @@ class VendorNotificationHandler:
     @cached_property
     def original_payment_transaction(self) -> PaymentTransaction:
         if self._vendor is None:
-            raise CustomException(
-                detail={
-                    "error": _("Reached payment transaction before setting vendor")
-                },
+            raise CustomException.business_logic_error(
+                title=_("Vendor Not Set"),
+                detail=_("Reached payment transaction before setting vendor"),
                 code=ErrorCode.INTERNAL_SERVER_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
