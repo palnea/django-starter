@@ -348,10 +348,9 @@ class StructuredErrorResponseTestCase(TestCase):
     def test_vendor_client_errors(self):
         """Test vendor client structured errors"""
 
-        # Test Google Play credentials error
+        # Test Google Play credentials error - call static method directly
         with self.assertRaises(CustomException) as cm:
-            client = GooglePlayClient()
-            client._create_credentials(
+            GooglePlayClient._create_credentials(
                 "invalid_string_format", "scope"
             )  # Should be dict
 

@@ -547,8 +547,7 @@ class VendorTestCase(CustomIntegrationTestCase):
         invalid_credentials = "invalid_string_format"  # Should be dict
 
         try:
-            client = GooglePlayClient()
-            client._create_credentials(invalid_credentials, "test_scope")
+            GooglePlayClient._create_credentials(invalid_credentials, "test_scope")
             self.fail(
                 "Should have raised CustomException for invalid credentials format"
             )
