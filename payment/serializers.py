@@ -1,4 +1,5 @@
 from rest_framework import serializers, status
+from django.utils.translation import gettext_lazy as _
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
@@ -28,7 +29,7 @@ class ReceiptVerificationSerializer(serializers.Serializer):
         )
         if not metadata:
             raise CustomException(
-                detail={"metadata": ["Cannot be null or empty"]},
+                detail={"metadata": [_("Cannot be null or empty")]},
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
             )

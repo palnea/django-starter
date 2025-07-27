@@ -28,11 +28,12 @@ class ContactVerificationTestCase(CustomIntegrationTestCase):
         self.assertEqual(response.status_code, 201)
 
         id = response.data.get("response_body").get("id")
-        self.assertTrue(ContactVerification.objects.filter(pk=id).exists())
+        contact_verification = ContactVerification.objects.get(id=id)
+        self.assertIsNotNone(contact_verification)
         m_sms_response.assert_called_once_with(
             receiver=phone.replace("+", "00"),
             language="en",
-            message=f"Verification code message",
+            message=f"Verification code for MyApp: {contact_verification.code}",
             header="MyApp",
         )
 

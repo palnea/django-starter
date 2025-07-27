@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 00:48+0300\n"
+"POT-Creation-Date: 2025-07-27 02:21+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,63 +17,124 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: authy/helpers/token_helper.py:61
+#: authy/helpers/token_helper.py:59
 msgid "Invalid login credentials"
 msgstr "Invalid login credentials"
 
-#: authy/managers.py:23 authy/managers.py:25
+#: authy/managers.py:24 authy/managers.py:26
 msgid "The password must be set"
 msgstr "The password must be set"
 
-#: authy/models.py:18
-msgid "active"
-msgstr "active"
+#: authy/managers.py:41
+msgid "The Email must be set"
+msgstr "The Email must be set"
 
-#: authy/models.py:21
-msgid ""
-"Designates whether this user should be treated as active. Unselect this "
-"instead of deleting accounts."
-msgstr ""
-"Designates whether this user should be treated as active. Unselect this "
-"instead of deleting accounts."
+#: authy/managers.py:57
+msgid "Superuser must have is_staff=True."
+msgstr "Superuser must have is_staff=True"
 
-#: authy/serializers.py:63 authy/serializers.py:152 authy/services.py:89
-#: contact_verification/serializers.py:26
-msgid "Email or phone should be provided"
-msgstr "Email or phone should be provided"
+#: authy/managers.py:59
+msgid "Superuser must have is_superuser=True."
+msgstr "Superuser must have is_superuser=True."
 
-#: authy/serializers.py:74 authy/services.py:97
-#: contact_verification/serializers.py:37
-msgid "Enter email or phone not both"
-msgstr "Enter email or phone not both"
+#: authy/serializers.py:59 authy/serializers.py:145
+msgid "Cannot be empty if no phone provided"
+msgstr "Cannot be empty if no phone provided"
 
-#: authy/serializers.py:95
+#: authy/serializers.py:60 authy/serializers.py:146
+msgid "Cannot be empty if no email provided"
+msgstr "Cannot be empty if no email provided"
+
+#: authy/serializers.py:62 authy/serializers.py:148
+msgid "Contact Information Required"
+msgstr "Contact Information Required"
+
+#: authy/serializers.py:70
+msgid "Should not be provided if phone provided"
+msgstr "Should not be provided if phone provided"
+
+#: authy/serializers.py:71
+msgid "Should not be provided if email provided"
+msgstr "Should not be provided if email provided"
+
+#: authy/serializers.py:73
+msgid "Only One Contact Method Allowed"
+msgstr "Only One Contact Method Allowed"
+
+#: authy/serializers.py:92
 msgid "User with this email doesn't exist"
 msgstr "User with this email doesn't exist"
 
-#: authy/serializers.py:97
+#: authy/serializers.py:94
 msgid "User with this phone doesn't exist"
 msgstr "User with this phone doesn't exist"
 
-#: authy/serializers.py:106
+#: authy/serializers.py:98
+msgid "User Not Found"
+msgstr "Content not found!"
+
+#: authy/serializers.py:105
 msgid "Email is not verified"
 msgstr "Please verify your email address."
 
-#: authy/serializers.py:114
+#: authy/serializers.py:106
+msgid "Email Verification Required"
+msgstr "Email Verification Required"
+
+#: authy/serializers.py:112
 msgid "Phone is not verified"
 msgstr "Please verify your phone number."
 
-#: authy/serializers.py:160
-msgid "Passwords doesn't match"
-msgstr "Passwords doesn't match"
+#: authy/serializers.py:113
+msgid "Phone Verification Required"
+msgstr "Phone Verification Required"
 
-#: authy/services.py:64
-msgid "Could not send the verification code"
+#: authy/serializers.py:154
+msgid "Password doesn't match"
+msgstr "Passwords don't match"
+
+#: authy/serializers.py:155
+msgid "Password Mismatch"
+msgstr "Passwords don't match"
+
+#: authy/serializers.py:202
+msgid "Password Change Failed"
+msgstr "Password change failed"
+
+#: authy/serializers.py:287
+msgid "Google Authentication Failed"
+msgstr "Authentication failed!"
+
+#: authy/serializers.py:289
+msgid ""
+"Google client ID doesn't match with system's client ID. Please try logging "
+"in again."
 msgstr ""
+"Google client ID doesn't match with system's client ID. Please try logging "
+"in again."
 
-#: authy/services.py:121
-#, fuzzy
-#| msgid "The password must be set"
+#: authy/services.py:55
+msgid "Could not send the verification code"
+msgstr "Could not send the verification code"
+
+#: authy/services.py:80 contact_verification/serializers.py:26
+msgid "Email or phone should be provided"
+msgstr "Email or phone should be provided"
+
+#: authy/services.py:86
+msgid "Email and phone cannot be provided at the same time"
+msgstr "Email and phone cannot be provided at the same time"
+
+#: authy/services.py:90 contact_verification/serializers.py:37
+msgid "Enter email or phone not both"
+msgstr "Enter email or phone not both"
+
+#: authy/services.py:100 contact_verification/services.py:151
+#: contact_verification/services.py:154 user/services.py:19
+msgid "User not found"
+msgstr "Content not found!"
+
+#: authy/services.py:113
 msgid "Reset password email message"
 msgstr ""
 "We have received your password reset request for MyApp.\n"
@@ -83,15 +143,15 @@ msgstr ""
 "\n"
 "We recommend you to change your password after logging in."
 
-#: authy/services.py:122
+#: authy/services.py:114
 msgid "Reset password title"
 msgstr "MyApp Reset Password"
 
-#: authy/services.py:128
-#, fuzzy
-#| msgid "The password must be set"
+#: authy/services.py:120
 msgid "Reset password sms message"
-msgstr "The password must be set"
+msgstr ""
+"Your new password for MyApp: {password}. We recommend changing it after "
+"login."
 
 #: authy/views.py:52
 msgid "Logged in successfully."
@@ -101,11 +161,310 @@ msgstr "Logged in successfully."
 msgid "Registered successfully."
 msgstr "Registered successfully."
 
-#: common/custom_exceptions/custom_exception.py:15
-#: common/custom_exceptions/custom_exception.py:17
+#: common/custom_exceptions/custom_exception.py:21
+#: common/custom_exceptions/custom_exception.py:23
 #: common/response/view_response.py:147
 msgid "A server error occurred."
 msgstr "A server error occurred."
+
+#: common/custom_exceptions/custom_exception.py:85
+#: common/custom_exceptions/custom_exception.py:237
+msgid "Validation failed"
+msgstr "Validation failed"
+
+#: common/custom_exceptions/custom_exception.py:88
+#: common/exception_handling/exception_handler_mapper.py:62
+#: common/response/view_response.py:129
+msgid "Request parameters are not valid!"
+msgstr "Request parameters are not valid!"
+
+#: common/custom_exceptions/custom_exception.py:90
+#: common/custom_exceptions/custom_exception.py:239
+#: common/exception_handling/custom_exception_handler.py:155
+#: common/exception_handling/custom_exception_handler.py:163
+#: common/exception_handling/custom_exception_handler.py:213
+#: common/response/structured_error_response.py:124
+#: common/test/test_structured_errors.py:380
+#: common/test/test_structured_errors.py:399
+msgid "Validation Error"
+msgstr "Validation Error"
+
+#: common/custom_exceptions/custom_exception.py:122
+msgid "Authentication credentials were missing or invalid."
+msgstr "Authentication credentials were missing or invalid."
+
+#: common/custom_exceptions/custom_exception.py:125
+#: common/custom_exceptions/custom_exception.py:126
+msgid "Authentication Failed"
+msgstr "Authentication failed!"
+
+#: common/custom_exceptions/custom_exception.py:137
+msgid "You do not have permission to perform this action."
+msgstr "You don't have permission for this action!"
+
+#: common/custom_exceptions/custom_exception.py:140
+#: common/custom_exceptions/custom_exception.py:141
+msgid "Access Denied"
+msgstr "Access Denied"
+
+#: common/custom_exceptions/custom_exception.py:152
+msgid "The requested resource was not found."
+msgstr "The requested resource was not found."
+
+#: common/custom_exceptions/custom_exception.py:155
+#: common/custom_exceptions/custom_exception.py:156
+msgid "Not Found"
+msgstr "Content not found!"
+
+#: common/custom_exceptions/custom_exception.py:193
+#: common/response/structured_error_response.py:107
+msgid "Multiple Issues Found"
+msgstr "Multiple Issues Found"
+
+#: common/custom_exceptions/custom_exception.py:194
+#: common/response/structured_error_response.py:109
+msgid "Multiple issues were identified with your request."
+msgstr "Multiple issues were identified with your request."
+
+#: common/examples/generic_error_examples.py:123
+msgid "Insufficient Funds"
+msgstr "Insufficient Funds"
+
+#: common/examples/generic_error_examples.py:136
+msgid "Transaction Limit Exceeded"
+msgstr "Transaction Limit Exceeded"
+
+#: common/examples/generic_error_examples.py:138
+msgid ""
+"Trial accounts are limited to transactions of $100 or less. Please upgrade "
+"your account to process larger transactions."
+msgstr ""
+"Trial accounts are limited to transactions of $100 or less. Please upgrade "
+"your account to process larger transactions."
+
+#: common/examples/generic_error_examples.py:176
+msgid "System Maintenance in Progress"
+msgstr "System Maintenance in Progress"
+
+#: common/examples/generic_error_examples.py:178
+msgid ""
+"Our systems are currently undergoing scheduled maintenance. Please try again "
+"in 30 minutes. We apologize for any inconvenience."
+msgstr ""
+"Our systems are currently undergoing scheduled maintenance. Please try again "
+"in 30 minutes. We apologize for any inconvenience."
+
+#: common/examples/generic_error_examples.py:192
+msgid "High Traffic Volume"
+msgstr "High Traffic Volume"
+
+#: common/examples/generic_error_examples.py:194
+msgid ""
+"Our servers are experiencing high traffic. Your request has been queued and "
+"will be processed shortly. Please do not retry immediately."
+msgstr ""
+"Our servers are experiencing high traffic. Your request has been queued and "
+"will be processed shortly. Please do not retry immediately."
+
+#: common/examples/generic_error_examples.py:229 payment/services.py:91
+msgid "Active Subscription Exists"
+msgstr "Active Subscription Exists"
+
+#: common/examples/generic_error_examples.py:231
+msgid ""
+"You already have an active subscription. To change your plan, please use the "
+"upgrade option or cancel your current subscription first."
+msgstr ""
+"You already have an active subscription. To change your plan, please use the "
+"upgrade option or cancel your current subscription first."
+
+#: common/examples/generic_error_examples.py:248
+msgid "Account Too New for Premium"
+msgstr "Account Too New for Premium"
+
+#: common/examples/generic_error_examples.py:250
+#, python-brace-format
+msgid ""
+"Premium subscriptions are only available to accounts that have been active "
+"for at least 30 days. Your account is {days} days old."
+msgstr ""
+"Premium subscriptions are only available to accounts that have been active "
+"for at least 30 days. Your account is {days} days old."
+
+#: common/examples/generic_error_examples.py:291
+msgid "Authentication Required"
+msgstr "Authentication failed!"
+
+#: common/examples/generic_error_examples.py:293
+msgid ""
+"This endpoint requires authentication. Please provide a valid access token "
+"in the Authorization header."
+msgstr ""
+"This endpoint requires authentication. Please provide a valid access token "
+"in the Authorization header."
+
+#: common/examples/generic_error_examples.py:300
+msgid "Session Expired"
+msgstr "Session interrupted!"
+
+#: common/examples/generic_error_examples.py:302
+msgid "Your authentication token has expired. Please log in again to continue."
+msgstr ""
+"Your authentication token has expired. Please log in again to continue."
+
+#: common/examples/generic_error_examples.py:309
+msgid "Invalid Authentication"
+msgstr "Authentication failed!"
+
+#: common/examples/generic_error_examples.py:311
+msgid ""
+"The provided authentication token is invalid or malformed. Please check your "
+"credentials and try again."
+msgstr ""
+"The provided authentication token is invalid or malformed. Please check your "
+"credentials and try again."
+
+#: common/examples/generic_error_examples.py:335
+msgid "Account Suspended"
+msgstr "Account Suspended"
+
+#: common/examples/generic_error_examples.py:337
+msgid ""
+"Your account has been temporarily suspended. Please contact support for "
+"assistance."
+msgstr ""
+"Your account has been temporarily suspended. Please contact support for "
+"assistance."
+
+#: common/examples/generic_error_examples.py:344
+msgid "Insufficient Permissions"
+msgstr "Insufficient Permissions"
+
+#: common/examples/generic_error_examples.py:346
+msgid ""
+"You need administrator privileges to delete resources. Please contact your "
+"system administrator if you believe this is an error."
+msgstr ""
+"You need administrator privileges to delete resources. Please contact your "
+"system administrator if you believe this is an error."
+
+#: common/examples/generic_error_examples.py:353
+msgid "Export Permission Required"
+msgstr "Export Permission Required"
+
+#: common/examples/generic_error_examples.py:355
+msgid ""
+"Data export functionality requires special permissions. Please request "
+"export access from your administrator."
+msgstr ""
+"Data export functionality requires special permissions. Please request "
+"export access from your administrator."
+
+#: common/exception_handling/custom_exception_handler.py:314
+msgid "Server Error"
+msgstr "Server Error"
+
+#: common/exception_handling/custom_exception_handler.py:315
+msgid "An internal server error occurred. Please try again later."
+msgstr "An internal server error occurred. Please try again later."
+
+#: common/exception_handling/exception_handler_mapper.py:48
+msgid "Already exist!"
+msgstr "Already exist!"
+
+#: common/exception_handling/exception_handler_mapper.py:49
+msgid "Already exists!"
+msgstr "Already exists!"
+
+#: common/exception_handling/exception_handler_mapper.py:50
+msgid "Integrity Error!"
+msgstr "Integrity Error!"
+
+#: common/exception_handling/exception_handler_mapper.py:51
+msgid "Unknown error!"
+msgstr "Unknown error!"
+
+#: common/exception_handling/exception_handler_mapper.py:52
+#: common/response/view_response.py:106
+msgid "An error occured!"
+msgstr "An error occured!"
+
+#: common/exception_handling/exception_handler_mapper.py:53
+msgid "Object doesn't exist!"
+msgstr "Object doesn't exist!"
+
+#: common/exception_handling/exception_handler_mapper.py:54
+#: common/test/test_structured_errors.py:258 user/services.py:22
+msgid "Content not found!"
+msgstr "Content not found!"
+
+#: common/exception_handling/exception_handler_mapper.py:55
+msgid "This operations is not permitted!"
+msgstr "This operation is not permitted!"
+
+#: common/exception_handling/exception_handler_mapper.py:56
+msgid "You don't have permission for this action!"
+msgstr "You don't have permission for this action!"
+
+#: common/exception_handling/exception_handler_mapper.py:57
+msgid "View doesn't exist!"
+msgstr "View doesn't exist!"
+
+#: common/exception_handling/exception_handler_mapper.py:58
+msgid "Middleware not used!"
+msgstr "Middleware not used!"
+
+#: common/exception_handling/exception_handler_mapper.py:59
+msgid "Improperly configured!"
+msgstr "Improperly configured!"
+
+#: common/exception_handling/exception_handler_mapper.py:60
+msgid "Field Error!"
+msgstr "Field Error!"
+
+#: common/exception_handling/exception_handler_mapper.py:61
+msgid "Data is not valid!"
+msgstr "Data is not valid!"
+
+#: common/exception_handling/exception_handler_mapper.py:63
+msgid "Bad request!"
+msgstr "Bad request!"
+
+#: common/exception_handling/exception_handler_mapper.py:64
+msgid "Request aborted!"
+msgstr "Request aborted!"
+
+#: common/exception_handling/exception_handler_mapper.py:65
+msgid "SynchronousOnlyOperation!"
+msgstr "SynchronousOnlyOperation!"
+
+#: common/exception_handling/exception_handler_mapper.py:66
+msgid "Upload is aborted!"
+msgstr "Upload is aborted!"
+
+#: common/exception_handling/exception_handler_mapper.py:67
+msgid "Session interrupted!"
+msgstr "Session interrupted!"
+
+#: common/exception_handling/exception_handler_mapper.py:68
+msgid "Something bad occurred on transaction management!"
+msgstr "Something bad occurred on transaction management!"
+
+#: common/exception_handling/exception_handler_mapper.py:69
+msgid "No content!"
+msgstr "No content!"
+
+#: common/exception_handling/exception_handler_mapper.py:70
+msgid "Authentication failed!"
+msgstr "Authentication failed!"
+
+#: common/exception_handling/exception_handler_mapper.py:71
+msgid "Not authenticated!"
+msgstr "Not authenticated!"
+
+#: common/exception_handling/exception_handler_mapper.py:72
+msgid "Unsupported media type!"
+msgstr "Unsupported media type!"
 
 #: common/models.py:33
 #, python-format
@@ -136,20 +495,30 @@ msgstr "Character Encoding"
 msgid "Writing Direction"
 msgstr "Writing Direction"
 
+#: common/response/structured_error_response.py:125
+#: common/test/test_structured_errors.py:381
+#: common/test/test_structured_errors.py:400
+msgid "The request data is invalid."
+msgstr "The request data is invalid."
+
+#: common/response/structured_error_response.py:127
+msgid "Validation Errors"
+msgstr "Validation Errors"
+
+#: common/response/structured_error_response.py:129
+msgid "Multiple fields have validation errors."
+msgstr "Multiple fields have validation errors."
+
 #: common/response/view_response.py:75 contact_verification/views.py:113
 #: contact_verification/views.py:144
 msgid "Success"
 msgstr "Success"
 
-#: common/response/view_response.py:106
-msgid "An error occured!"
-msgstr "An error occured!"
+#: common/serializers.py:29 common/serializers.py:112
+msgid "English Locale Missing"
+msgstr "English Locale Missing"
 
-#: common/response/view_response.py:129
-msgid "Request parameters are not valid!"
-msgstr "Request parameters are not valid!"
-
-#: common/serializers.py:33 common/serializers.py:107
+#: common/serializers.py:31 common/serializers.py:114
 msgid ""
 "The locale that refers to English language doesn't exist. Please create a "
 "locale with 'en' code first!"
@@ -157,46 +526,85 @@ msgstr ""
 "The locale that refers to English language doesn't exist. Please create a "
 "locale with 'en' code first!"
 
-#: common/serializers.py:42 common/serializers.py:116
+#: common/serializers.py:40 common/serializers.py:123
 msgid "Root object locale id must be {} which refers to English language"
 msgstr "Root object locale id must be {} which refers to English language"
 
-#: common/serializers.py:79 common/serializers.py:155
+#: common/serializers.py:44 common/serializers.py:127
+msgid "Invalid Locale"
+msgstr "Invalid Locale"
+
+#: common/serializers.py:88 common/serializers.py:180
 msgid ""
 "If this is the first time to create a translation it should be in English"
 msgstr ""
 "If this is the first time to create a translation it should be in English"
 
-#: common/services.py:28 common/services.py:99
+#: common/services.py:25 common/services.py:28 common/services.py:96
+#: common/services.py:99
 msgid "Root must be provided"
 msgstr "Root must be provided"
 
-#: common/views.py:147 common/views.py:216 common/views.py:305
-#: common/views.py:371 common/views.py:418 payment/views.py:185
+#: common/services.py:40 common/views.py:112
+msgid "An error occurred"
+msgstr "An error occured!"
+
+#: common/test/test_generic_errors.py:415
+msgid "Internationalized Title"
+msgstr "Internationalized Title"
+
+#: common/test/test_generic_errors.py:416
+msgid "This is an internationalized error detail message."
+msgstr "This is an internationalized error detail message."
+
+#: common/views.py:144 common/views.py:146
+msgid "A translation for this root already exists."
+msgstr "A translation for this root already exists."
+
+#: common/views.py:147
+msgid "Translation already exists"
+msgstr "Item already exists!"
+
+#: common/views.py:155 common/views.py:224 common/views.py:313
+#: common/views.py:379 common/views.py:426 payment/views.py:188
 msgid "Created successfully!"
 msgstr "Created successfully!"
 
-#: common/views.py:167 common/views.py:325 common/views.py:438
-#: payment/views.py:205 user/views.py:120
+#: common/views.py:175 common/views.py:333 common/views.py:446
+#: payment/views.py:208 user/views.py:151
 msgid "Updated successfully!"
 msgstr "Updated successfully!"
 
-#: common/views.py:184 common/views.py:188 common/views.py:342
-#: common/views.py:346 common/views.py:454 common/views.py:456
-#: payment/views.py:222 payment/views.py:226 user/views.py:139
-#: user/views.py:143
+#: common/views.py:192 common/views.py:196 common/views.py:350
+#: common/views.py:354 common/views.py:462 common/views.py:464
+#: payment/views.py:225 payment/views.py:229 user/views.py:170
+#: user/views.py:174
 msgid "Deleted successfully!"
 msgstr "Deleted successfully!"
 
 #: contact_verification/models.py:99
-#, fuzzy
-#| msgid "email verification message"
 msgid "Verification code message"
 msgstr "Verification code for MyApp: {code}"
 
 #: contact_verification/models.py:104
 msgid "Verify Your Email"
-msgstr ""
+msgstr "Verify Your Email"
+
+#: contact_verification/serializers.py:21
+msgid "Email should be provided if phone is empty"
+msgstr "Email or phone should be provided"
+
+#: contact_verification/serializers.py:22
+msgid "Phone should be provided if email is empty"
+msgstr "Email or phone should be provided"
+
+#: contact_verification/serializers.py:32
+msgid "Email should be empty if phone is provided"
+msgstr "Email or phone should be provided"
+
+#: contact_verification/serializers.py:33
+msgid "Phone should be empty if email is provided"
+msgstr "Email or phone should be provided"
 
 #: contact_verification/services.py:51
 msgid "Code is sent. Check your email."
@@ -206,29 +614,30 @@ msgstr "Code is sent. Check your email."
 msgid "Code is sent. Check your messages."
 msgstr "Code is sent. Check your messages."
 
+#: contact_verification/services.py:70
+msgid "UUID is invalid"
+msgstr "UUID is invalid"
+
 #: contact_verification/services.py:73
 msgid "Please request a new code"
 msgstr "Please request a new code."
 
-#: contact_verification/services.py:81 contact_verification/services.py:137
+#: contact_verification/services.py:78 contact_verification/services.py:81
+#: contact_verification/services.py:134 contact_verification/services.py:137
 msgid "Code is invalid or expired"
 msgstr "Code is invalid or expired"
+
+#: contact_verification/services.py:88
+msgid "Exceeded limit of attempts"
+msgstr "Exceeded limit of attempts"
 
 #: contact_verification/services.py:91
 msgid "You entered the wrong code too many times"
 msgstr "You tried with wrong codes for too many times."
 
-#: contact_verification/services.py:102
-#, fuzzy
-#| msgid "Code is invalid or expired"
+#: contact_verification/services.py:99 contact_verification/services.py:102
 msgid "Code is incorrect"
 msgstr "Code is invalid or expired"
-
-#: contact_verification/services.py:154
-#, fuzzy
-#| msgid "Content not found!"
-msgid "User not found"
-msgstr "Content not found!"
 
 #: contact_verification/templates/emails/verification_email.html:79
 msgid "Verify your email address"
@@ -241,7 +650,8 @@ msgstr "Hello"
 #: contact_verification/templates/emails/verification_email.html:81
 msgid ""
 "Please use the following verification code to complete your registration:"
-msgstr "Please use the following verification code to complete your registration:"
+msgstr ""
+"Please use the following verification code to complete your registration:"
 
 #: contact_verification/templates/emails/verification_email.html:88
 #, python-format
@@ -251,7 +661,8 @@ msgstr "This code will expire in %(time)s minutes."
 #: contact_verification/templates/emails/verification_email.html:91
 msgid ""
 "If you did not request this verification code, please ignore this email."
-msgstr "If you did not request this verification code, please ignore this email."
+msgstr ""
+"If you did not request this verification code, please ignore this email."
 
 #: contact_verification/templates/emails/verification_email.html:94
 msgid "This is an automated message, please do not reply to this email."
@@ -261,67 +672,102 @@ msgstr "This is an automated message, please do not reply to this email."
 msgid "All rights reserved."
 msgstr "All rights reserved."
 
-#: user/models.py:145 user/validators.py:37
+#: payment/serializers.py:32
+msgid "Cannot be null or empty"
+msgstr "Cannot be null or empty"
+
+#: payment/services.py:59
+msgid "Receipt Verification Failed"
+msgstr "Email verification code for MyApp: {code}"
+
+#: payment/services.py:93
+msgid ""
+"You already have an active subscription. Please cancel your current "
+"subscription before purchasing a new one."
+msgstr ""
+"You already have an active subscription. Please cancel your current "
+"subscription before purchasing a new one."
+
+#: payment/subscription/strategies.py:170
+msgid "Google receipt data has missing fields."
+msgstr "Google receipt data has missing fields."
+
+#: payment/subscription/strategies.py:259
+#: payment/subscription/strategies.py:485
+msgid "Called prepare transaction before verification"
+msgstr "Called prepare transaction before verification"
+
+#: payment/subscription/strategies.py:333
+msgid "Apple receipt data has missing fields."
+msgstr "Apple receipt data has missing fields."
+
+#: user/admin.py:12
+msgid "Personal info"
+msgstr "Personal"
+
+#: user/admin.py:13
+msgid "Verification"
+msgstr "Email Verification Code"
+
+#: user/admin.py:15
+msgid "Permissions"
+msgstr "Permissions"
+
+#: user/admin.py:26
+msgid "Important dates"
+msgstr "Important dates"
+
+#: user/admin.py:27
+msgid "Other"
+msgstr "Other"
+
+#: user/models.py:53
+msgid "active"
+msgstr "active"
+
+#: user/models.py:56
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+
+#: user/models.py:170 user/validators.py:35
 msgid "Validation error occured. Please check the fields."
 msgstr "Validation error occured. Please check the fields."
 
-#: user/services.py:22
-msgid "Content not found!"
-msgstr "Content not found!"
+#: vendor/notification_handlers/subscription_notification_handlers.py:71
+msgid "Payment transaction not created yet"
+msgstr "Payment transaction not created yet"
 
-msgid "email verification message"
-msgstr "Email verification code for MyApp: {code}"
+#: vendor/notification_handlers/subscription_notification_handlers.py:77
+msgid "Reached user subscription before setting vendor"
+msgstr "Reached user subscription before setting vendor"
 
-msgid "Email Verification Code"
-msgstr "Email Verification Code"
+#: vendor/notification_handlers/subscription_notification_handlers.py:102
+msgid "Verification should be done before reaching product"
+msgstr "Verification should be done before reaching product"
 
-msgid "phone verification message"
-msgstr "Phone verification code for MyApp: {code}"
+#: vendor/notification_handlers/subscription_notification_handlers.py:126
+#: vendor/notification_handlers/subscription_notification_handlers.py:139
+msgid "Reached payment transaction before setting vendor"
+msgstr "Reached payment transaction before setting vendor"
 
-msgid "Verification code header"
-msgstr "MyApp Verification Code"
+#~ msgid "Verification code header"
+#~ msgstr "MyApp Verification Code"
 
-msgid "Public"
-msgstr "Public"
+#~ msgid "Public"
+#~ msgstr "Public"
 
-msgid "Private"
-msgstr "Private"
+#~ msgid "Private"
+#~ msgstr "Private"
 
-msgid "Already exist!"
-msgstr "Item already exists!"
+#~ msgid "Incorrect password"
+#~ msgstr "Incorrect password"
 
-msgid "You don't have permission for this action!"
-msgstr "You don't have permission for this action!"
+#~ msgid "Business"
+#~ msgstr "Business"
 
-msgid "Bad request!"
-msgstr "Bad request!"
-
-msgid "Request aborted!"
-msgstr "Request aborted!"
-
-msgid "Upload is aborted!"
-msgstr "Upload is aborted!"
-
-msgid "Session interrupted!"
-msgstr "Session interrupted!"
-
-msgid "Authentication failed!"
-msgstr "Authentication failed!"
-
-msgid "Not authenticated!"
-msgstr "Not authenticated!"
-
-msgid "Unsupported media type!"
-msgstr "Unsupported media type!"
-
-msgid "Incorrect password"
-msgstr "Incorrect password"
-
-msgid "Personal"
-msgstr "Personal"
-
-msgid "Business"
-msgstr "Business"
-
-msgid "Internal"
-msgstr "Internal"
+#~ msgid "Internal"
+#~ msgstr "Internal"

@@ -1,3 +1,18 @@
+"""
+Exception Handler Mapper
+
+This module maps Django and DRF exceptions to structured error responses.
+
+⚠️  IMPORTANT: When adding new exception handlers, follow the guide in README.md
+    to ensure proper internationalization and avoid test failures.
+
+The translation system works as follows:
+1. Mark ALL strings for translation in the section below
+2. Use plain strings (not gettext_lazy) in exception handlers
+3. Translation happens at response creation time in custom_exception_handler.py
+4. Tests will validate that all strings are properly marked and translated
+"""
+
 from django.contrib.sessions.exceptions import SessionInterrupted
 from django.core.exceptions import (
     ObjectDoesNotExist,
@@ -14,7 +29,7 @@ from django.core.exceptions import (
 from django.db import IntegrityError
 from django.db.transaction import TransactionManagementError
 from django.http import UnreadablePostError, Http404
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, gettext
 from rest_framework import status
 from rest_framework.exceptions import (
     APIException,
@@ -32,6 +47,44 @@ from rest_framework.exceptions import (
 from rest_framework_simplejwt.exceptions import InvalidToken
 
 from common.response.response_information_codes.error_code import ErrorCode
+
+
+def translate_message(message_key):
+    """
+    Translate message at runtime based on current language context.
+    This allows us to mark strings for translation while maintaining
+    dynamic language detection in exception handlers.
+    """
+    return gettext(message_key)
+
+
+# Mark strings for translation - these will be picked up by makemessages
+# but we'll translate them dynamically in the exception handlers
+_("Already exist!")
+_("Already exists!")
+_("Integrity Error!")
+_("Unknown error!")
+_("An error occured!")
+_("Object doesn't exist!")
+_("Content not found!")
+_("This operations is not permitted!")
+_("You don't have permission for this action!")
+_("View doesn't exist!")
+_("Middleware not used!")
+_("Improperly configured!")
+_("Field Error!")
+_("Data is not valid!")
+_("Request parameters are not valid!")
+_("Bad request!")
+_("Request aborted!")
+_("SynchronousOnlyOperation!")
+_("Upload is aborted!")
+_("Session interrupted!")
+_("Something bad occurred on transaction management!")
+_("No content!")
+_("Authentication failed!")
+_("Not authenticated!")
+_("Unsupported media type!")
 
 
 class ExceptionHandlingParameters(object):
@@ -128,7 +181,10 @@ EXCEPTION_HANDLER_MAPPER = {
         "Bad request!",
     ),
     RequestAborted: lambda x: ExceptionHandlingParameters(
-        "Request aborted!", 499, ErrorCode.REQUEST_ABORTED, "Request aborted!"
+        "Request aborted!",
+        499,
+        ErrorCode.REQUEST_ABORTED,
+        "Request aborted!",
     ),
     SynchronousOnlyOperation: lambda x: ExceptionHandlingParameters(
         "SynchronousOnlyOperation!",
