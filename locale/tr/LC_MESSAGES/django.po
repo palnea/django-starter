@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-28 01:37+0300\n"
+"POT-Creation-Date: 2025-07-28 01:45+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,7 +178,7 @@ msgid "A server error occurred."
 msgstr "Sunucu hatası oluştu."
 
 #: common/custom_exceptions/custom_exception.py:85
-#: common/custom_exceptions/custom_exception.py:269
+#: common/custom_exceptions/custom_exception.py:265
 msgid "Validation failed"
 msgstr "Doğrulama başarısız"
 
@@ -189,7 +189,7 @@ msgid "Request parameters are not valid!"
 msgstr "Gönderilen parametreler geçerli değil!"
 
 #: common/custom_exceptions/custom_exception.py:90
-#: common/custom_exceptions/custom_exception.py:271
+#: common/custom_exceptions/custom_exception.py:267
 #: common/exception_handling/custom_exception_handler.py:165
 #: common/exception_handling/custom_exception_handler.py:173
 #: common/exception_handling/custom_exception_handler.py:223
@@ -226,37 +226,37 @@ msgstr "İstenen kaynak bulunamadı."
 msgid "Not Found"
 msgstr "İçeriğe ulaşılamadı!"
 
-#: common/custom_exceptions/custom_exception.py:168
+#: common/custom_exceptions/custom_exception.py:166
 #, fuzzy
 #| msgid "Bad request!"
 msgid "Bad request."
 msgstr "Hatalı istek!"
 
-#: common/custom_exceptions/custom_exception.py:171
-#: common/custom_exceptions/custom_exception.py:172
+#: common/custom_exceptions/custom_exception.py:169
+#: common/custom_exceptions/custom_exception.py:170
 #, fuzzy
 #| msgid "Field Error!"
 msgid "Client Error"
 msgstr "Alan Hatası!"
 
-#: common/custom_exceptions/custom_exception.py:183
+#: common/custom_exceptions/custom_exception.py:179
 #, fuzzy
 #| msgid "A server error occurred."
 msgid "Internal server error."
 msgstr "Sunucu hatası oluştu."
 
-#: common/custom_exceptions/custom_exception.py:186
-#: common/custom_exceptions/custom_exception.py:187
+#: common/custom_exceptions/custom_exception.py:182
+#: common/custom_exceptions/custom_exception.py:183
 #: common/exception_handling/custom_exception_handler.py:324
 msgid "Server Error"
 msgstr "Sunucu Hatası"
 
-#: common/custom_exceptions/custom_exception.py:225
+#: common/custom_exceptions/custom_exception.py:221
 #: common/response/structured_error_response.py:108
 msgid "Multiple Issues Found"
 msgstr "Birden Fazla Sorun Bulundu"
 
-#: common/custom_exceptions/custom_exception.py:226
+#: common/custom_exceptions/custom_exception.py:222
 #: common/response/structured_error_response.py:110
 msgid "Multiple issues were identified with your request."
 msgstr "İsteğinizde birden fazla sorun tespit edildi."
