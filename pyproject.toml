@@ -6,7 +6,7 @@ authors = ["alperbilgic <alper@palnea.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.13"
 Django = "^5.2"
 dj-database-url = "^2.3.0"
 django-environ = "^0.12.0"

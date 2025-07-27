@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Pre-commit hook for Django Starter Project
+# This hook runs Black formatting check and exception translation validation
+
+# Function to find and activate virtual environment
+activate_venv() {
+    # Try common virtual environment locations
+    local venv_paths=(
+        "venv/bin/activate"
+        ".venv/bin/activate"
+        "~/.virtualenvs/django-starter/bin/activate"
+        "env/bin/activate"
+    )
+    
+    for venv_path in "${venv_paths[@]}"; do
+        if [ -f "$venv_path" ]; then
+            echo "Activating virtual environment: $venv_path"
+            source "$venv_path"
+            return 0
+        fi
+    done
+    
+    echo "Warning: No virtual environment found. Continuing with system Python..."
+    return 1
+}
+
+# Check if this is a merge commit
+if [ -n "$GIT_MERGE_AUTOEDIT" ]; then
+    echo "Merge detected. Skipping pre-commit hook."
+    exit 0
+fi
+
+# Try to activate virtual environment
+activate_venv
+
+# Check if required tools are available
+if ! command -v black &> /dev/null; then
+    echo "Black is not installed. Please install it with: pip install black"
+    exit 1
+fi
+
+if ! command -v python &> /dev/null; then
+    echo "Python is not available. Please check your environment setup."
+    exit 1
+fi
+
+# Run Black code check
+echo "Running Black check..."
+black --check .
+
+if [ $? -ne 0 ]; then
+    echo "❌ Black check failed. Please fix the formatting issues and try again."
+    echo "   Run: black . --fix"
+    exit 1
+fi
+
+echo "✅ Black formatting check passed"
+
+# Check exception translations
+echo "Checking exception translations..."
+if [ -f "scripts/check_exception_translations.py" ]; then
+    python scripts/check_exception_translations.py
+    if [ $? -ne 0 ]; then
+        echo "❌ Exception translation check failed."
+        exit 1
+    fi
+    echo "✅ Exception translation check passed"
+else
+    echo "⚠️  Exception translation checker not found, skipping..."
+fi
+
+echo "🎉 All pre-commit checks passed!"
+exit 0
