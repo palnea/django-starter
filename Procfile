@@ -7,4 +7,4 @@
 # We suggest to use celery for scheduled jobs at that moment
 
 web: gunicorn -c gunicorn.conf.py -w 3 manage.wsgi:application --timeout 15 --preload
-release: ./release.sh
+release: ./bin/release

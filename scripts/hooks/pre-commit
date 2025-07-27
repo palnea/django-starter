@@ -59,8 +59,8 @@ echo "✅ Black formatting check passed"
 
 # Check exception translations
 echo "Checking exception translations..."
-if [ -f "scripts/check_exception_translations.py" ]; then
-    python scripts/check_exception_translations.py
+if [ -f "bin/check-translations" ]; then
+    python bin/check-translations
     if [ $? -ne 0 ]; then
         echo "❌ Exception translation check failed."
         exit 1

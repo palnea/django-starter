@@ -392,7 +392,7 @@ if [[ -n "$PG_CONFIG_FILE" ]]; then
             
             # Backup and modify pg_hba.conf
             cp "$PG_HBA_FILE" "$PG_HBA_FILE.backup" 2>/dev/null || true
-            echo "# Added by setup.sh for Django compatibility" >> "$PG_HBA_FILE"
+            echo "# Added by bin/setup for Django compatibility" >> "$PG_HBA_FILE"
             echo "local   all             all                                     trust" >> "$PG_HBA_FILE"
             echo "host    all             all             127.0.0.1/32            trust" >> "$PG_HBA_FILE"
             echo "host    all             all             ::1/128                 trust" >> "$PG_HBA_FILE"
