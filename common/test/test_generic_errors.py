@@ -344,7 +344,7 @@ class ErrorResponseStructureTest(TestCase):
                 lambda: CustomException.not_found_error(
                     title="Not Found", detail="Resource not found"
                 ),
-                "client_error",
+                "not_found_error",
             ),
         ]
 

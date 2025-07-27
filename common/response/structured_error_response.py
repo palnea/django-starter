@@ -17,6 +17,7 @@ class StructuredErrorType(Enum):
     AUTHENTICATION_ERROR = "authentication_error"
     AUTHORIZATION_ERROR = "authorization_error"
     BUSINESS_LOGIC_ERROR = "business_logic_error"
+    NOT_FOUND_ERROR = "not_found_error"
 
 
 @dataclass

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-07-27 02:21+0300\n"
+"POT-Creation-Date: 2025-07-28 01:37+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: authy/helpers/token_helper.py:59
+#: authy/helpers/token_helper.py:56 authy/helpers/token_helper.py:57
+#: authy/helpers/token_helper.py:64 authy/helpers/token_helper.py:65
 msgid "Invalid login credentials"
 msgstr "Invalid login credentials"
 
@@ -113,28 +114,37 @@ msgstr ""
 "Google client ID doesn't match with system's client ID. Please try logging "
 "in again."
 
-#: authy/services.py:55
+#: authy/services.py:52
 msgid "Could not send the verification code"
 msgstr "Could not send the verification code"
 
-#: authy/services.py:80 contact_verification/serializers.py:26
+#: authy/services.py:75
+msgid "Cannot be null if phone is null"
+msgstr "Cannot be null if phone is null"
+
+#: authy/services.py:76
+msgid "Cannot be null if email is null"
+msgstr "Cannot be null if email is null"
+
+#: authy/services.py:78 contact_verification/serializers.py:24
 msgid "Email or phone should be provided"
 msgstr "Email or phone should be provided"
 
-#: authy/services.py:86
-msgid "Email and phone cannot be provided at the same time"
-msgstr "Email and phone cannot be provided at the same time"
-
-#: authy/services.py:90 contact_verification/serializers.py:37
+#: authy/services.py:84 contact_verification/serializers.py:34
 msgid "Enter email or phone not both"
 msgstr "Enter email or phone not both"
 
-#: authy/services.py:100 contact_verification/services.py:151
-#: contact_verification/services.py:154 user/services.py:19
+#: authy/services.py:85
+msgid "Email and phone cannot be provided at the same time"
+msgstr "Email and phone cannot be provided at the same time"
+
+#: authy/services.py:97 authy/services.py:98
+#: contact_verification/services.py:146 contact_verification/services.py:147
+#: user/services.py:20
 msgid "User not found"
 msgstr "Content not found!"
 
-#: authy/services.py:113
+#: authy/services.py:109
 msgid "Reset password email message"
 msgstr ""
 "We have received your password reset request for MyApp.\n"
@@ -143,11 +153,11 @@ msgstr ""
 "\n"
 "We recommend you to change your password after logging in."
 
-#: authy/services.py:114
+#: authy/services.py:110
 msgid "Reset password title"
 msgstr "MyApp Reset Password"
 
-#: authy/services.py:120
+#: authy/services.py:116
 msgid "Reset password sms message"
 msgstr ""
 "Your new password for MyApp: {password}. We recommend changing it after "
@@ -168,61 +178,86 @@ msgid "A server error occurred."
 msgstr "A server error occurred."
 
 #: common/custom_exceptions/custom_exception.py:85
-#: common/custom_exceptions/custom_exception.py:237
+#: common/custom_exceptions/custom_exception.py:269
 msgid "Validation failed"
 msgstr "Validation failed"
 
 #: common/custom_exceptions/custom_exception.py:88
-#: common/exception_handling/exception_handler_mapper.py:62
+#: common/exception_handling/exception_handler_mapper.py:77
 #: common/response/view_response.py:129
 msgid "Request parameters are not valid!"
 msgstr "Request parameters are not valid!"
 
 #: common/custom_exceptions/custom_exception.py:90
-#: common/custom_exceptions/custom_exception.py:239
-#: common/exception_handling/custom_exception_handler.py:155
-#: common/exception_handling/custom_exception_handler.py:163
-#: common/exception_handling/custom_exception_handler.py:213
-#: common/response/structured_error_response.py:124
+#: common/custom_exceptions/custom_exception.py:271
+#: common/exception_handling/custom_exception_handler.py:165
+#: common/exception_handling/custom_exception_handler.py:173
+#: common/exception_handling/custom_exception_handler.py:223
+#: common/response/structured_error_response.py:125
 #: common/test/test_structured_errors.py:380
 #: common/test/test_structured_errors.py:399
 msgid "Validation Error"
 msgstr "Validation Error"
 
-#: common/custom_exceptions/custom_exception.py:122
+#: common/custom_exceptions/custom_exception.py:123
 msgid "Authentication credentials were missing or invalid."
 msgstr "Authentication credentials were missing or invalid."
 
-#: common/custom_exceptions/custom_exception.py:125
 #: common/custom_exceptions/custom_exception.py:126
+#: common/custom_exceptions/custom_exception.py:127
 msgid "Authentication Failed"
 msgstr "Authentication failed!"
 
-#: common/custom_exceptions/custom_exception.py:137
+#: common/custom_exceptions/custom_exception.py:138
 msgid "You do not have permission to perform this action."
 msgstr "You don't have permission for this action!"
 
-#: common/custom_exceptions/custom_exception.py:140
 #: common/custom_exceptions/custom_exception.py:141
+#: common/custom_exceptions/custom_exception.py:142
 msgid "Access Denied"
 msgstr "Access Denied"
 
-#: common/custom_exceptions/custom_exception.py:152
+#: common/custom_exceptions/custom_exception.py:153
 msgid "The requested resource was not found."
 msgstr "The requested resource was not found."
 
-#: common/custom_exceptions/custom_exception.py:155
 #: common/custom_exceptions/custom_exception.py:156
+#: common/custom_exceptions/custom_exception.py:157
 msgid "Not Found"
 msgstr "Content not found!"
 
-#: common/custom_exceptions/custom_exception.py:193
-#: common/response/structured_error_response.py:107
+#: common/custom_exceptions/custom_exception.py:168
+#, fuzzy
+#| msgid "Bad request!"
+msgid "Bad request."
+msgstr "Bad request!"
+
+#: common/custom_exceptions/custom_exception.py:171
+#: common/custom_exceptions/custom_exception.py:172
+#, fuzzy
+#| msgid "Field Error!"
+msgid "Client Error"
+msgstr "Field Error!"
+
+#: common/custom_exceptions/custom_exception.py:183
+#, fuzzy
+#| msgid "A server error occurred."
+msgid "Internal server error."
+msgstr "A server error occurred."
+
+#: common/custom_exceptions/custom_exception.py:186
+#: common/custom_exceptions/custom_exception.py:187
+#: common/exception_handling/custom_exception_handler.py:324
+msgid "Server Error"
+msgstr "Server Error"
+
+#: common/custom_exceptions/custom_exception.py:225
+#: common/response/structured_error_response.py:108
 msgid "Multiple Issues Found"
 msgstr "Multiple Issues Found"
 
-#: common/custom_exceptions/custom_exception.py:194
-#: common/response/structured_error_response.py:109
+#: common/custom_exceptions/custom_exception.py:226
+#: common/response/structured_error_response.py:110
 msgid "Multiple issues were identified with your request."
 msgstr "Multiple issues were identified with your request."
 
@@ -360,109 +395,105 @@ msgstr ""
 "Data export functionality requires special permissions. Please request "
 "export access from your administrator."
 
-#: common/exception_handling/custom_exception_handler.py:314
-msgid "Server Error"
-msgstr "Server Error"
-
-#: common/exception_handling/custom_exception_handler.py:315
+#: common/exception_handling/custom_exception_handler.py:325
 msgid "An internal server error occurred. Please try again later."
 msgstr "An internal server error occurred. Please try again later."
 
-#: common/exception_handling/exception_handler_mapper.py:48
+#: common/exception_handling/exception_handler_mapper.py:63
 msgid "Already exist!"
 msgstr "Already exist!"
 
-#: common/exception_handling/exception_handler_mapper.py:49
+#: common/exception_handling/exception_handler_mapper.py:64
 msgid "Already exists!"
 msgstr "Already exists!"
 
-#: common/exception_handling/exception_handler_mapper.py:50
+#: common/exception_handling/exception_handler_mapper.py:65
 msgid "Integrity Error!"
 msgstr "Integrity Error!"
 
-#: common/exception_handling/exception_handler_mapper.py:51
+#: common/exception_handling/exception_handler_mapper.py:66
 msgid "Unknown error!"
 msgstr "Unknown error!"
 
-#: common/exception_handling/exception_handler_mapper.py:52
+#: common/exception_handling/exception_handler_mapper.py:67
 #: common/response/view_response.py:106
 msgid "An error occured!"
 msgstr "An error occured!"
 
-#: common/exception_handling/exception_handler_mapper.py:53
+#: common/exception_handling/exception_handler_mapper.py:68
 msgid "Object doesn't exist!"
 msgstr "Object doesn't exist!"
 
-#: common/exception_handling/exception_handler_mapper.py:54
-#: common/test/test_structured_errors.py:258 user/services.py:22
+#: common/exception_handling/exception_handler_mapper.py:69
+#: common/test/test_structured_errors.py:258 user/services.py:19
 msgid "Content not found!"
 msgstr "Content not found!"
 
-#: common/exception_handling/exception_handler_mapper.py:55
+#: common/exception_handling/exception_handler_mapper.py:70
 msgid "This operations is not permitted!"
 msgstr "This operation is not permitted!"
 
-#: common/exception_handling/exception_handler_mapper.py:56
+#: common/exception_handling/exception_handler_mapper.py:71
 msgid "You don't have permission for this action!"
 msgstr "You don't have permission for this action!"
 
-#: common/exception_handling/exception_handler_mapper.py:57
+#: common/exception_handling/exception_handler_mapper.py:72
 msgid "View doesn't exist!"
 msgstr "View doesn't exist!"
 
-#: common/exception_handling/exception_handler_mapper.py:58
+#: common/exception_handling/exception_handler_mapper.py:73
 msgid "Middleware not used!"
 msgstr "Middleware not used!"
 
-#: common/exception_handling/exception_handler_mapper.py:59
+#: common/exception_handling/exception_handler_mapper.py:74
 msgid "Improperly configured!"
 msgstr "Improperly configured!"
 
-#: common/exception_handling/exception_handler_mapper.py:60
+#: common/exception_handling/exception_handler_mapper.py:75
 msgid "Field Error!"
 msgstr "Field Error!"
 
-#: common/exception_handling/exception_handler_mapper.py:61
+#: common/exception_handling/exception_handler_mapper.py:76
 msgid "Data is not valid!"
 msgstr "Data is not valid!"
 
-#: common/exception_handling/exception_handler_mapper.py:63
+#: common/exception_handling/exception_handler_mapper.py:78
 msgid "Bad request!"
 msgstr "Bad request!"
 
-#: common/exception_handling/exception_handler_mapper.py:64
+#: common/exception_handling/exception_handler_mapper.py:79
 msgid "Request aborted!"
 msgstr "Request aborted!"
 
-#: common/exception_handling/exception_handler_mapper.py:65
+#: common/exception_handling/exception_handler_mapper.py:80
 msgid "SynchronousOnlyOperation!"
 msgstr "SynchronousOnlyOperation!"
 
-#: common/exception_handling/exception_handler_mapper.py:66
+#: common/exception_handling/exception_handler_mapper.py:81
 msgid "Upload is aborted!"
 msgstr "Upload is aborted!"
 
-#: common/exception_handling/exception_handler_mapper.py:67
+#: common/exception_handling/exception_handler_mapper.py:82
 msgid "Session interrupted!"
 msgstr "Session interrupted!"
 
-#: common/exception_handling/exception_handler_mapper.py:68
+#: common/exception_handling/exception_handler_mapper.py:83
 msgid "Something bad occurred on transaction management!"
 msgstr "Something bad occurred on transaction management!"
 
-#: common/exception_handling/exception_handler_mapper.py:69
+#: common/exception_handling/exception_handler_mapper.py:84
 msgid "No content!"
 msgstr "No content!"
 
-#: common/exception_handling/exception_handler_mapper.py:70
+#: common/exception_handling/exception_handler_mapper.py:85
 msgid "Authentication failed!"
 msgstr "Authentication failed!"
 
-#: common/exception_handling/exception_handler_mapper.py:71
+#: common/exception_handling/exception_handler_mapper.py:86
 msgid "Not authenticated!"
 msgstr "Not authenticated!"
 
-#: common/exception_handling/exception_handler_mapper.py:72
+#: common/exception_handling/exception_handler_mapper.py:87
 msgid "Unsupported media type!"
 msgstr "Unsupported media type!"
 
@@ -495,17 +526,17 @@ msgstr "Character Encoding"
 msgid "Writing Direction"
 msgstr "Writing Direction"
 
-#: common/response/structured_error_response.py:125
+#: common/response/structured_error_response.py:126
 #: common/test/test_structured_errors.py:381
 #: common/test/test_structured_errors.py:400
 msgid "The request data is invalid."
 msgstr "The request data is invalid."
 
-#: common/response/structured_error_response.py:127
+#: common/response/structured_error_response.py:128
 msgid "Validation Errors"
 msgstr "Validation Errors"
 
-#: common/response/structured_error_response.py:129
+#: common/response/structured_error_response.py:130
 msgid "Multiple fields have validation errors."
 msgstr "Multiple fields have validation errors."
 
@@ -514,11 +545,11 @@ msgstr "Multiple fields have validation errors."
 msgid "Success"
 msgstr "Success"
 
-#: common/serializers.py:29 common/serializers.py:112
+#: common/serializers.py:29 common/serializers.py:115
 msgid "English Locale Missing"
 msgstr "English Locale Missing"
 
-#: common/serializers.py:31 common/serializers.py:114
+#: common/serializers.py:31 common/serializers.py:117
 msgid ""
 "The locale that refers to English language doesn't exist. Please create a "
 "locale with 'en' code first!"
@@ -526,26 +557,29 @@ msgstr ""
 "The locale that refers to English language doesn't exist. Please create a "
 "locale with 'en' code first!"
 
-#: common/serializers.py:40 common/serializers.py:123
+#: common/serializers.py:40 common/serializers.py:126
+#, python-brace-format
 msgid "Root object locale id must be {} which refers to English language"
 msgstr "Root object locale id must be {} which refers to English language"
 
-#: common/serializers.py:44 common/serializers.py:127
+#: common/serializers.py:44 common/serializers.py:130
 msgid "Invalid Locale"
 msgstr "Invalid Locale"
 
-#: common/serializers.py:88 common/serializers.py:180
+#: common/serializers.py:85 common/serializers.py:90 common/serializers.py:180
+#: common/serializers.py:185
 msgid ""
 "If this is the first time to create a translation it should be in English"
 msgstr ""
 "If this is the first time to create a translation it should be in English"
 
-#: common/services.py:25 common/services.py:28 common/services.py:96
-#: common/services.py:99
+#: common/services.py:25 common/services.py:26 common/services.py:96
+#: common/services.py:97
 msgid "Root must be provided"
 msgstr "Root must be provided"
 
-#: common/services.py:40 common/views.py:112
+#: common/services.py:39 common/services.py:40 common/views.py:112
+#: common/views.py:113
 msgid "An error occurred"
 msgstr "An error occured!"
 
@@ -557,26 +591,26 @@ msgstr "Internationalized Title"
 msgid "This is an internationalized error detail message."
 msgstr "This is an internationalized error detail message."
 
-#: common/views.py:144 common/views.py:146
+#: common/views.py:145 common/views.py:147
 msgid "A translation for this root already exists."
 msgstr "A translation for this root already exists."
 
-#: common/views.py:147
+#: common/views.py:148
 msgid "Translation already exists"
 msgstr "Item already exists!"
 
-#: common/views.py:155 common/views.py:224 common/views.py:313
-#: common/views.py:379 common/views.py:426 payment/views.py:188
+#: common/views.py:156 common/views.py:225 common/views.py:314
+#: common/views.py:380 common/views.py:427 payment/views.py:188
 msgid "Created successfully!"
 msgstr "Created successfully!"
 
-#: common/views.py:175 common/views.py:333 common/views.py:446
+#: common/views.py:176 common/views.py:334 common/views.py:447
 #: payment/views.py:208 user/views.py:151
 msgid "Updated successfully!"
 msgstr "Updated successfully!"
 
-#: common/views.py:192 common/views.py:196 common/views.py:350
-#: common/views.py:354 common/views.py:462 common/views.py:464
+#: common/views.py:193 common/views.py:197 common/views.py:351
+#: common/views.py:355 common/views.py:463 common/views.py:465
 #: payment/views.py:225 payment/views.py:229 user/views.py:170
 #: user/views.py:174
 msgid "Deleted successfully!"
@@ -598,11 +632,11 @@ msgstr "Email or phone should be provided"
 msgid "Phone should be provided if email is empty"
 msgstr "Email or phone should be provided"
 
-#: contact_verification/serializers.py:32
+#: contact_verification/serializers.py:31
 msgid "Email should be empty if phone is provided"
 msgstr "Email or phone should be provided"
 
-#: contact_verification/serializers.py:33
+#: contact_verification/serializers.py:32
 msgid "Phone should be empty if email is provided"
 msgstr "Email or phone should be provided"
 
@@ -618,24 +652,24 @@ msgstr "Code is sent. Check your messages."
 msgid "UUID is invalid"
 msgstr "UUID is invalid"
 
-#: contact_verification/services.py:73
+#: contact_verification/services.py:71
 msgid "Please request a new code"
 msgstr "Please request a new code."
 
-#: contact_verification/services.py:78 contact_verification/services.py:81
-#: contact_verification/services.py:134 contact_verification/services.py:137
+#: contact_verification/services.py:77 contact_verification/services.py:78
+#: contact_verification/services.py:130 contact_verification/services.py:131
 msgid "Code is invalid or expired"
 msgstr "Code is invalid or expired"
 
-#: contact_verification/services.py:88
+#: contact_verification/services.py:86
 msgid "Exceeded limit of attempts"
 msgstr "Exceeded limit of attempts"
 
-#: contact_verification/services.py:91
+#: contact_verification/services.py:87
 msgid "You entered the wrong code too many times"
 msgstr "You tried with wrong codes for too many times."
 
-#: contact_verification/services.py:99 contact_verification/services.py:102
+#: contact_verification/services.py:96 contact_verification/services.py:97
 msgid "Code is incorrect"
 msgstr "Code is invalid or expired"
 
@@ -672,9 +706,21 @@ msgstr "This is an automated message, please do not reply to this email."
 msgid "All rights reserved."
 msgstr "All rights reserved."
 
+#: payment/models.py:171
+msgid "Invalid Subscription Configuration"
+msgstr "Invalid Subscription Configuration"
+
+#: payment/models.py:172
+msgid "You cannot add additional buyables to subscriptions."
+msgstr "You cannot add additional buyables to subscriptions."
+
 #: payment/serializers.py:32
 msgid "Cannot be null or empty"
 msgstr "Cannot be null or empty"
+
+#: payment/serializers.py:33
+msgid "Metadata is required"
+msgstr "Metadata is required"
 
 #: payment/services.py:59
 msgid "Receipt Verification Failed"
@@ -688,18 +734,74 @@ msgstr ""
 "You already have an active subscription. Please cancel your current "
 "subscription before purchasing a new one."
 
-#: payment/subscription/strategies.py:170
+#: payment/subscription/strategies.py:76
+msgid "Transaction Creation Error"
+msgstr "Transaction Creation Error"
+
+#: payment/subscription/strategies.py:77
+msgid "Called create_transaction before prepare_for_transaction"
+msgstr "Called create_transaction before prepare_for_transaction"
+
+#: payment/subscription/strategies.py:171
+#: payment/subscription/strategies.py:252
+#: payment/subscription/strategies.py:338
+msgid "Invalid Receipt"
+msgstr "Invalid Receipt"
+
+#: payment/subscription/strategies.py:172
 msgid "Google receipt data has missing fields."
 msgstr "Google receipt data has missing fields."
 
-#: payment/subscription/strategies.py:259
-#: payment/subscription/strategies.py:485
+#: payment/subscription/strategies.py:235
+msgid "Empty Receipt"
+msgstr "Empty Receipt"
+
+#: payment/subscription/strategies.py:236
+msgid "Provided receipt cannot be empty or null"
+msgstr "Provided receipt cannot be empty or null"
+
+#: payment/subscription/strategies.py:253
+msgid "Provided receipt is not valid"
+msgstr "Provided receipt is not valid"
+
+#: payment/subscription/strategies.py:263
+#: payment/subscription/strategies.py:505
+#: vendor/notification_handlers/subscription_notification_handlers.py:102
+msgid "Verification Required"
+msgstr "Verification Required"
+
+#: payment/subscription/strategies.py:264
+#: payment/subscription/strategies.py:506
 msgid "Called prepare transaction before verification"
 msgstr "Called prepare transaction before verification"
 
-#: payment/subscription/strategies.py:333
+#: payment/subscription/strategies.py:339
 msgid "Apple receipt data has missing fields."
 msgstr "Apple receipt data has missing fields."
+
+#: payment/subscription/strategies.py:349
+msgid "Missing Required Parameters"
+msgstr "Missing Required Parameters"
+
+#: payment/subscription/strategies.py:351
+msgid ""
+"None of these attributes can be null: subscription_group_id, product_key, "
+"country_code"
+msgstr ""
+"None of these attributes can be null: subscription_group_id, product_key, "
+"country_code"
+
+#: payment/subscription/strategies.py:375
+msgid "Product Not Found"
+msgstr "Product Not Found"
+
+#: payment/subscription/strategies.py:397
+msgid "Currency Not Found"
+msgstr "Currency Not Found"
+
+#: payment/subscription/strategies.py:419
+msgid "Price Not Found"
+msgstr "Price Not Found"
 
 #: user/admin.py:12
 msgid "Personal info"
@@ -733,41 +835,37 @@ msgstr ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
 
-#: user/models.py:170 user/validators.py:35
+#: user/models.py:167 user/validators.py:32
 msgid "Validation error occured. Please check the fields."
 msgstr "Validation error occured. Please check the fields."
 
+#: vendor/clients/googleplay.py:71
+msgid "Google Play Console Credentials Error"
+msgstr "Google Play Console Credentials Error"
+
 #: vendor/notification_handlers/subscription_notification_handlers.py:71
+msgid "Payment Transaction Missing"
+msgstr "Payment Transaction Missing"
+
+#: vendor/notification_handlers/subscription_notification_handlers.py:72
 msgid "Payment transaction not created yet"
 msgstr "Payment transaction not created yet"
 
-#: vendor/notification_handlers/subscription_notification_handlers.py:77
+#: vendor/notification_handlers/subscription_notification_handlers.py:78
+#: vendor/notification_handlers/subscription_notification_handlers.py:124
+#: vendor/notification_handlers/subscription_notification_handlers.py:136
+msgid "Vendor Not Set"
+msgstr "Vendor Not Set"
+
+#: vendor/notification_handlers/subscription_notification_handlers.py:79
 msgid "Reached user subscription before setting vendor"
 msgstr "Reached user subscription before setting vendor"
 
-#: vendor/notification_handlers/subscription_notification_handlers.py:102
+#: vendor/notification_handlers/subscription_notification_handlers.py:103
 msgid "Verification should be done before reaching product"
 msgstr "Verification should be done before reaching product"
 
-#: vendor/notification_handlers/subscription_notification_handlers.py:126
-#: vendor/notification_handlers/subscription_notification_handlers.py:139
+#: vendor/notification_handlers/subscription_notification_handlers.py:125
+#: vendor/notification_handlers/subscription_notification_handlers.py:137
 msgid "Reached payment transaction before setting vendor"
 msgstr "Reached payment transaction before setting vendor"
-
-#~ msgid "Verification code header"
-#~ msgstr "MyApp Verification Code"
-
-#~ msgid "Public"
-#~ msgstr "Public"
-
-#~ msgid "Private"
-#~ msgstr "Private"
-
-#~ msgid "Incorrect password"
-#~ msgstr "Incorrect password"
-
-#~ msgid "Business"
-#~ msgstr "Business"
-
-#~ msgid "Internal"
-#~ msgstr "Internal"

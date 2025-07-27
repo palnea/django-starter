@@ -66,40 +66,36 @@ class ContactVerificationService:
 
         contact_verification = ContactVerification.objects.filter(id=uuid).first()
         if not contact_verification:
-            raise CustomException(
-                detail={"uuid": [_("UUID is invalid")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"uuid": [_("UUID is invalid")]},
+                title=_("Please request a new code"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Please request a new code"),
             )
 
         if not contact_verification.is_valid:
-            raise CustomException(
-                detail={"code": [_("Code is invalid or expired")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"code": [_("Code is invalid or expired")]},
+                title=_("Code is invalid or expired"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Code is invalid or expired"),
             )
 
         if contact_verification.attempts >= settings.MAX_VERIFICATION_ATTEMPTS:
             contact_verification.status = ContactVerification.Status.FAILED
             contact_verification.save(update_fields=["status"])
-            raise CustomException(
-                detail={"attempts": [_("Exceeded limit of attempts")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"attempts": [_("Exceeded limit of attempts")]},
+                title=_("You entered the wrong code too many times"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("You entered the wrong code too many times"),
             )
 
         if contact_verification.code != code:
             contact_verification.attempts += 1
             contact_verification.status = ContactVerification.Status.FAILED
             contact_verification.save(update_fields=["status", "attempts"])
-            raise CustomException(
-                detail={"code": [_("Code is incorrect")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"code": [_("Code is incorrect")]},
+                title=_("Code is incorrect"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Code is incorrect"),
             )
 
         contact_verification.status = ContactVerification.Status.VERIFIED
@@ -130,11 +126,10 @@ class CodeVerificationService:
             not contact_verification.exists()
             or not contact_verification.first().is_valid
         ):
-            raise CustomException(
-                detail={"code": [_("Code is invalid or expired")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"code": [_("Code is invalid or expired")]},
+                title=_("Code is invalid or expired"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Code is invalid or expired"),
             )
 
         CodeVerificationService.verify_user_contact(email=email, phone=phone)
@@ -147,11 +142,9 @@ class CodeVerificationService:
             else User.objects.filter(phone=phone).first()
         )
         if not user:
-            raise CustomException(
-                detail={"error": [_("User not found")]},
-                code=ErrorCode.NOT_FOUND_ERROR,
-                status_code=status.HTTP_404_NOT_FOUND,
-                message=_("User not found") + f" {email or phone}",
+            raise CustomException.not_found_error(
+                title=_("User not found"),
+                detail=_("User not found") + f" {email or phone}",
             )
 
         if email:

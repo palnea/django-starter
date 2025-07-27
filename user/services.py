@@ -15,11 +15,9 @@ class UserService:
         data: Dict[str, any], partial: bool = False
     ) -> (Dict[str, any], bool):
         if not data.get("user", None):
-            raise CustomException(
-                detail={"user_id": _("User not found")},
-                code=ErrorCode.NOT_FOUND_ERROR,
-                status_code=status.HTTP_404_NOT_FOUND,
-                message=_("Content not found!"),
+            raise CustomException.not_found_error(
+                title=_("Content not found!"),
+                detail=_("User not found"),
             )
 
         user: User = data.get("user")

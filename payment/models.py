@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 from django_softdelete.models import SoftDeleteModel
 from moneyed import Money, list_all_currencies
 from rest_framework import status
@@ -166,10 +167,11 @@ class PurchaseManager(models.Manager):
             )
             > 1
         ):
-            raise CustomException(
-                "You cannot add additional buyables to subscriptions.",
-                ErrorCode.AUTHENTICATION_FAILED,
-                status.HTTP_400_BAD_REQUEST,
+            raise CustomException.business_logic_error(
+                title=_("Invalid Subscription Configuration"),
+                detail=_("You cannot add additional buyables to subscriptions."),
+                code=ErrorCode.AUTHENTICATION_FAILED,
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         # Now call the super method which does the actual creation

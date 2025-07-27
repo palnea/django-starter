@@ -21,11 +21,10 @@ class TranslationService:
         )
 
         if not root:
-            raise CustomException(
-                detail={"root": _("Root must be provided")},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"root": [_("Root must be provided")]},
+                title=_("Root must be provided"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Root must be provided"),
             )
 
         try:
@@ -36,8 +35,9 @@ class TranslationService:
                     locale_id=root.get("locale_id"), text=root.get("text")
                 ).first()
                 if not root_translation:
-                    raise CustomException(
-                        detail={"error": _("An error occurred")},
+                    raise CustomException.business_logic_error(
+                        title=_("An error occurred"),
+                        detail=_("An error occurred"),
                         code=ErrorCode.UNKNOWN_ERROR,
                         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     )
@@ -92,11 +92,10 @@ class TranslatedFileService:
         name = request_data.get("name", None)
 
         if root is None:
-            raise CustomException(
-                detail={"root": _("Root must be provided")},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"root": [_("Root must be provided")]},
+                title=_("Root must be provided"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Root must be provided"),
             )
 
         root_translation = TranslatedFile.objects.create(**root, name=name)

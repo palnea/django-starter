@@ -16,25 +16,23 @@ class ContactVerificationSerializer(serializers.Serializer):
         phone = attrs.get("phone", None)
 
         if email is None and phone is None:
-            raise CustomException(
-                detail={
+            raise CustomException.validation_error(
+                field_errors={
                     "email": [_("Email should be provided if phone is empty")],
                     "phone": [_("Phone should be provided if email is empty")],
                 },
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+                title=_("Email or phone should be provided"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Email or phone should be provided"),
             )
 
         if email is not None and phone is not None:
-            raise CustomException(
-                detail={
+            raise CustomException.validation_error(
+                field_errors={
                     "email": [_("Email should be empty if phone is provided")],
                     "phone": [_("Phone should be empty if email is provided")],
                 },
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+                title=_("Enter email or phone not both"),
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Enter email or phone not both"),
             )
 
         validated_data = {}
