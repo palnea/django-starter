@@ -52,20 +52,17 @@ def authenticate_response(user: "User"):
         }
         return validation
     except ObjectDoesNotExist:
-        raise CustomException(
-            "Invalid login credentials",
-            ErrorCode.AUTHENTICATION_FAILED,
-            status.HTTP_400_BAD_REQUEST,
-            message=_("Invalid login credentials"),
+        raise CustomException.authentication_error(
+            title=_("Invalid login credentials"),
+            detail=_("Invalid login credentials"),
         )
 
 
 def authenticate_user(user: "User", password: str):
     if not user.check_password(password):
-        raise CustomException(
-            "Invalid login credentials",
-            ErrorCode.AUTHENTICATION_FAILED,
-            status.HTTP_400_BAD_REQUEST,
+        raise CustomException.authentication_error(
+            title=_("Invalid login credentials"),
+            detail=_("Invalid login credentials"),
         )
     return authenticate_response(user)
 

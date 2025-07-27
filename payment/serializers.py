@@ -28,9 +28,9 @@ class ReceiptVerificationSerializer(serializers.Serializer):
             .get("receipt", None)
         )
         if not metadata:
-            raise CustomException(
-                detail={"metadata": [_("Cannot be null or empty")]},
-                code=ErrorCode.GENERAL_VALIDATION_ERROR,
+            raise CustomException.validation_error(
+                field_errors={"metadata": [_("Cannot be null or empty")]},
+                title=_("Metadata is required"),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 

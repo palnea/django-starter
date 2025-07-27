@@ -97,6 +97,14 @@ def create_structured_response_from_custom_exception(
             error_type = StructuredErrorType.AUTHENTICATION_ERROR
         elif exc.error_type == "authorization_error":
             error_type = StructuredErrorType.AUTHORIZATION_ERROR
+        elif exc.error_type == "validation_error":
+            error_type = StructuredErrorType.VALIDATION_ERROR
+        elif exc.error_type == "not_found_error":
+            error_type = StructuredErrorType.NOT_FOUND_ERROR
+        elif exc.error_type == "client_error":
+            error_type = StructuredErrorType.CLIENT_ERROR
+        elif exc.error_type == "server_error":
+            error_type = StructuredErrorType.SERVER_ERROR
         else:
             error_type = StructuredErrorType.CLIENT_ERROR
     elif field_errors:
@@ -105,6 +113,8 @@ def create_structured_response_from_custom_exception(
         error_type = StructuredErrorType.AUTHENTICATION_ERROR
     elif exc.status_code == 403:
         error_type = StructuredErrorType.AUTHORIZATION_ERROR
+    elif exc.status_code == 404:
+        error_type = StructuredErrorType.NOT_FOUND_ERROR
     elif 400 <= exc.status_code < 500:
         error_type = StructuredErrorType.CLIENT_ERROR
     else:

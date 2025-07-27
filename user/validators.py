@@ -28,11 +28,11 @@ class UserValidator(BaseValidator):
             errors.append("Password should be provided")
 
         if len(errors) > 0 and raise_exception:
-            raise CustomException(
+            raise CustomException.business_logic_error(
+                title=_("Validation error occured. Please check the fields."),
                 detail=str(errors),
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_400_BAD_REQUEST,
-                message=_("Validation error occured. Please check the fields."),
             )
 
         validated_data = {

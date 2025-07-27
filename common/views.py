@@ -108,8 +108,9 @@ class TranslationViewSet(ModelViewSet):
             locale_id=request.data.get("locale"), text=request.data.get("text")
         ).first()
         if not translation:
-            raise CustomException(
-                detail={"error": _("An error occurred")},
+            raise CustomException.business_logic_error(
+                title=_("An error occurred"),
+                detail=_("An error occurred"),
                 code=ErrorCode.UNKNOWN_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

@@ -89,6 +89,7 @@ class CustomException(APIException):
             field_errors=field_errors,
             title=title or _("Validation Error"),
             instance=instance,
+            error_type="validation_error",
         )
 
     @classmethod
@@ -155,6 +156,33 @@ class CustomException(APIException):
             message=title or _("Not Found"),
             title=title or _("Not Found"),
             instance=instance,
+            error_type="not_found_error",
+        )
+
+    @classmethod
+    def client_error(cls, title: str = None, detail: str = None, instance: str = None):
+        """Create a client error (4xx)"""
+        return cls(
+            detail=detail or _("Bad request."),
+            code=ErrorCode.AN_ERROR_OCCURED,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message=title or _("Client Error"),
+            title=title or _("Client Error"),
+            instance=instance,
+            error_type="client_error",
+        )
+
+    @classmethod
+    def server_error(cls, title: str = None, detail: str = None, instance: str = None):
+        """Create a server error (5xx)"""
+        return cls(
+            detail=detail or _("Internal server error."),
+            code=ErrorCode.INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message=title or _("Server Error"),
+            title=title or _("Server Error"),
+            instance=instance,
+            error_type="server_error",
         )
 
     @classmethod

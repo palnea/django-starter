@@ -78,15 +78,18 @@ class TranslationSerializer(serializers.ModelSerializer):
         locale = attrs.get("locale", None)
         if self.context["request"].method == "POST":
             if root_id is None and (not locale or locale.code != "en"):
-                raise CustomException(
-                    detail={
-                        "locale": "If this is the first time to create a translation it should be in English"
+                raise CustomException.validation_error(
+                    field_errors={
+                        "locale": [
+                            _(
+                                "If this is the first time to create a translation it should be in English"
+                            )
+                        ]
                     },
-                    code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message=_(
+                    title=_(
                         "If this is the first time to create a translation it should be in English"
                     ),
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
         return validated_data
 
@@ -170,15 +173,18 @@ class TranslatedFileSerializer(serializers.ModelSerializer):
         locale = attrs.get("locale", None)
         if self.context["request"].method == "POST":
             if root_id is None and (not locale or locale.code != "en"):
-                raise CustomException(
-                    detail={
-                        "locale": "If this is the first time to create a translation it should be in English"
+                raise CustomException.validation_error(
+                    field_errors={
+                        "locale": [
+                            _(
+                                "If this is the first time to create a translation it should be in English"
+                            )
+                        ]
                     },
-                    code=ErrorCode.GENERAL_VALIDATION_ERROR,
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    message=_(
+                    title=_(
                         "If this is the first time to create a translation it should be in English"
                     ),
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
         return validated_data
 

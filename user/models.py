@@ -163,11 +163,11 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
         """
         errors, validated_data = UserValidator(data).validate_create()
         if errors:
-            raise CustomException(
-                detail=errors,
+            raise CustomException.business_logic_error(
+                title=_("Validation error occured. Please check the fields."),
+                detail=str(errors),
                 code=ErrorCode.GENERAL_VALIDATION_ERROR,
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                message=_("Validation error occured. Please check the fields."),
             )
 
         password = validated_data.pop("password")
