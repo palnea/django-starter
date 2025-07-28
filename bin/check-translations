@@ -6,7 +6,9 @@ This script can be run manually or as part of a pre-commit hook to ensure
 that all exception handler strings are properly marked for translation.
 
 Usage:
-    python scripts/check_exception_translations.py
+    ./bin/check-translations
+    # or
+    python bin/check-translations
 
 Returns:
     0 if all checks pass

@@ -1,0 +1,687 @@
+#!/bin/bash
+
+# Comprehensive Setup script for Django Starter Project
+# This script sets up the complete development environment
+
+set -e  # Exit on any error
+
+# Colors for better output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Configuration
+PYTHON_VERSION="3.13.5"
+PROJECT_NAME="myapp"
+VENV_PATH="$HOME/.virtualenvs/$PROJECT_NAME"
+DB_NAME="myapp"
+DB_PORT="6666"
+DB_HOST="localhost"
+DATABASE_URL="postgresql://$DB_HOST:$DB_PORT/$DB_NAME"
+
+# Helper functions
+print_status() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+print_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+check_command() {
+    if command -v "$1" &> /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Main setup
+echo -e "${BLUE}🚀 Setting up Django Starter development environment...${NC}\n"
+
+# 1. Check and install pyenv
+print_status "Checking pyenv installation..."
+if ! check_command pyenv; then
+    print_warning "pyenv not found. Installing pyenv..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if check_command brew; then
+            brew install pyenv
+        else
+            print_error "Homebrew not found. Please install Homebrew first: https://brew.sh/"
+            exit 1
+        fi
+    else
+        # Linux
+        curl https://pyenv.run | bash
+        export PYENV_ROOT="$HOME/.pyenv"
+        export PATH="$PYENV_ROOT/bin:$PATH"
+        eval "$(pyenv init -)"
+    fi
+    print_success "pyenv installed"
+else
+    print_success "pyenv already installed"
+fi
+
+# Initialize pyenv in current session
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# 2. Install and set Python version
+print_status "Checking Python $PYTHON_VERSION..."
+if ! pyenv versions | grep -q "$PYTHON_VERSION"; then
+    print_status "Installing Python $PYTHON_VERSION..."
+    pyenv install "$PYTHON_VERSION"
+    print_success "Python $PYTHON_VERSION installed"
+else
+    print_success "Python $PYTHON_VERSION already installed"
+fi
+
+# Set local Python version
+pyenv local "$PYTHON_VERSION"
+print_success "Python version set to $PYTHON_VERSION"
+
+# 3. Install and configure PostgreSQL
+print_status "Setting up PostgreSQL..."
+
+install_postgresql() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if check_command brew; then
+            print_status "Installing PostgreSQL via Homebrew..."
+            # Try to install the latest PostgreSQL
+            if brew install postgresql; then
+                print_success "PostgreSQL installed successfully"
+            else
+                print_warning "Trying to install PostgreSQL@15..."
+                brew install postgresql@15
+            fi
+        else
+            print_error "Homebrew not found. Please install Homebrew first: https://brew.sh/"
+            exit 1
+        fi
+    else
+        # Linux (Ubuntu/Debian)
+        print_status "Installing PostgreSQL via apt..."
+        sudo apt-get update
+        sudo apt-get install -y postgresql postgresql-contrib
+        sudo systemctl start postgresql
+        sudo systemctl enable postgresql
+    fi
+}
+
+# Check if PostgreSQL SERVER is installed (not just client tools)
+print_status "Checking PostgreSQL installation..."
+PG_SERVER_INSTALLED=false
+
+# Check if PostgreSQL server is available via Homebrew
+if brew services list | grep -q postgresql; then
+    PG_SERVER_INSTALLED=true
+    print_success "PostgreSQL server already installed"
+elif brew list --formula | grep -q "^postgresql"; then
+    PG_SERVER_INSTALLED=true
+    print_success "PostgreSQL server already installed"
+elif check_command psql && [[ -d "/opt/homebrew/var/postgresql@14" || -d "/opt/homebrew/var/postgresql@15" || -d "/opt/homebrew/var/postgresql" ]]; then
+    print_warning "PostgreSQL client found but server may need reinstallation"
+    print_status "Installing PostgreSQL server..."
+    install_postgresql
+    PG_SERVER_INSTALLED=true
+    print_success "PostgreSQL server installed"
+elif ! check_command psql; then
+    print_warning "PostgreSQL not found. Installing PostgreSQL..."
+    install_postgresql
+    PG_SERVER_INSTALLED=true
+    print_success "PostgreSQL installed"
+else
+    print_warning "PostgreSQL client found but server not detected. Installing server..."
+    install_postgresql
+    PG_SERVER_INSTALLED=true
+    print_success "PostgreSQL server installed"
+fi
+
+# Ensure PostgreSQL is running
+print_status "Ensuring PostgreSQL server is running..."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS - Find and start the correct PostgreSQL service
+    print_status "Detecting PostgreSQL service..."
+    
+    # Wait for brew services to update after installation
+    sleep 2
+    
+    # Check what PostgreSQL services are available
+    PG_SERVICE=""
+    if brew services list | grep -q "postgresql@"; then
+        # Find the specific version installed
+        PG_SERVICE=$(brew services list | grep "postgresql@" | head -1 | awk '{print $1}')
+        print_status "Found versioned PostgreSQL service: $PG_SERVICE"
+    elif brew services list | grep -q "postgresql[^@]"; then
+        PG_SERVICE="postgresql"
+        print_status "Found PostgreSQL service: $PG_SERVICE"
+    else
+        # If not found in services, try to find installed PostgreSQL
+        if brew list --formula | grep -q "^postgresql@"; then
+            PG_SERVICE=$(brew list --formula | grep "^postgresql@" | head -1)
+            print_status "Found installed PostgreSQL formula: $PG_SERVICE"
+        elif brew list --formula | grep -q "^postgresql$"; then
+            PG_SERVICE="postgresql"
+            print_status "Found installed PostgreSQL formula: $PG_SERVICE"
+        else
+            print_warning "No PostgreSQL installation found, using default"
+            PG_SERVICE="postgresql"
+        fi
+    fi
+    
+    # Check if PostgreSQL is running and start it if needed
+    if ! brew services list | grep "$PG_SERVICE" | grep -q "started"; then
+        print_status "Starting PostgreSQL service: $PG_SERVICE..."
+        
+        # Initialize database if needed (for fresh installations)
+        if [[ ! -d "/opt/homebrew/var/$PG_SERVICE" && ! -d "/opt/homebrew/var/postgres" ]]; then
+            print_status "Initializing PostgreSQL database..."
+            if command -v initdb &> /dev/null; then
+                if [[ "$PG_SERVICE" == "postgresql" ]]; then
+                    initdb /opt/homebrew/var/postgres -E utf8 2>/dev/null || true
+                else
+                    initdb "/opt/homebrew/var/$PG_SERVICE" -E utf8 2>/dev/null || true
+                fi
+            fi
+        fi
+        
+        # Start the service
+        if brew services start "$PG_SERVICE"; then
+            print_success "PostgreSQL service started: $PG_SERVICE"
+        else
+            print_warning "Failed to start $PG_SERVICE, trying alternatives..."
+            # Try common alternatives
+            for service in postgresql postgresql@15 postgresql@14 postgresql@13; do
+                print_status "Trying to start $service..."
+                if brew services start "$service" 2>/dev/null; then
+                    print_success "Started $service"
+                    PG_SERVICE="$service"
+                    break
+                fi
+            done
+        fi
+        sleep 5
+    else
+        print_success "PostgreSQL is already running: $PG_SERVICE"
+    fi
+    
+    # Set PostgreSQL PATH based on installed version
+    if [[ -n "$PG_SERVICE" && "$PG_SERVICE" != "postgresql" ]]; then
+        # Versioned PostgreSQL (e.g., postgresql@15)
+        if [[ -d "/opt/homebrew/opt/$PG_SERVICE/bin" ]]; then
+            export PATH="/opt/homebrew/opt/$PG_SERVICE/bin:$PATH"
+            print_success "Added $PG_SERVICE to PATH"
+        elif [[ -d "/usr/local/opt/$PG_SERVICE/bin" ]]; then
+            export PATH="/usr/local/opt/$PG_SERVICE/bin:$PATH"
+            print_success "Added $PG_SERVICE to PATH"
+        fi
+    else
+        # Standard PostgreSQL installation
+        if [[ -d "/opt/homebrew/opt/postgresql/bin" ]]; then
+            export PATH="/opt/homebrew/opt/postgresql/bin:$PATH"
+            print_success "Added postgresql to PATH"
+        elif [[ -d "/usr/local/opt/postgresql/bin" ]]; then
+            export PATH="/usr/local/opt/postgresql/bin:$PATH"
+            print_success "Added postgresql to PATH"
+        fi
+    fi
+else
+    # Linux
+    if ! systemctl is-active --quiet postgresql; then
+        print_status "Starting PostgreSQL..."
+        sudo systemctl start postgresql
+        sleep 3
+    fi
+fi
+
+# Configure PostgreSQL to run on custom port 6666
+print_status "Configuring PostgreSQL to run on port $DB_PORT..."
+
+# Find PostgreSQL configuration file
+PG_CONFIG_FILE=""
+if [[ -f "/opt/homebrew/var/postgres/postgresql.conf" ]]; then
+    PG_CONFIG_FILE="/opt/homebrew/var/postgres/postgresql.conf"
+elif [[ -f "/opt/homebrew/var/postgresql@15/postgresql.conf" ]]; then
+    PG_CONFIG_FILE="/opt/homebrew/var/postgresql@15/postgresql.conf"
+elif [[ -f "/opt/homebrew/var/postgresql@14/postgresql.conf" ]]; then
+    PG_CONFIG_FILE="/opt/homebrew/var/postgresql@14/postgresql.conf"
+elif [[ -f "/usr/local/var/postgres/postgresql.conf" ]]; then
+    PG_CONFIG_FILE="/usr/local/var/postgres/postgresql.conf"
+fi
+
+if [[ -n "$PG_CONFIG_FILE" && -f "$PG_CONFIG_FILE" ]]; then
+    print_status "Found PostgreSQL config at: $PG_CONFIG_FILE"
+    # Stop PostgreSQL before modifying config
+    if brew services list | grep postgresql | grep -q "started"; then
+        print_status "Stopping PostgreSQL to update configuration..."
+        for service in postgresql postgresql@15 postgresql@14; do
+            brew services stop "$service" 2>/dev/null || true
+        done
+        sleep 2
+    fi
+    
+    # Update port in configuration
+    if grep -q "^port = " "$PG_CONFIG_FILE"; then
+        sed -i'' -e "s/^port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
+    elif grep -q "^#port = " "$PG_CONFIG_FILE"; then
+        sed -i'' -e "s/^#port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
+    else
+        echo "port = $DB_PORT" >> "$PG_CONFIG_FILE"
+    fi
+    print_success "PostgreSQL configured to use port $DB_PORT"
+    
+    # Restart PostgreSQL with new configuration
+    print_status "Restarting PostgreSQL with new port configuration..."
+    for service in postgresql postgresql@15 postgresql@14; do
+        if brew services start "$service" 2>/dev/null; then
+            print_success "Started $service on port $DB_PORT"
+            PG_SERVICE="$service"
+            break
+        fi
+    done
+    sleep 5
+else
+    print_warning "PostgreSQL config file not found, trying to start with default settings on port $DB_PORT"
+fi
+
+# Check if PostgreSQL is accessible on the configured port
+print_status "Checking PostgreSQL accessibility on port $DB_PORT..."
+max_attempts=10
+attempt=1
+
+while [ $attempt -le $max_attempts ]; do
+    if pg_isready -h "$DB_HOST" -p "$DB_PORT" &> /dev/null; then
+        print_success "PostgreSQL is running and accessible on port $DB_PORT"
+        break
+    elif [ $attempt -eq $max_attempts ]; then
+        print_error "PostgreSQL is not accessible on port $DB_PORT after $max_attempts attempts"
+        print_status "Trying to check if PostgreSQL is running on default port 5432..."
+        if pg_isready -h "$DB_HOST" -p 5432 &> /dev/null; then
+            print_warning "PostgreSQL is running on port 5432, but Django expects port $DB_PORT"
+            print_status "You may need to manually configure PostgreSQL port or update Django settings"
+        fi
+        print_error "Please check PostgreSQL installation and configuration"
+        exit 1
+    else
+        print_status "Waiting for PostgreSQL to be ready on port $DB_PORT... (attempt $attempt/$max_attempts)"
+        sleep 2
+        ((attempt++))
+    fi
+done
+
+# Set up PostgreSQL user and database
+print_status "Setting up PostgreSQL user and database..."
+
+# Get current system user
+CURRENT_USER=$(whoami)
+
+# Function to create PostgreSQL user if it doesn't exist
+create_pg_user() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # On macOS, use postgres user for consistency with Django settings
+        print_status "Setting up PostgreSQL user..."
+        
+        # Try to connect as postgres user first (standard approach)
+        if psql -h localhost -p "$DB_PORT" -U postgres -d postgres -c "SELECT 1;" &> /dev/null; then
+            print_success "Using postgres user for database operations"
+            PG_USER="postgres"
+        # Try to connect without specifying user (uses system user by default)
+        elif psql -h localhost -p "$DB_PORT" -d postgres -c "SELECT 1;" &> /dev/null; then
+            print_success "Using default connection (system user: $CURRENT_USER)"
+            PG_USER="$CURRENT_USER"
+            # Create postgres role if it doesn't exist, for consistency
+            psql -h localhost -p "$DB_PORT" -d postgres -c "CREATE ROLE postgres SUPERUSER LOGIN;" 2>/dev/null || true
+        # Try with current user
+        elif psql -h localhost -p "$DB_PORT" -U "$CURRENT_USER" -d postgres -c "SELECT 1;" &> /dev/null; then
+            print_success "Using current user: $CURRENT_USER"
+            PG_USER="$CURRENT_USER"
+            # Create postgres role if it doesn't exist, for consistency
+            psql -h localhost -p "$DB_PORT" -U "$CURRENT_USER" -d postgres -c "CREATE ROLE postgres SUPERUSER LOGIN;" 2>/dev/null || true
+        else
+            # Create user using createuser command (works with fresh installs)
+            print_status "Creating PostgreSQL postgres user..."
+            if createuser -s postgres 2>/dev/null; then
+                print_success "Postgres user created"
+                PG_USER="postgres"
+            else
+                print_warning "Could not create postgres user, will use system default"
+                PG_USER="$CURRENT_USER"
+            fi
+        fi
+    else
+        # On Linux, use postgres user as standard
+        if sudo -u postgres psql -c "SELECT 1;" &> /dev/null; then
+            print_success "Using postgres user for database operations"
+            PG_USER="postgres"
+        else
+            print_warning "Using current user for database operations"
+            PG_USER="$CURRENT_USER"
+        fi
+    fi
+}
+
+create_pg_user
+
+# Configure PostgreSQL authentication for Django compatibility
+print_status "Configuring PostgreSQL authentication..."
+if [[ -n "$PG_CONFIG_FILE" ]]; then
+    PG_HBA_FILE=$(dirname "$PG_CONFIG_FILE")/pg_hba.conf
+    if [[ -f "$PG_HBA_FILE" ]]; then
+        print_status "Found pg_hba.conf at: $PG_HBA_FILE"
+        # Ensure local connections are allowed (needed for Django's default DATABASE_URL)
+        if ! grep -q "local   all             all                                     trust" "$PG_HBA_FILE"; then
+            print_status "Adding local trust authentication to pg_hba.conf..."
+            # Stop PostgreSQL to modify auth config
+            for service in postgresql postgresql@15 postgresql@14; do
+                brew services stop "$service" 2>/dev/null || true
+            done
+            sleep 2
+            
+            # Backup and modify pg_hba.conf
+            cp "$PG_HBA_FILE" "$PG_HBA_FILE.backup" 2>/dev/null || true
+            echo "# Added by bin/setup for Django compatibility" >> "$PG_HBA_FILE"
+            echo "local   all             all                                     trust" >> "$PG_HBA_FILE"
+            echo "host    all             all             127.0.0.1/32            trust" >> "$PG_HBA_FILE"
+            echo "host    all             all             ::1/128                 trust" >> "$PG_HBA_FILE"
+            
+            # Restart PostgreSQL with new auth config
+            print_status "Restarting PostgreSQL with updated authentication..."
+            for service in postgresql postgresql@15 postgresql@14; do
+                if brew services start "$service" 2>/dev/null; then
+                    print_success "Started $service with updated authentication"
+                    break
+                fi
+            done
+            sleep 5
+        else
+            print_success "PostgreSQL already configured for local trust authentication"
+        fi
+    fi
+fi
+
+# Create database
+create_database() {
+    print_status "Creating database '$DB_NAME'..."
+    
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS - Try multiple methods to create database
+        DB_CREATED=false
+        
+        # Method 1: Try with the determined user
+        if createdb -h localhost -p "$DB_PORT" -U "$PG_USER" "$DB_NAME" 2>/dev/null; then
+            print_success "Database '$DB_NAME' created with user $PG_USER"
+            DB_CREATED=true
+        # Method 2: Try without specifying user (uses default)
+        elif createdb -p "$DB_PORT" "$DB_NAME" 2>/dev/null; then
+            print_success "Database '$DB_NAME' created with default user"
+            DB_CREATED=true
+        # Method 3: Try with psql command
+        elif psql -h localhost -p "$DB_PORT" -U "$PG_USER" -d postgres -c "CREATE DATABASE \"$DB_NAME\";" 2>/dev/null; then
+            print_success "Database '$DB_NAME' created via psql"
+            DB_CREATED=true
+        else
+            print_warning "Database '$DB_NAME' might already exist or creation failed"
+        fi
+    else
+        # Linux
+        if [ "$PG_USER" = "postgres" ]; then
+            sudo -u postgres createdb "$DB_NAME" 2>/dev/null || print_warning "Database '$DB_NAME' might already exist"
+        else
+            createdb -h localhost -p "$DB_PORT" -U "$PG_USER" "$DB_NAME" 2>/dev/null || print_warning "Database '$DB_NAME' might already exist"
+        fi
+    fi
+}
+
+create_database
+
+# Update DATABASE_URL to match Django development settings expectations
+print_status "Configuring DATABASE_URL to match Django settings..."
+
+# Django development settings expect: postgresql://localhost:6666/myapp (no username)
+# We'll test if this format works, and fallback to user-specific format if needed
+
+if psql "postgresql://localhost:$DB_PORT/$DB_NAME" -c "SELECT 1;" &> /dev/null; then
+    # Perfect! This matches Django's expected format exactly
+    DATABASE_URL="postgresql://localhost:$DB_PORT/$DB_NAME"
+    print_success "Using Django-compatible DATABASE_URL (no username): $DATABASE_URL"
+elif [[ "$PG_USER" = "postgres" ]] && psql "postgresql://postgres@localhost:$DB_PORT/$DB_NAME" -c "SELECT 1;" &> /dev/null; then
+    # Fallback with postgres user if needed, but log a warning
+    DATABASE_URL="postgresql://postgres@localhost:$DB_PORT/$DB_NAME"
+    print_warning "Using DATABASE_URL with postgres user: $DATABASE_URL"
+    print_warning "Consider configuring PostgreSQL to allow connections without username for Django compatibility"
+else
+    # Final fallback - use whatever user we determined
+    DATABASE_URL="postgresql://$PG_USER@localhost:$DB_PORT/$DB_NAME"
+    print_warning "Using DATABASE_URL with user $PG_USER: $DATABASE_URL"
+    print_warning "This may not match Django's default expectations"
+fi
+
+print_success "PostgreSQL setup completed"
+print_success "Database URL: $DATABASE_URL"
+
+# 4. Create virtual environment
+print_status "Setting up virtual environment at $VENV_PATH..."
+if [ ! -d "$VENV_PATH" ]; then
+    mkdir -p "$(dirname "$VENV_PATH")"
+    python -m venv "$VENV_PATH"
+    print_success "Virtual environment created"
+else
+    print_success "Virtual environment already exists"
+fi
+
+# 5. Activate virtual environment
+print_status "Activating virtual environment..."
+source "$VENV_PATH/bin/activate"
+print_success "Virtual environment activated"
+
+# 6. Upgrade pip and install poetry if needed
+print_status "Upgrading pip..."
+pip install --upgrade pip
+
+# Note: We use Poetry 2.1.3 to match CI environment for consistent behavior
+
+if ! check_command poetry; then
+    print_status "Installing Poetry 2.1.3..."
+    curl -sSL https://install.python-poetry.org | POETRY_VERSION=2.1.3 python3 -
+    export PATH="$HOME/.local/bin:$PATH"
+    print_success "Poetry 2.1.3 installed"
+else
+    # Check if we have the expected version, warn if different
+    CURRENT_POETRY_VERSION=$(poetry --version 2>/dev/null | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' || echo "unknown")
+    if [[ "$CURRENT_POETRY_VERSION" != "2.1.3" ]]; then
+        print_warning "Poetry version $CURRENT_POETRY_VERSION detected, expected 2.1.3"
+        print_warning "Consider updating Poetry for consistency with CI"
+    fi
+    print_success "Poetry already installed (version: $CURRENT_POETRY_VERSION)"
+fi
+
+# 7. Install dependencies
+print_status "Installing dependencies with Poetry..."
+poetry install --no-root
+print_success "Dependencies installed"
+
+# 8. Create database
+print_status "Setting up database..."
+# Try to create database if it doesn't exist
+if command -v createdb &> /dev/null; then
+    createdb -p "$DB_PORT" "$DB_NAME" 2>/dev/null || print_warning "Database $DB_NAME might already exist"
+    print_success "Database setup completed"
+else
+    print_warning "createdb command not found. Creating database manually..."
+    psql -h "$DB_HOST" -p "$DB_PORT" -c "CREATE DATABASE $DB_NAME;" 2>/dev/null || print_warning "Database $DB_NAME might already exist"
+fi
+
+# Test database connection
+print_status "Testing database connection..."
+export DATABASE_URL="$DATABASE_URL"
+python -c "
+import os
+import psycopg2
+try:
+    conn = psycopg2.connect('$DATABASE_URL')
+    conn.close()
+    print('✅ Database connection successful')
+except Exception as e:
+    print(f'❌ Database connection failed: {e}')
+    exit(1)
+"
+print_success "Database connection verified"
+
+# 9. Set up environment variables
+print_status "Setting up environment variables..."
+if [ ! -f ".env" ]; then
+    cat > .env << EOF
+# Django Settings
+DJANGO_SETTINGS_MODULE=settings.development
+SECRET_KEY=django-insecure-gnwrb85!2bti+#oua3fspdj_(95u*u)4*j-80#o_z0%c)@=6le
+DEBUG=True
+
+# Database
+# This matches the Django development settings default format
+DATABASE_URL=$DATABASE_URL
+
+# Email (Development)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_USE_TLS=True
+EMAIL_PORT=587
+EMAIL_HOST_USER=info@example.com
+EMAIL_HOST_PASSWORD=your-password
+
+# Cloud Storage (Development)
+IDRIVE_ENDPOINT_URL=https://k2f7.or.idrivee2-60.com
+IDRIVE_ACCESS_KEY=your-access-key
+IDRIVE_SECRET_ACCESS_KEY=your-secret-key
+IDRIVE_BUCKET_NAME=central-backend-dev
+CLOUD_STORAGE_BUCKET_NAME=central-backend-dev
+CLOUD_STORAGE_PUBLIC_BUCKET_NAME=central-backend-public-dev
+CLOUD_STORAGE_VENDOR=idrive
+CLOUD_STORAGE_BUCKET_IS_PUBLIC=false
+
+# Social Auth
+SOCIAL_SECRET=dev-social-secret-123
+
+# SMS
+NETGSM_USER_CODE=8500000000
+NETGSM_PASSWORD=123456
+SMS_HEADER=VD
+
+# Swagger
+SWAGGER_ACCESS_PASSCODE=swagger
+EOF
+    print_success "Environment file created (.env)"
+else
+    print_success "Environment file already exists"
+fi
+
+# 10. Create necessary directories
+print_status "Creating necessary directories..."
+mkdir -p media/uploads
+mkdir -p staticfiles
+mkdir -p logs
+print_success "Directories created"
+
+# 11. Django setup
+print_status "Running Django migrations..."
+export DJANGO_SETTINGS_MODULE=settings.development
+python manage.py makemigrations
+python manage.py migrate
+print_success "Migrations completed"
+
+print_status "Collecting static files..."
+python manage.py collectstatic --noinput
+print_success "Static files collected"
+
+print_status "Compiling messages..."
+python manage.py compilemessages
+print_success "Messages compiled"
+
+# 12. Create superuser (optional)
+print_status "Creating superuser (optional)..."
+read -p "Do you want to create a superuser? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    python manage.py createsuperuser
+    print_success "Superuser created"
+fi
+
+# 13. Install git hooks
+print_status "Installing git hooks..."
+mkdir -p .git/hooks
+
+if [ -f "scripts/hooks/pre-commit" ]; then
+    cp scripts/hooks/pre-commit .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
+    print_success "Pre-commit hook installed"
+else
+    print_warning "Pre-commit hook not found in scripts/hooks/"
+fi
+
+# 14. Run tests to validate setup
+print_status "Running tests to validate setup..."
+if python manage.py test --verbosity=0 --keepdb; then
+    print_success "All tests passed"
+else
+    print_warning "Some tests failed. Please check the output above."
+fi
+
+# 15. Final validation
+print_status "Final validation..."
+python -c "
+import django
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.development')
+django.setup()
+from django.core.management import execute_from_command_line
+try:
+    execute_from_command_line(['manage.py', 'check'])
+    print('✅ Django system check passed')
+except Exception as e:
+    print(f'❌ Django system check failed: {e}')
+    exit(1)
+"
+
+# Success message
+echo ""
+echo -e "${GREEN}🎉 Development Environment Setup Complete!${NC}"
+echo ""
+echo -e "${BLUE}📋 Summary:${NC}"
+echo "✅ Python $PYTHON_VERSION installed and configured"
+echo "✅ Virtual environment created at $VENV_PATH"
+echo "✅ Poetry 2.1.3 and dependencies installed"
+echo "✅ PostgreSQL database '$DB_NAME' created and connected"
+echo "✅ Django migrations applied"
+echo "✅ Static files collected"
+echo "✅ Translation messages compiled"
+echo "✅ Git hooks installed"
+echo ""
+echo -e "${BLUE}🚀 Quick Start Commands:${NC}"
+echo "  Activate environment: source $VENV_PATH/bin/activate"
+echo "  Run development server: python manage.py runserver"
+echo "  Run tests: python manage.py test"
+echo "  Access admin: http://127.0.0.1:8000/admin/"
+echo ""
+echo -e "${BLUE}🔗 Useful URLs:${NC}"
+echo "  Development server: http://127.0.0.1:8000/"
+echo "  API Documentation: http://127.0.0.1:8000/swagger/"
+echo "  Admin interface: http://127.0.0.1:8000/admin/"
+echo ""
+echo -e "${YELLOW}⚠️  Important Notes:${NC}"
+echo "  - Database URL: $DATABASE_URL"
+echo "  - Environment file: .env (update with your actual credentials)"
+echo "  - Virtual environment: $VENV_PATH"
+echo "  - Pre-commit hooks will run automatically on git commit"
+echo ""
+echo -e "${GREEN}Happy coding! 🚀${NC}"
