@@ -1,5 +1,8 @@
 from rest_framework import permissions
 from rest_framework.permissions import SAFE_METHODS, DjangoModelPermissions
+from functools import wraps
+from rest_framework.response import Response
+from rest_framework import status
 
 from common.middlewares.global_context_middleware import (
     GlobalContextMiddleware,
@@ -233,21 +236,36 @@ class ActionAwareModelPermissions(DjangoModelPermissions):
         return False
 
 
-class IsOwnerWithoutSideEffects(permissions.BasePermission):
+class IsOwner(permissions.BasePermission):
     """
-    Pure ownership permission without side effects - designed for composition.
+    Enhanced ownership permission that detects attempts to access other users' data.
 
     This version:
-    - Does NOT auto-filter querysets (no side effects)
-    - Does NOT auto-inject user_id (no side effects)
-    - Only checks ownership at object level
+    - Checks for ownership field in query parameters (for list operations)
+    - Prevents users from listing/filtering other users' data
+    - Prevents users from creating objects on behalf of others
+    - Checks ownership at object level for retrieve/update/delete operations
     - Perfect for use in OR conditions with other permissions
 
-    Use this when you want ownership checks but need to compose with other permissions.
+    Behavior:
+    1. User cannot change, retrieve, delete or list someone else's objects
+    2. User cannot create objects on behalf of someone else
     """
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        if not request.user.is_authenticated:
+            return False
+
+        # Check if this is a list operation with ownership filtering attempts
+        action = getattr(view, "action", None)
+        if action == "list":
+            return self._check_list_ownership_attempt(request, view)
+
+        # Check if this is a create operation with user_id injection attempt
+        if action == "create":
+            return self._check_create_ownership_attempt(request, view)
+
+        return True  # For other operations, rely on object-level permissions
 
     def has_object_permission(self, request, view, obj):
         # Special case: For User model, check id instead of user_id
@@ -258,6 +276,74 @@ class IsOwnerWithoutSideEffects(permissions.BasePermission):
             return False
         return str(obj.user_id) == str(request.user.id)
 
+    def _check_list_ownership_attempt(self, request, view):
+        """
+        Check if user is attempting to list/filter other users' data.
+        """
+        # Get the ownership field (default or from query params)
+        ownership_field = getattr(view, "ownership_field", "user_id")
+        query_ownership_field = request.query_params.get(
+            "ownership_field", ownership_field
+        )
+
+        # Check if user is trying to filter by a specific ownership value
+        ownership_filter = request.query_params.get(query_ownership_field, None)
+
+        if ownership_filter is not None:
+            # User is trying to filter by specific ownership value
+            current_user_id = str(request.user.id)
+            if ownership_filter != current_user_id:
+                # Attempting to access someone else's data
+                return False
+
+        # Check for other potential ownership-related parameters
+        for param_name in request.query_params:
+            if "user_id" in param_name.lower() or param_name.lower() in [
+                "user",
+                "owner",
+                "created_by",
+            ]:
+                param_value = request.query_params.get(param_name)
+                if param_value and str(param_value) != str(request.user.id):
+                    return False
+
+        return True
+
+    def _check_create_ownership_attempt(self, request, view):
+        """
+        Check if user is attempting to create objects on behalf of others.
+        """
+        # Check if user_id or similar fields are in the request data
+        user_id_field = getattr(view, "user_id_field", "user_id")
+
+        # Check request data for user_id injection attempts
+        if hasattr(request, "data") and request.data:
+            data = request.data
+
+            # Check the primary user_id field
+            if user_id_field in data:
+                provided_user_id = str(data[user_id_field])
+                if provided_user_id != str(request.user.id):
+                    return False
+
+            # Check for other common user identification fields
+            user_fields = [
+                "user_id",
+                "user",
+                "owner_id",
+                "owner",
+                "created_by",
+                "author_id",
+                "author",
+            ]
+            for field in user_fields:
+                if field in data:
+                    provided_value = str(data[field])
+                    if provided_value != str(request.user.id):
+                        return False
+
+        return True
+
 
 class IsReadonly(permissions.BasePermission):
     """
@@ -267,3 +353,241 @@ class IsReadonly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
+
+
+# Alias for backward compatibility and clear naming
+IsOwnerWithoutSideEffects = IsOwner
+
+
+def check_ownership(
+    ownership_field="user_id",
+    allow_admin=True,
+    check_query_params=True,
+    check_request_data=True,
+):
+    """
+    Decorator to check ownership for custom actions.
+
+    Args:
+        ownership_field (str): Field name to check for ownership (default: 'user_id')
+        allow_admin (bool): Whether to allow users with model permissions to bypass ownership checks
+        check_query_params (bool): Whether to check query parameters for ownership attempts
+        check_request_data (bool): Whether to check request data for ownership attempts
+
+    Usage:
+        @action(detail=True, methods=['post'])
+        @check_ownership()
+        def reset_password(self, request, pk=None):
+            # Only the owner can reset their own password
+            user = self.get_object()
+            # ... action logic
+
+        @action(detail=False, methods=['get'])
+        @check_ownership(ownership_field='author_id', check_request_data=False)
+        def my_posts(self, request):
+            # Custom list action with ownership filtering
+            # ... action logic
+    """
+
+    def decorator(action_func):
+        @wraps(action_func)
+        def wrapper(self, request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return Response(
+                    {"detail": "Authentication required."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Check if user has admin permissions and admin access is allowed
+            if allow_admin:
+                model = getattr(self, "queryset", None)
+                if model is not None:
+                    model_class = model.model
+                    app_label = model_class._meta.app_label
+                    model_name = model_class._meta.model_name
+                    view_permission = f"{app_label}.view_{model_name}"
+
+                    if request.user.has_perm(view_permission):
+                        # User has admin permissions, allow action
+                        return action_func(self, request, *args, **kwargs)
+
+            # Perform ownership checks
+            ownership_violation = _check_action_ownership(
+                request, self, ownership_field, check_query_params, check_request_data
+            )
+
+            if ownership_violation:
+                return Response(
+                    {
+                        "detail": f"You don't have permission to perform this action. {ownership_violation}"
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # If this is a detail action, check object-level ownership
+            if kwargs.get("pk") is not None:
+                try:
+                    obj = self.get_object()
+                    if not _check_object_ownership(request.user, obj, ownership_field):
+                        return Response(
+                            {
+                                "detail": "You don't have permission to perform this action on this object."
+                            },
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+                except Exception:
+                    # If object doesn't exist, let the action handle it
+                    pass
+
+            return action_func(self, request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def _check_action_ownership(
+    request, view, ownership_field, check_query_params, check_request_data
+):
+    """
+    Helper function to check ownership violations in custom actions.
+    Returns a string describing the violation, or None if no violation.
+    """
+    current_user_id = str(request.user.id)
+
+    # Check query parameters for ownership attempts
+    if check_query_params:
+        # Check the specific ownership field
+        if ownership_field in request.query_params:
+            param_value = request.query_params.get(ownership_field)
+            if param_value and str(param_value) != current_user_id:
+                return f"Cannot filter by {ownership_field}={param_value} - you can only access your own data."
+
+        # Check other common ownership parameters
+        ownership_params = [
+            "user_id",
+            "user",
+            "owner_id",
+            "owner",
+            "created_by",
+            "author_id",
+            "author",
+        ]
+        for param_name in request.query_params:
+            if param_name.lower() in ownership_params or any(
+                op in param_name.lower() for op in ["user_id", "owner"]
+            ):
+                param_value = request.query_params.get(param_name)
+                if param_value and str(param_value) != current_user_id:
+                    return f"Cannot filter by {param_name}={param_value} - you can only access your own data."
+
+    # Check request data for ownership attempts
+    if check_request_data and hasattr(request, "data") and request.data:
+        data = request.data
+
+        # Check the specific ownership field
+        if ownership_field in data:
+            provided_value = str(data[ownership_field])
+            if provided_value != current_user_id:
+                return f"Cannot set {ownership_field}={provided_value} - you can only create/modify your own data."
+
+        # Check other common ownership fields
+        ownership_fields = [
+            "user_id",
+            "user",
+            "owner_id",
+            "owner",
+            "created_by",
+            "author_id",
+            "author",
+        ]
+        for field in ownership_fields:
+            if field in data:
+                provided_value = str(data[field])
+                if provided_value != current_user_id:
+                    return f"Cannot set {field}={provided_value} - you can only create/modify your own data."
+
+    return None
+
+
+def _check_object_ownership(user, obj, ownership_field):
+    """
+    Helper function to check if user owns the object.
+    """
+    # Special case: For User model, check id instead of user_id
+    if obj.__class__.__name__ == "User":
+        return str(obj.id) == str(user.id)
+
+    # Check the specified ownership field
+    if hasattr(obj, ownership_field):
+        return str(getattr(obj, ownership_field)) == str(user.id)
+
+    return False
+
+
+def require_ownership(ownership_field="user_id", allow_admin=True):
+    """
+    Simple decorator for actions that require object ownership.
+    Only works with detail actions (actions that have pk parameter).
+
+    Args:
+        ownership_field (str): Field name to check for ownership
+        allow_admin (bool): Whether to allow users with model permissions
+
+    Usage:
+        @action(detail=True, methods=['post'])
+        @require_ownership()
+        def activate(self, request, pk=None):
+            # Only the owner can activate their object
+            obj = self.get_object()
+            # ... action logic
+    """
+
+    def decorator(action_func):
+        @wraps(action_func)
+        def wrapper(self, request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return Response(
+                    {"detail": "Authentication required."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+
+            # Check if user has admin permissions
+            if allow_admin:
+                model = getattr(self, "queryset", None)
+                if model is not None:
+                    model_class = model.model
+                    app_label = model_class._meta.app_label
+                    model_name = model_class._meta.model_name
+                    view_permission = f"{app_label}.view_{model_name}"
+
+                    if request.user.has_perm(view_permission):
+                        return action_func(self, request, *args, **kwargs)
+
+            # Check object ownership
+            if kwargs.get("pk") is not None:
+                try:
+                    obj = self.get_object()
+                    if not _check_object_ownership(request.user, obj, ownership_field):
+                        return Response(
+                            {
+                                "detail": "You don't have permission to perform this action on this object."
+                            },
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+                except Exception:
+                    return Response(
+                        {"detail": "Object not found."},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+            else:
+                return Response(
+                    {"detail": "This action requires an object ID."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            return action_func(self, request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator

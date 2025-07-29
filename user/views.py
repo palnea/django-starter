@@ -7,7 +7,7 @@ from structlog import get_logger
 from common.pagination import CustomPageNumberPagination
 from common.permissions.generic_permissions import (
     ActionAwareModelPermissions,
-    IsOwnerWithoutSideEffects,
+    IsOwner,
     ShortCircuitOr,
 )
 from common.view_mixins import OwnershipMixin
@@ -57,9 +57,7 @@ class UserViewSet(OwnershipMixin, ModelViewSet):
     - All side effects are handled explicitly in view layer (not hidden in permissions)
     """
 
-    permission_classes = [
-        ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)
-    ]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     pagination_class = CustomPageNumberPagination
     queryset = User.objects.all()
     lookup_url_kwarg = "user_id"
