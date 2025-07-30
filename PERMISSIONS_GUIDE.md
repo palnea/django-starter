@@ -22,14 +22,15 @@ This application implements a robust permission system that follows Django best 
 
 ```python
 from common.permissions.generic_permissions import (
-    ShortCircuitOr, ActionAwareModelPermissions, IsOwnerWithoutSideEffects
+    ShortCircuitOr, ActionAwareModelPermissions, IsOwner
 )
+
 
 class UserViewSet(ModelViewSet):
     # ✅ Admin OR Owner access - no side effects!
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     queryset = User.objects.all()
-    
+
     def get_queryset(self):
         # Only filter for users without model permissions
         if not self.request.user.has_perm('user.view_user'):
@@ -58,10 +59,10 @@ class UserViewSet(ModelViewSet):
 **Use these for composition without unwanted side effects:**
 
 ```python
-from common.permissions.generic_permissions import IsOwnerWithoutSideEffects
+from common.permissions.generic_permissions import IsOwner
 
 # ✅ Safe for composition - no auto-filtering or injection
-permission_classes = [ActionAwareModelPermissions | IsOwnerWithoutSideEffects]
+permission_classes = [ActionAwareModelPermissions | IsOwner]
 ```
 
 ## Permission Classes
@@ -92,14 +93,15 @@ class AdminOnlyViewSet(ModelViewSet):
 
 ```python
 from common.permissions.generic_permissions import (
-    IsOwnerWithoutSideEffects, ActionAwareModelPermissions, ShortCircuitOr
+    IsOwner, ActionAwareModelPermissions, ShortCircuitOr
 )
+
 
 class DocumentViewSet(ModelViewSet):
     # ✅ Admin OR Owner - safe composition
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     queryset = Document.objects.all()
-    
+
     def get_queryset(self):
         if not self.request.user.has_perm('documents.view_document'):
             return Document.objects.filter(user_id=self.request.user.id)
@@ -187,8 +189,9 @@ class DocumentViewSet(UserIDInjectionMixin, ModelViewSet):
 ```python
 from common.view_mixins import OwnershipMixin
 from common.permissions.generic_permissions import (
-    ShortCircuitOr, ActionAwareModelPermissions, IsOwnerWithoutSideEffects
+    ShortCircuitOr, ActionAwareModelPermissions, IsOwner
 )
+
 
 class DocumentViewSet(OwnershipMixin, ModelViewSet):
     """
@@ -196,8 +199,8 @@ class DocumentViewSet(OwnershipMixin, ModelViewSet):
     Users can only manage their own documents.
     """
     permission_classes = [ShortCircuitOr(
-        ActionAwareModelPermissions,     # Admin path
-        IsOwnerWithoutSideEffects        # User path
+        ActionAwareModelPermissions,  # Admin path
+        IsOwner  # User path
     )]
     queryset = Document.objects.all()
     # OwnershipMixin handles queryset filtering and user_id injection automatically

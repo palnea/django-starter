@@ -43,7 +43,7 @@ class OwnershipFilterMixin:
         if self.request.user.has_perm(self.ownership_permission):
             return queryset
 
-        # Otherwise filter by ownership for list operations
+        # Apply ownership filtering for regular users
         # Special case: For User model, filter by id instead of user_id
         if queryset.model.__name__ == "User" and self.ownership_field == "user_id":
             filter_kwargs = {"id": self.request.user.id}
