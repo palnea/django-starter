@@ -6,14 +6,14 @@ from mock import patch
 from model_bakery import baker
 
 from contact_verification.models import ContactVerification
-from custom_test.base_test import CustomIntegrationTestCase
+from custom_test.base_test import CustomAPITestCase
 from user.models import User
 
 
-class AuthenticationTestCase(CustomIntegrationTestCase):
+class AuthenticationTestCase(CustomAPITestCase):
     def setUp(self):
         super().setUp()
-        self.create_common_models()
+        self.create_standard_users()
         self.email_password = "123"
         self.email_user = baker.make(
             User,
@@ -25,9 +25,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.email_user.save()
 
     def test_admin_group_exists(self):
-        """
-        This test checks if the admin group exists and has all permissions
-        """
+        """This test checks if the admin group exists and has all permissions."""
 
         admin_group_query = Group.objects.filter(name="Admin")
         self.assertTrue(admin_group_query.exists())
@@ -113,7 +111,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertTrue(user.email_verified)
 
     def test_login_with_phone(self):
-        data = {"phone": self.user.phone, "password": "123"}
+        data = {"phone": str(self.user.phone), "password": "123"}
 
         url = reverse("login")
 
@@ -140,7 +138,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertEqual(response.data.get("response_body"), None)
 
     def test_login_structured_error_missing_credentials(self):
-        """Test structured error response when both email and phone are missing"""
+        """Test structured error response when both email and phone are missing."""
         data = {"password": "password"}  # Missing email/phone
 
         url = reverse("login")
@@ -163,7 +161,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         )
 
     def test_login_structured_error_both_credentials(self):
-        """Test structured error response when both email and phone are provided"""
+        """Test structured error response when both email and phone are provided."""
         data = {
             "email": "test@example.com",
             "phone": "+905555555555",
@@ -182,7 +180,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertIn("phone", response.data["errors"])
 
     def test_login_structured_error_user_not_found(self):
-        """Test structured error response when user is not found"""
+        """Test structured error response when user is not found."""
         data = {"email": "nonexistent@example.com", "password": "password"}
 
         url = reverse("login")
@@ -196,7 +194,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertIn("email", response.data["errors"])
 
     def test_login_structured_error_invalid_password(self):
-        """Test structured error response for invalid password"""
+        """Test structured error response for invalid password."""
         data = {"email": self.email_user.email, "password": "wrong_password"}
 
         url = reverse("login")
@@ -209,7 +207,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertEqual(response.data.get("detail"), "Invalid login credentials")
 
     def test_password_reset_structured_error_missing_credentials(self):
-        """Test structured error response for password reset when credentials are missing"""
+        """Test structured error response for password reset when credentials are missing."""
         data = {}  # No email or phone provided
 
         url = reverse("reset_password")
@@ -221,7 +219,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertIn("title", response.data)
 
     def test_password_reset_structured_error_both_credentials(self):
-        """Test structured error response for password reset when both email and phone are provided"""
+        """Test structured error response for password reset when both email and phone are provided."""
         data = {"email": "test@example.com", "phone": "+905555555555"}
 
         url = reverse("reset_password")
@@ -233,7 +231,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertIn("title", response.data)
 
     def test_password_reset_structured_error_user_not_found(self):
-        """Test structured error response for password reset when user is not found"""
+        """Test structured error response for password reset when user is not found."""
         data = {"email": "nonexistent@example.com"}
 
         url = reverse("reset_password")
@@ -249,7 +247,7 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
     def test_send_verification_code_error_handling(
         self, mock_send_email, mock_send_sms
     ):
-        """Test structured error response when sending verification code fails"""
+        """Test structured error response when sending verification code fails."""
         # Mock the communication services to raise an exception
         mock_send_email.side_effect = Exception("Email service unavailable")
         mock_send_sms.side_effect = Exception("SMS service unavailable")
@@ -349,10 +347,10 @@ class AuthenticationTestCase(CustomIntegrationTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class SocialAuthenticationTestCase(CustomIntegrationTestCase):
+class SocialAuthenticationTestCase(CustomAPITestCase):
     def setUp(self):
         super().setUp()
-        self.create_common_models()
+        self.create_standard_users()
         self.email_password = "123"
         self.email_user = baker.make(
             User,

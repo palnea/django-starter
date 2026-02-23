@@ -5,13 +5,13 @@ from mock.mock import Mock
 
 from communications.services import CommunicationMedium
 from contact_verification.models import ContactVerification
-from custom_test.base_test import CustomIntegrationTestCase
+from custom_test.base_test import CustomAPITestCase
 
 
-class ContactVerificationTestCase(CustomIntegrationTestCase):
+class ContactVerificationTestCase(CustomAPITestCase):
     def setUp(self):
         super().setUp()
-        self.create_common_models()
+        self.create_standard_users()
 
     @override_settings(SMS_HEADER="MyApp")
     @patch("communications.clients.sms.NetgsmSMSClient.send_sms")

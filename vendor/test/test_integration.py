@@ -8,9 +8,13 @@ from dateutil.relativedelta import relativedelta
 from mock.mock import patch, call, MagicMock
 from model_bakery import baker
 
+from custom_test.baker_recipes import (
+    apple_payment_transaction,
+    google_payment_transaction,
+)
+from custom_test.base_test import CustomAPITestCase
 from payment.models import Purchase, PaymentTransaction, Buyable
 from payment.types import PaymentStatus, PaymentVendor
-from custom_test.base_test import CustomIntegrationTestCase
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
 from user.models import User
@@ -30,32 +34,22 @@ from vendor.verifiers.app_store_notification_verifier import (
 )
 
 
-class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
+class GoogleNotificationHandlerTestCase(CustomAPITestCase):
     def setUp(self):
         super().setUp()
-        self.create_common_models()
+        self.create_standard_users()
+        self.product = baker.make(
+            Buyable, name="product", title=baker.make("common.Translation")
+        )
         self.purchase = baker.make(
             Purchase,
             user_id=self.user.id,
             stored_payment_method_id="stored_payment_method_id",
         )
         self.purchase.buyables.add(self.product)
-        self.payment_transaction = baker.make(
-            PaymentTransaction,
-            purchase_id=self.purchase.id,
-            list_amount=Decimal("10.0"),
-            charge_amount=Decimal("10.0"),
-            credit_amount=Decimal("0.0"),
-            payment_vendor=PaymentVendor.GOOGLE.value,
-            payment_method="credit_card",
-            currency="TRY",
-            tax_rate=0,
-            payer_id=None,
-            ip_address="",
-            status=PaymentStatus.SUCCEEDED,
+        self.payment_transaction = google_payment_transaction.make(
+            purchase=self.purchase,
             transaction_id="eepidalpoicklfckkpfjneki.AO-J1OyjGN_Vps_gJ7oSfJtwfYRZTW_SZGbCm1_JnSwI0Gt4ByCnMhWOi31AWRMCD1aOY34pFO7Ifm5TDdVMPZL62_FJuYurNA",
-            receipt=None,
-            raw_product_data="raw_product_data",
         )
 
     def _create_subscription_notification(self, notification_type):
@@ -178,24 +172,21 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertEqual(subscription.change_history.count(), 1)
 
     def test_subscription_purchased(self):
-        try:
-            subscription = baker.make(
-                UserSubscription,
-                user_id=self.user.id,
-                buyable_id=self.product.id,
-                purchase_id=self.purchase.id,
-                expiration_date=datetime.utcnow() + relativedelta(months=1),
-                start_date=datetime.utcnow() - relativedelta(minutes=5),
-                status=SubscriptionStatus.ACTIVE.value,
-                used_trial_days=7,
-            )
-            google_message = self._create_subscription_notification(
-                GooglePlayNotificationSubtype.SUBSCRIPTION_PURCHASED.value
-            )
-            handler = GoogleNotificationHandler(google_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        baker.make(
+            UserSubscription,
+            user_id=self.user.id,
+            buyable_id=self.product.id,
+            purchase_id=self.purchase.id,
+            expiration_date=datetime.utcnow() + relativedelta(months=1),
+            start_date=datetime.utcnow() - relativedelta(minutes=5),
+            status=SubscriptionStatus.ACTIVE.value,
+            used_trial_days=7,
+        )
+        google_message = self._create_subscription_notification(
+            GooglePlayNotificationSubtype.SUBSCRIPTION_PURCHASED.value
+        )
+        handler = GoogleNotificationHandler(google_message)
+        handler.handle()
 
     @patch("vendor.notification_handlers.subscription_notification_handlers.log")
     def test_subscription_purchased_no_subscription_log(self, m_logger):
@@ -326,7 +317,7 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
             "developerPayload": "payload",
             "paymentState": 1,
         }
-        subscription = baker.make(
+        baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=self.product.id,
@@ -493,10 +484,13 @@ class GoogleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertEqual(user.has_active_subscription, False)
 
 
-class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
+class AppleNotificationHandlerTestCase(CustomAPITestCase):
     def setUp(self):
         super().setUp()
-        self.create_common_models()
+        self.create_standard_users()
+        self.product = baker.make(
+            Buyable, name="product", title=baker.make("common.Translation")
+        )
         self.purchase = baker.make(
             Purchase,
             user_id=self.user.id,
@@ -505,40 +499,19 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             original_transaction_id="12345",
         )
         self.purchase.buyables.add(self.product)
-        self.original_payment_transaction = baker.make(
-            PaymentTransaction,
-            purchase_id=self.purchase.id,
-            list_amount=Decimal("10.0"),
-            charge_amount=Decimal("10.0"),
-            credit_amount=Decimal("0.0"),
-            payment_vendor=PaymentVendor.APPLE.value,
-            payment_method="credit_card",
-            currency="TRY",
-            tax_rate=0,
-            payer_id=None,
-            ip_address="",
-            status=PaymentStatus.SUCCEEDED,
+        self.original_payment_transaction = apple_payment_transaction.make(
+            purchase=self.purchase,
             transaction_id="123",
-            receipt=None,
-            raw_product_data="raw_product_data",
         )
-        self.payment_transaction = baker.make(
-            PaymentTransaction,
-            purchase_id=self.purchase.id,
-            list_amount=Decimal("10.0"),
-            charge_amount=Decimal("10.0"),
-            credit_amount=Decimal("0.0"),
-            payment_vendor=PaymentVendor.APPLE.value,
-            payment_method="credit_card",
-            currency="TRY",
-            tax_rate=0,
-            payer_id=None,
-            ip_address="",
-            status=PaymentStatus.SUCCEEDED,
+        self.payment_transaction = apple_payment_transaction.make(
+            purchase=self.purchase,
             transaction_id="1234",
-            receipt=None,
-            raw_product_data="raw_product_data",
         )
+
+    def tearDown(self):
+        super().tearDown()
+        if hasattr(self, "verification_patcher"):
+            self.verification_patcher.stop()
 
     def _set_verification_mock(self, verified_data):
         self.verification_patcher = patch.object(AppStoreNotificationVerifier, "parse")
@@ -601,26 +574,23 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         return apple_message
 
     def test_consumption_request(self):
-        try:
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.CONSUMPTION_REQUEST,
-                notification_subtype=AppStoreNotificationSubtype.NONE,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
-                product_name=self.product.name,
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.CONSUMPTION_REQUEST,
+            notification_subtype=AppStoreNotificationSubtype.NONE,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 1000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
 
     def test_did_change_renewal_preference(self):
         subscription = baker.make(
@@ -636,10 +606,9 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         downgraded_product = baker.make(
             Buyable,
             name="downgraded_product",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
+            title=baker.make("common.Translation"),
         )
-        downgrade_subscription = baker.make(
+        baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=downgraded_product.id,
@@ -654,7 +623,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=downgraded_product.name,
         )
         verification_result = (
@@ -671,7 +640,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertTrue(self.user.has_active_subscription)
 
     def test_downgrade(self):
-        subscription = baker.make(
+        baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=self.product.id,
@@ -684,15 +653,14 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         downgraded_product = baker.make(
             Buyable,
             name="downgraded_product",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
+            title=baker.make("common.Translation"),
         )
         verification_result_data = self._create_verified_data(
             notification_type=AppStoreNotificationType.DID_CHANGE_RENEWAL_PREF,
             notification_subtype=AppStoreNotificationSubtype.DOWNGRADE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=downgraded_product.name,
         )
         verification_result = (
@@ -713,7 +681,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         )
 
     def test_upgrade(self):
-        subscription = baker.make(
+        baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=self.product.id,
@@ -726,8 +694,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         upgraded_product = baker.make(
             Buyable,
             name="upgraded_product",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
+            title=baker.make("common.Translation"),
             price=Decimal("100.0"),
             currency="USD",
         )
@@ -736,7 +703,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.UPGRADE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=upgraded_product.name,
         )
         verification_result = (
@@ -754,36 +721,33 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertEqual(self.user.active_subscription.buyable, upgraded_product)
 
     def test_did_change_renewal_status(self):
-        try:
-            subscription = baker.make(
-                UserSubscription,
-                user_id=self.user.id,
-                buyable_id=self.product.id,
-                purchase_id=self.purchase.id,
-                expiration_date=datetime.utcnow() + relativedelta(days=15),
-                start_date=datetime.utcnow() - relativedelta(days=15),
-                status=SubscriptionStatus.ACTIVE.value,
-                used_trial_days=7,
+        baker.make(
+            UserSubscription,
+            user_id=self.user.id,
+            buyable_id=self.product.id,
+            purchase_id=self.purchase.id,
+            expiration_date=datetime.utcnow() + relativedelta(days=15),
+            start_date=datetime.utcnow() - relativedelta(days=15),
+            status=SubscriptionStatus.ACTIVE.value,
+            used_trial_days=7,
+        )
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.DID_CHANGE_RENEWAL_STATUS,
+            notification_subtype=AppStoreNotificationSubtype.NONE,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 1000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.DID_CHANGE_RENEWAL_STATUS,
-                notification_subtype=AppStoreNotificationSubtype.NONE,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
-                product_name=self.product.name,
-            )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
 
     def test_did_fail_to_renew(self):
         subscription = baker.make(
@@ -801,7 +765,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -833,7 +797,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -867,7 +831,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -902,7 +866,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -922,40 +886,37 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertLess(subscription.expiration_date, datetime.utcnow())
 
     def test_price_increase_pending(self):
-        try:
-            subscription = baker.make(
-                UserSubscription,
-                user_id=self.user.id,
-                buyable_id=self.product.id,
-                purchase_id=self.purchase.id,
-                expiration_date=datetime.utcnow() - relativedelta(minutes=30),
-                start_date=datetime.utcnow() - relativedelta(days=30),
-                status=SubscriptionStatus.ACTIVE.value,
-                used_trial_days=7,
+        baker.make(
+            UserSubscription,
+            user_id=self.user.id,
+            buyable_id=self.product.id,
+            purchase_id=self.purchase.id,
+            expiration_date=datetime.utcnow() - relativedelta(minutes=30),
+            start_date=datetime.utcnow() - relativedelta(days=30),
+            status=SubscriptionStatus.ACTIVE.value,
+            used_trial_days=7,
+        )
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.PRICE_INCREASE,
+            notification_subtype=AppStoreNotificationSubtype.PENDING,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 1000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.PRICE_INCREASE,
-                notification_subtype=AppStoreNotificationSubtype.PENDING,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
-                product_name=self.product.name,
-            )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
 
     @patch("vendor.notification_handlers.subscription_notification_handlers.log")
     def test_price_increase_accepted(self, m_logger):
-        subscription = baker.make(
+        baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=self.product.id,
@@ -970,7 +931,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.ACCEPTED,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1012,7 +973,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1047,7 +1008,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1079,7 +1040,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 - 100000000,  # ~1 day
+            expiration_millis=time.time() * 1000 - 100000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1111,7 +1072,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 1000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1143,7 +1104,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 - 1000000000,  # ~1 day
+            expiration_millis=time.time() * 1000 - 1000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1175,7 +1136,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 10000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1198,48 +1159,42 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         self.assertTrue(self.user.has_active_subscription)
 
     def test_renewal_extension_summary(self):
-        try:
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.RENEWAL_EXTENSION,
-                notification_subtype=AppStoreNotificationSubtype.SUMMARY,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
-                product_name=self.product.name,
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.RENEWAL_EXTENSION,
+            notification_subtype=AppStoreNotificationSubtype.SUMMARY,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 10000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
 
     def test_renewal_extension_failure(self):
-        try:
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.RENEWAL_EXTENSION,
-                notification_subtype=AppStoreNotificationSubtype.FAILURE,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
-                product_name=self.product.name,
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.RENEWAL_EXTENSION,
+            notification_subtype=AppStoreNotificationSubtype.FAILURE,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 10000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
 
     @patch("vendor.notification_handlers.subscription_notification_handlers.log")
     def test_revoke(self, m_logger):
@@ -1248,7 +1203,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.NONE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 10000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1281,7 +1236,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.INITIAL_BUY,
             transaction_id=None,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 10000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1310,7 +1265,7 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
             notification_subtype=AppStoreNotificationSubtype.RESUBSCRIBE,
             transaction_id=self.payment_transaction.transaction_id,
             original_transaction_id=self.purchase.original_transaction_id,
-            expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
+            expiration_millis=time.time() * 1000 + 10000000000,
             product_name=self.product.name,
         )
         verification_result = (
@@ -1333,23 +1288,20 @@ class AppleNotificationHandlerTestCase(CustomIntegrationTestCase):
         )
 
     def test_notification_test(self):
-        try:
-            verification_result_data = self._create_verified_data(
-                notification_type=AppStoreNotificationType.REVOKE,
-                notification_subtype=AppStoreNotificationSubtype.NONE,
-                transaction_id=self.payment_transaction.transaction_id,
-                original_transaction_id=self.purchase.original_transaction_id,
-                expiration_millis=time.time() * 1000 + 10000000000,  # ~11 days
-                product_name=self.product.name,
+        verification_result_data = self._create_verified_data(
+            notification_type=AppStoreNotificationType.REVOKE,
+            notification_subtype=AppStoreNotificationSubtype.NONE,
+            transaction_id=self.payment_transaction.transaction_id,
+            original_transaction_id=self.purchase.original_transaction_id,
+            expiration_millis=time.time() * 1000 + 10000000000,
+            product_name=self.product.name,
+        )
+        verification_result = (
+            StoreNotificationVerificationResult.from_verification_result(
+                **verification_result_data
             )
-            verification_result = (
-                StoreNotificationVerificationResult.from_verification_result(
-                    **verification_result_data
-                )
-            )
-            self._set_verification_mock(verification_result)
-            apple_message = {}
-            handler = AppleNotificationHandler(apple_message)
-            handler.handle()
-        except:
-            self.fail("handler.handle() raised ExceptionType unexpectedly!")
+        )
+        self._set_verification_mock(verification_result)
+        apple_message = {}
+        handler = AppleNotificationHandler(apple_message)
+        handler.handle()
