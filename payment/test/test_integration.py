@@ -6,6 +6,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from common.custom_exceptions.custom_exception import CustomException
+from custom_test.baker_recipes import monthly_buyable, annual_buyable
 from custom_test.base_test import CustomAPITestCase
 from custom_test.mixins import CRUDPermissionTestsMixin
 from payment.models import Buyable
@@ -13,7 +14,7 @@ from payment.subscription.strategies import (
     ApplePurchaseStrategy,
     GooglePurchaseStrategy,
 )
-from payment.types import BuyableType, SubscriptionPeriod
+from payment.types import BuyableType
 
 
 class PurchaseTestCase(CustomAPITestCase):
@@ -99,33 +100,20 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         super().setUp()
         self.create_standard_users()
         self.translation = baker.make("common.Translation")
-        self.create_data["title_id"] = self.translation.id
-        self.create_data["description_id"] = self.translation.id
-        self.monthly_buyable = baker.make(
-            Buyable,
-            name="monthly",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
-            price=Decimal("110.0"),
-            currency="TRY",
-            period=SubscriptionPeriod.MONTHLY.value,
-            type=BuyableType.PERSONAL_SUBSCRIPTION.value,
-            trial_days=7,
-            is_active=True,
+        self.create_data = {
+            **self.create_data,
+            "title_id": self.translation.id,
+            "description_id": self.translation.id,
+        }
+        self.monthly_buyable = monthly_buyable.make(
+            title=self.translation,
+            description=self.translation,
         )
-        baker.make(
-            Buyable,
-            name="annual",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
-            price=Decimal("650.0"),
-            currency="TRY",
-            period=SubscriptionPeriod.ANNUAL.value,
-            type=BuyableType.PERSONAL_SUBSCRIPTION.value,
-            trial_days=30,
-            is_active=True,
+        annual_buyable.make(
+            title=self.translation,
+            description=self.translation,
         )
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     def resource_factory(self):
         return self.monthly_buyable
@@ -145,7 +133,7 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
     def test_list_buyables(self):
         url = reverse("buyable-viewset")
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 2)

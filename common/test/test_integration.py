@@ -19,7 +19,7 @@ class LocaleViewTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         super().setUp()
         self.create_standard_users()
         self.locale = Locale.get_default()
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     def resource_factory(self):
         return self.locale
@@ -87,7 +87,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
             "locale": self.eng_locale.id,
             "root_id": self.root_translation.id,
         }
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     def resource_factory(self):
         return self.root_translation
@@ -168,7 +168,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
             root=None,
             locale=self.eng_locale,
         )
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     @patch("cloud_storage.idrive_client.IDriveClient.create_presigned_url")
     def test_list_translated_files(self, mock_create_presigned_url):

@@ -31,7 +31,7 @@ class CRUDPermissionTestsMixin:
     # --- Regular user ---
 
     def test_regular_user_can_list(self):
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         response = self.client.get(self.get_list_url())
         expected = (
             status.HTTP_200_OK
@@ -42,7 +42,7 @@ class CRUDPermissionTestsMixin:
 
     def test_regular_user_can_retrieve(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         response = self.client.get(self.get_detail_url(obj))
         expected = (
             status.HTTP_200_OK
@@ -52,7 +52,7 @@ class CRUDPermissionTestsMixin:
         self.assertEqual(response.status_code, expected)
 
     def test_regular_user_cannot_create(self):
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         response = self.client.post(
             self.get_list_url(), self.create_data, format="json"
         )
@@ -60,7 +60,7 @@ class CRUDPermissionTestsMixin:
 
     def test_regular_user_cannot_update(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         response = self.client.patch(
             self.get_detail_url(obj), self.update_data, format="json"
         )
@@ -68,7 +68,7 @@ class CRUDPermissionTestsMixin:
 
     def test_regular_user_cannot_delete(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         response = self.client.delete(self.get_detail_url(obj), format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(obj.__class__.objects.filter(id=obj.id).exists())
@@ -76,7 +76,7 @@ class CRUDPermissionTestsMixin:
     # --- Unauthenticated user ---
 
     def test_unauthenticated_user_can_list(self):
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.get(self.get_list_url())
         expected = (
             status.HTTP_200_OK
@@ -87,7 +87,7 @@ class CRUDPermissionTestsMixin:
 
     def test_unauthenticated_user_can_retrieve(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.get(self.get_detail_url(obj))
         expected = (
             status.HTTP_200_OK
@@ -97,7 +97,7 @@ class CRUDPermissionTestsMixin:
         self.assertEqual(response.status_code, expected)
 
     def test_unauthenticated_user_cannot_create(self):
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.post(
             self.get_list_url(), self.create_data, format="json"
         )
@@ -105,7 +105,7 @@ class CRUDPermissionTestsMixin:
 
     def test_unauthenticated_user_cannot_update(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.patch(
             self.get_detail_url(obj), self.update_data, format="json"
         )
@@ -113,7 +113,7 @@ class CRUDPermissionTestsMixin:
 
     def test_unauthenticated_user_cannot_delete(self):
         obj = self.resource_factory()
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.delete(self.get_detail_url(obj), format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertTrue(obj.__class__.objects.filter(id=obj.id).exists())
