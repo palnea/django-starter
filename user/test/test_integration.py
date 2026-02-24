@@ -13,7 +13,7 @@ class UserViewSetTestCase(CustomAPITestCase):
         super().setUp()
         self.create_standard_users()
         self.other_user, _ = self.create_user()
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     def test_list_users(self):
         url = reverse("user-viewset")
@@ -48,7 +48,7 @@ class UserViewSetTestCase(CustomAPITestCase):
         user2, _ = self.create_user()
         user3, _ = self.create_user()
 
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-viewset")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -60,7 +60,7 @@ class UserViewSetTestCase(CustomAPITestCase):
 
     def test_regular_user_can_access_own_detail(self):
         """Test that regular users can access their own user detail."""
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-detail-viewset", kwargs={"user_id": self.user.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -74,14 +74,14 @@ class UserViewSetTestCase(CustomAPITestCase):
         Returns 403 (Forbidden) because the object exists but the user lacks permission.
         This is correct behavior for object-level permission checks.
         """
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-detail-viewset", kwargs={"user_id": self.other_user.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_regular_user_can_update_own_data(self):
         """Test that regular users can update their own data."""
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-detail-viewset", kwargs={"user_id": self.user.id})
         new_fullname = "Updated Name"
         response = self.client.patch(url, {"fullname": new_fullname}, format="json")
@@ -95,7 +95,7 @@ class UserViewSetTestCase(CustomAPITestCase):
         Note: This returns 404 instead of 403 because the ownership filtering
         makes the object invisible to the user, which is better for security.
         """
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-detail-viewset", kwargs={"user_id": self.other_user.id})
         response = self.client.patch(
             url, {"fullname": "Should Not Work"}, format="json"
@@ -105,7 +105,7 @@ class UserViewSetTestCase(CustomAPITestCase):
     def test_regular_user_can_delete_own_data(self):
         """Test that regular users can delete their own data."""
         user_to_delete, password = self.create_user()
-        self.client.force_authenticate(user=user_to_delete)
+        self.authenticate_as(user_to_delete)
         url = reverse("user-detail-viewset", kwargs={"user_id": user_to_delete.id})
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -113,7 +113,7 @@ class UserViewSetTestCase(CustomAPITestCase):
 
     def test_regular_user_cannot_delete_other_user_data(self):
         """Test that regular users cannot delete other users' data."""
-        self.client.force_authenticate(user=self.user)
+        self.authenticate_as(self.user)
         url = reverse("user-detail-viewset", kwargs={"user_id": self.other_user.id})
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -138,7 +138,7 @@ class UserViewSetTestCase(CustomAPITestCase):
 
     def test_unauthenticated_user_cannot_access_users(self):
         """Test that unauthenticated users cannot access user data."""
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         url = reverse("user-viewset")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

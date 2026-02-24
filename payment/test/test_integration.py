@@ -110,7 +110,7 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
             title=self.translation,
             description=self.translation,
         )
-        self.client.force_authenticate(user=self.admin)
+        self.authenticate_as(self.admin)
 
     def resource_factory(self):
         return self.monthly_buyable
@@ -130,7 +130,7 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
     def test_list_buyables(self):
         url = reverse("buyable-viewset")
-        self.client.force_authenticate(user=None)
+        self.authenticate_as(None)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 2)
