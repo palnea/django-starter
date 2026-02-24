@@ -6,6 +6,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from common.custom_exceptions.custom_exception import CustomException
+from custom_test.baker_recipes import monthly_buyable, annual_buyable
 from custom_test.base_test import CustomAPITestCase
 from custom_test.mixins import CRUDPermissionTestsMixin
 from payment.models import Buyable
@@ -13,7 +14,7 @@ from payment.subscription.strategies import (
     ApplePurchaseStrategy,
     GooglePurchaseStrategy,
 )
-from payment.types import BuyableType, SubscriptionPeriod
+from payment.types import BuyableType
 
 
 class PurchaseTestCase(CustomAPITestCase):
@@ -101,29 +102,13 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         self.translation = baker.make("common.Translation")
         self.create_data["title_id"] = self.translation.id
         self.create_data["description_id"] = self.translation.id
-        self.monthly_buyable = baker.make(
-            Buyable,
-            name="monthly",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
-            price=Decimal("110.0"),
-            currency="TRY",
-            period=SubscriptionPeriod.MONTHLY.value,
-            type=BuyableType.PERSONAL_SUBSCRIPTION.value,
-            trial_days=7,
-            is_active=True,
+        self.monthly_buyable = monthly_buyable.make(
+            title=self.translation,
+            description=self.translation,
         )
-        baker.make(
-            Buyable,
-            name="annual",
-            title_id=self.translation.id,
-            description_id=self.translation.id,
-            price=Decimal("650.0"),
-            currency="TRY",
-            period=SubscriptionPeriod.ANNUAL.value,
-            type=BuyableType.PERSONAL_SUBSCRIPTION.value,
-            trial_days=30,
-            is_active=True,
+        annual_buyable.make(
+            title=self.translation,
+            description=self.translation,
         )
         self.client.force_authenticate(user=self.admin)
 
