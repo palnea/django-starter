@@ -1,7 +1,6 @@
+from django.conf import settings
 from django.db import models
 
-import settings
-from communications.clients.email import DjangoEmailClient
 from communications.clients.sms import get_sms_client
 from communications.services.communication_services import EmailService, SMSService
 
@@ -13,7 +12,7 @@ class CommunicationMedium(models.TextChoices):
 
 def get_communication_service(type: CommunicationMedium):
     COMMUNICATION_SERVICE_MAPPER = {
-        CommunicationMedium.EMAIL: EmailService(DjangoEmailClient()),
+        CommunicationMedium.EMAIL: EmailService(),
         CommunicationMedium.PHONE: SMSService(get_sms_client()),
     }
 

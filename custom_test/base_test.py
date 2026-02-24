@@ -63,6 +63,17 @@ class CustomIntegrationTestCase(TestCase):
     def login_admin_user(self):
         return self.login_user(self.admin, self.admin_password)
 
+    def create_standard_users(self):
+        """Creates self.user/self.user_password and self.admin/self.admin_password only. Does NOT create locale,
+        product, or translation — do that inline in setUp.
+        """
+        self.user, self.user_password = self.create_user()
+        self.admin, self.admin_password = self.create_admin_user()
+
+    def authenticate_as(self, user):
+        """Force-authenticate without HTTP. Use for all non-auth tests."""
+        self.client.force_authenticate(user=user)
+
     def get_locale(self):
         self.locale = Locale.objects.filter().first()
 
@@ -92,7 +103,7 @@ class CustomIntegrationTestCase(TestCase):
         product_query = Buyable.objects.filter(id=id)
         if product_query.count() > 0:
             if not hasattr(self, "product"):
-                self.translation = product_query.first()
+                self.product = product_query.first()
             product_query.update(
                 name=name, title_id=title_id, description_id=description_id, **kwargs
             )
@@ -116,11 +127,16 @@ class CustomIntegrationTestCase(TestCase):
         )
 
     def create_common_models(self):
-        self.user, self.user_password = self.create_user()
-        self.admin, self.admin_password = self.create_admin_user()
-        self.get_locale()
-        self.create_product()
-        self.translation = self.create_translation()
+        """Deprecated. Use create_standard_users() + explicit baker.make() calls instead."""
+        self.create_standard_users()
+        self.locale = Locale.get_default()
+        self.translation = baker.make(Translation, locale=self.locale)
+        self.product = baker.make(
+            Buyable,
+            name="product",
+            title=self.translation,
+            description=self.translation,
+        )
 
 
 class CustomAPITestCase(CustomIntegrationTestCase, APITestCase):

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Run the Django development server.
+# Mirrors the PyCharm run configuration:
+#   PYTHONUNBUFFERED=1;DJANGO_SETTINGS_MODULE=manage.settings
+#   Host: localhost  Port: 8000
+#
+# The virtualenv is the one created by bin/setup (~/.virtualenvs/myapp).
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+PROJECT_NAME="myapp"
+VENV_PATH="$HOME/.virtualenvs/$PROJECT_NAME"
+
+# Activate virtualenv
+if [ ! -f "$VENV_PATH/bin/activate" ]; then
+    echo -e "${RED}[ERROR]${NC} Virtualenv not found at $VENV_PATH"
+    echo -e "        Run ${BLUE}bin/setup${NC} first to create it."
+    exit 1
+fi
+
+source "$VENV_PATH/bin/activate"
+
+# Environment variables matching the PyCharm configuration
+export PYTHONUNBUFFERED=1
+export DJANGO_SETTINGS_MODULE=manage.settings
+
+echo -e "${BLUE}[INFO]${NC}  Virtualenv : $VENV_PATH"
+echo -e "${BLUE}[INFO]${NC}  Settings   : $DJANGO_SETTINGS_MODULE"
+echo -e "${BLUE}[INFO]${NC}  Starting Django server at http://localhost:8000 ..."
+echo ""
+
+exec python manage.py runserver localhost:8000

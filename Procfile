@@ -7,4 +7,6 @@
 # We suggest to use celery for scheduled jobs at that moment
 
 web: gunicorn -c gunicorn.conf.py -w 3 manage.wsgi:application --timeout 15 --preload
+worker: celery -A manage worker -l INFO
+beat: celery -A manage beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
 release: ./bin/release

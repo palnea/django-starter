@@ -9,7 +9,7 @@ activate_venv() {
     local venv_paths=(
         "venv/bin/activate"
         ".venv/bin/activate"
-        "~/.virtualenvs/django-starter/bin/activate"
+        "$HOME/.virtualenvs/django-starter/bin/activate"
         "env/bin/activate"
     )
     
