@@ -3,14 +3,14 @@ import random
 import string
 import uuid
 
-from django.conf import settings
-from django.db import models, transaction
-from django.db.models import UniqueConstraint, Q
-from django.template.loader import render_to_string
-from django.utils.translation import gettext_lazy as _, activate
-
 from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from communications.services import CommunicationMedium, get_communication_service
+from django.conf import settings
+from django.db import models, transaction
+from django.db.models import Q, UniqueConstraint
+from django.template.loader import render_to_string
+from django.utils.translation import activate
+from django.utils.translation import gettext_lazy as _
 from utils.fields import DateTimeWithoutTZField
 
 
@@ -91,35 +91,35 @@ class ContactVerification(models.Model):
         return render_to_string("emails/verification_email.html", context)
 
     def send_code(self):
-        # Send the code to user over given medium
         if self.code:
             context = GlobalContextMiddleware.get_global_context()
             sender = self.get_sender()
 
             message = _("Verification code message").format(code=self.code)
-            email_html_message = self.get_email_html_message(
-                self.code, getattr(context.user, "fullname", "") or ""
-            )
-            header = (
-                _("Verify Your Email")
-                if self.medium == CommunicationMedium.EMAIL
-                else settings.SMS_HEADER
-            )
-            sender.send_async(
-                [self.receiver_address],
-                message,
-                header,
-                html_message=email_html_message,
-            )
+
+            if self.medium == CommunicationMedium.EMAIL:
+                email_html_message = self.get_email_html_message(
+                    self.code, getattr(context.user, "fullname", "") or ""
+                )
+                sender.send_async(
+                    receivers=[self.receiver_address],
+                    subject=_("Verify Your Email"),
+                    message=message,
+                    html_message=email_html_message,
+                )
+            else:
+                sender.send_async(
+                    [self.receiver_address],
+                    message,
+                    settings.SMS_HEADER,
+                )
             self.status = ContactVerification.Status.SENT
             self.save()
 
     @property
     def is_valid(self):
-        """
-        Returns if the code is valid
-        Not valid if the code is already verified before
-        Not valid if the limited time is passed
+        """Returns if the code is valid Not valid if the code is already verified before Not valid if the limited time
+        is passed.
         """
         if self.status == ContactVerification.Status.VERIFIED:
             return False
