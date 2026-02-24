@@ -100,8 +100,11 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         super().setUp()
         self.create_standard_users()
         self.translation = baker.make("common.Translation")
-        self.create_data["title_id"] = self.translation.id
-        self.create_data["description_id"] = self.translation.id
+        self.create_data = {
+            **self.create_data,
+            "title_id": self.translation.id,
+            "description_id": self.translation.id,
+        }
         self.monthly_buyable = monthly_buyable.make(
             title=self.translation,
             description=self.translation,
