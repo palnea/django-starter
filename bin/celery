@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Start local Celery development stack: Redis, Celery worker, and Celery beat.
+# All processes run in the foreground; Ctrl-C shuts everything down.
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+PROJECT_NAME="myapp"
+VENV_PATH="$HOME/.virtualenvs/$PROJECT_NAME"
+REDIS_PORT="${REDIS_PORT:-6379}"
+CELERY_APP="${CELERY_APP:-manage}"
+CELERY_LOG_LEVEL="${CELERY_LOG_LEVEL:-info}"
+DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-settings.development}"
+export DJANGO_SETTINGS_MODULE
+
+WORKER_PID=""
+BEAT_PID=""
+
+cleanup() {
+    echo ""
+    echo -e "${BLUE}[INFO]${NC} Shutting down..."
+    for pid in "$WORKER_PID" "$BEAT_PID"; do
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+            kill "$pid" 2>/dev/null
+        fi
+    done
+    if [ "$REDIS_STARTED_BY_US" = true ]; then
+        echo -e "${BLUE}[INFO]${NC} Stopping Redis..."
+        redis-cli -p "$REDIS_PORT" shutdown 2>/dev/null || true
+    fi
+    wait 2>/dev/null
+    echo -e "${GREEN}[SUCCESS]${NC} All services stopped."
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM EXIT
+
+check_command() {
+    command -v "$1" &>/dev/null
+}
+
+# ── 0. Activate virtualenv ────────────────────────────────────────────────────
+
+if [ ! -f "$VENV_PATH/bin/activate" ]; then
+    echo -e "${RED}[ERROR]${NC} Virtualenv not found at $VENV_PATH"
+    echo -e "        Run ${BLUE}bin/setup${NC} first to create it."
+    exit 1
+fi
+
+source "$VENV_PATH/bin/activate"
+
+# ── 1. Redis ──────────────────────────────────────────────────────────────────
+
+REDIS_STARTED_BY_US=false
+
+echo -e "${BLUE}[INFO]${NC} Checking Redis on port $REDIS_PORT..."
+
+if redis-cli -p "$REDIS_PORT" ping &>/dev/null; then
+    echo -e "${GREEN}[SUCCESS]${NC} Redis already running on port $REDIS_PORT"
+else
+    if ! check_command redis-server; then
+        echo -e "${YELLOW}[WARNING]${NC} redis-server not found. Installing via Homebrew..."
+        if check_command brew; then
+            brew install redis
+        else
+            echo -e "${RED}[ERROR]${NC} Homebrew not found. Please install Redis manually."
+            exit 1
+        fi
+    fi
+
+    echo -e "${BLUE}[INFO]${NC} Starting Redis on port $REDIS_PORT..."
+    redis-server --port "$REDIS_PORT" --daemonize yes --loglevel warning
+    REDIS_STARTED_BY_US=true
+
+    for i in $(seq 1 10); do
+        if redis-cli -p "$REDIS_PORT" ping &>/dev/null; then
+            break
+        fi
+        sleep 0.3
+    done
+
+    if ! redis-cli -p "$REDIS_PORT" ping &>/dev/null; then
+        echo -e "${RED}[ERROR]${NC} Redis failed to start."
+        exit 1
+    fi
+    echo -e "${GREEN}[SUCCESS]${NC} Redis started on port $REDIS_PORT"
+fi
+
+CELERY_BROKER_URL="redis://localhost:$REDIS_PORT/0"
+export CELERY_BROKER_URL
+
+# ── 2. Celery worker ─────────────────────────────────────────────────────────
+
+POOL_ARGS=()
+if [ "$(uname)" = "Darwin" ]; then
+    echo -e "${YELLOW}[WARNING]${NC} macOS detected — using solo pool to avoid fork-safety crashes"
+    POOL_ARGS=(--pool=solo)
+else
+    POOL_ARGS=(--concurrency=2)
+fi
+
+echo -e "${BLUE}[INFO]${NC} Starting Celery worker..."
+celery -A "$CELERY_APP" worker \
+    --loglevel="$CELERY_LOG_LEVEL" \
+    "${POOL_ARGS[@]}" &
+WORKER_PID=$!
+echo -e "${GREEN}[SUCCESS]${NC} Celery worker started (PID $WORKER_PID)"
+
+# ── 3. Celery beat ────────────────────────────────────────────────────────────
+
+echo -e "${BLUE}[INFO]${NC} Starting Celery beat..."
+celery -A "$CELERY_APP" beat \
+    --loglevel="$CELERY_LOG_LEVEL" \
+    --scheduler django_celery_beat.schedulers:DatabaseScheduler &
+BEAT_PID=$!
+echo -e "${GREEN}[SUCCESS]${NC} Celery beat started (PID $BEAT_PID)"
+
+# ── Wait ──────────────────────────────────────────────────────────────────────
+
+echo ""
+echo -e "${GREEN}[SUCCESS]${NC} Celery stack running"
+echo -e "   Broker : $CELERY_BROKER_URL"
+echo -e "   Worker : PID $WORKER_PID"
+echo -e "   Beat   : PID $BEAT_PID"
+echo -e "   Press ${YELLOW}Ctrl-C${NC} to stop all services."
+echo ""
+
+wait

@@ -1,16 +1,14 @@
 from typing import Dict
 
+from common.custom_exceptions.custom_exception import CustomException
+from common.response.response_information_codes.error_code import ErrorCode
+from communications.clients.sms import get_sms_client
+from communications.services.communication_services import EmailService, SMSService
+from contact_verification.services import ContactVerificationService
 from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-
-from common.custom_exceptions.custom_exception import CustomException
-from common.response.response_information_codes.error_code import ErrorCode
-from communications.clients.email import DjangoEmailClient
-from communications.clients.sms import get_sms_client
-from communications.services.communication_services import EmailService, SMSService
-from contact_verification.services import ContactVerificationService
 from user.models import User
 from utils.generators import random_numeric_string
 
@@ -104,10 +102,10 @@ class PasswordService:
         user.save()
 
         if data.get("email"):
-            EmailService(DjangoEmailClient()).send_async(
-                [user.email],
-                _("Reset password email message").format(password=password),
-                _("Reset password title"),
+            EmailService().send_async(
+                receivers=[user.email],
+                subject=_("Reset password title"),
+                message=_("Reset password email message").format(password=password),
                 from_email=settings.EMAIL_HOST_USER,
             )
         elif data.get("phone"):
