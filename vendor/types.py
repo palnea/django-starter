@@ -111,6 +111,46 @@ class AppStoreNotificationSubtype(Enum):
         return hash(self.value)
 
 
+class QonversionNotificationType(Enum):
+    NONE = "NONE"
+    TRIAL_CONVERTED = "trial_converted"
+    TRIAL_CANCELED = "trial_canceled"
+    TRIAL_STILL_ACTIVE = "trial_still_active"
+    TRIAL_BILLING_RETRY = "trial_billing_retry"
+    TRIAL_EXPIRED = "trial_expired"
+    SUBSCRIPTION_STARTED = "subscription_started"
+    SUBSCRIPTION_RENEWED = "subscription_renewed"
+    SUBSCRIPTION_CANCELED = "subscription_canceled"
+    SUBSCRIPTION_BILLING_RETRY = "subscription_billing_retry"
+    SUBSCRIPTION_UPGRADED = "subscription_upgraded"
+    SUBSCRIPTION_DOWNGRADED = "subscription_downgraded"
+    SUBSCRIPTION_PRODUCT_CHANGED = "subscription_product_changed"
+    SUBSCRIPTION_EXPIRED = "subscription_expired"
+    SUBSCRIPTION_REFUNDED = "subscription_refunded"
+    IN_APP_PURCHASE = "in_app_purchase"
+    IN_APP_REFUNDED = "in_app_refunded"
+    REFUND_DECLINED = "refund_declined"
+    UNKNOWN = "UNKNOWN"
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.UNKNOWN
+
+    def __hash__(self):
+        return hash(self.value)
+
+
+class QonversionNotificationSubtype(Enum):
+    NONE = "NONE"
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.NONE
+
+    def __hash__(self):
+        return hash(self.value)
+
+
 class StoreNotificationVerificationResult(BaseDictExtender):
     def __init__(
         self,

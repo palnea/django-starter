@@ -26,9 +26,15 @@ from payment.serializers import (
 )
 from payment.services import PaymentService
 from utils.built_in_overrides import flat_map
+from vendor.notification_handlers.qonversion_notification_handler import (
+    QonversionNotificationHandler,
+)
 from vendor.notification_handlers.subscription_notification_handlers import (
     GoogleNotificationHandler,
     AppleNotificationHandler,
+)
+from vendor.verifiers.qonversion_notification_verifier import (
+    QonversionNotificationVerifier,
 )
 
 log = get_logger(__name__)
@@ -252,6 +258,32 @@ class GooglePlayWebhookViewSet(GenericViewSet):
         except Exception as e:
             log.error(
                 "Unhandled Google notification",
+                request_data=request.data,
+                exception=str(e),
+            )
+        view_response = ViewSuccessResponse()
+        return view_response.rest_response
+
+
+class QonversionWebhookViewSet(GenericViewSet):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(auto_schema=None)
+    def create(self, request, *args, **kwargs):
+        log.info("Qonversion webhook is received", request=str(request.data))
+        if not QonversionNotificationVerifier.verify_authorization(request):
+            log.warning(
+                "Qonversion webhook authorization failed",
+                request_data=request.data,
+            )
+            view_response = ViewSuccessResponse()
+            return view_response.rest_response
+        try:
+            handler = QonversionNotificationHandler(request.data)
+            handler.handle()
+        except Exception as e:
+            log.error(
+                "Unhandled Qonversion notification",
                 request_data=request.data,
                 exception=str(e),
             )
