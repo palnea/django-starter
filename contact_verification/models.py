@@ -3,7 +3,6 @@ import random
 import string
 import uuid
 
-from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from communications.services import CommunicationMedium, get_communication_service
 from django.conf import settings
 from django.db import models, transaction
@@ -75,9 +74,10 @@ class ContactVerification(models.Model):
     def get_sender(self):
         return get_communication_service(CommunicationMedium(self.medium))
 
-    def get_email_html_message(self, verification_code: str, user_name: str):
-        user_language = GlobalContextMiddleware.get_global_context().language_code
-        activate(user_language)
+    def get_email_html_message(
+        self, verification_code: str, user_name: str, language_code: str = "en"
+    ):
+        activate(language_code)
 
         # Prepare context for email template
         context = {
@@ -90,16 +90,16 @@ class ContactVerification(models.Model):
         # Render email template with context
         return render_to_string("emails/verification_email.html", context)
 
-    def send_code(self):
+    def send_code(self, language_code: str = "en", user=None):
         if self.code:
-            context = GlobalContextMiddleware.get_global_context()
             sender = self.get_sender()
 
             message = _("Verification code message").format(code=self.code)
 
             if self.medium == CommunicationMedium.EMAIL:
+                fullname = getattr(user, "fullname", "") or ""
                 email_html_message = self.get_email_html_message(
-                    self.code, getattr(context.user, "fullname", "") or ""
+                    self.code, fullname, language_code=language_code
                 )
                 sender.send_async(
                     receivers=[self.receiver_address],

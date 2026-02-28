@@ -7,6 +7,7 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework.test import APITestCase
 
+from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.models import Locale
 from common.models import Translation
 from payment.models import Buyable
@@ -73,6 +74,30 @@ class CustomIntegrationTestCase(TestCase):
     def authenticate_as(self, user):
         """Force-authenticate without HTTP. Use for all non-auth tests."""
         self.client.force_authenticate(user=user)
+
+    def set_global_context(self, user):
+        """Set GlobalContext for tests that need it (e.g., permission or log output tests). Automatically cleaned up in
+        tearDown.
+        """
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.user = user
+        mock_request.auth = MagicMock()
+        mock_request.auth.payload = {
+            "user_id": str(user.id),
+            "groups": [g.name for g in user.groups.all()],
+            "permissions": list(user.get_all_permissions()),
+            "locale_code": getattr(user, "locale_code", "en"),
+        }
+        mock_request.META = {"HTTP_USER_TIMEZONE": "UTC"}
+        mock_request.GET = {}
+
+        from common.middlewares.global_context_middleware import GlobalContext
+
+        context = GlobalContext(mock_request)
+        GlobalContextMiddleware.set_global_context(context)
+        self.addCleanup(GlobalContextMiddleware.del_global_context)
 
     def get_locale(self):
         self.locale = Locale.objects.filter().first()

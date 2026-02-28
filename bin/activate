@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Activate the project virtualenv (same as used by bin/server).
+#
+# Usage:
+#   source bin/activate
+#   . bin/activate
+#
+# To deactivate:
+#   deactivate
+
+PROJECT_NAME="myapp"
+VENV_PATH="$HOME/.virtualenvs/$PROJECT_NAME"
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "This script must be sourced, not executed directly."
+    echo ""
+    echo "  source bin/activate"
+    echo ""
+    exit 1
+fi
+
+if [ ! -f "$VENV_PATH/bin/activate" ]; then
+    echo "Virtualenv not found at $VENV_PATH. Run bin/setup first to create it." >&2
+    return 1
+fi
+
+source "$VENV_PATH/bin/activate"

@@ -9,6 +9,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import TokenRefreshView
 from structlog import get_logger
 
+from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
@@ -73,7 +74,11 @@ class UserRegisterView(APIView):
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         valid = serializer.is_valid(raise_exception=True)
-        content = RegistrationService.register(serializer.validated_data)
+        context = GlobalContextMiddleware.get_global_context()
+        content = RegistrationService.register(
+            serializer.validated_data,
+            language_code=context.language_code,
+        )
 
         if valid:
             status_code = status.HTTP_200_OK
@@ -153,12 +158,9 @@ class GoogleSocialAuthView(GenericAPIView):
     serializer_class = GoogleSocialAuthSerializer
 
     def post(self, request):
-        """
-
-        POST with "auth_token"
+        """POST with "auth_token".
 
         Send an idtoken as from google to get user information
-
         """
         status_code = status.HTTP_200_OK
         serializer = self.get_serializer(data=request.data)
@@ -179,12 +181,9 @@ class FacebookSocialAuthView(GenericAPIView):
     serializer_class = FacebookSocialAuthSerializer
 
     def post(self, request):
-        """
-
-        POST with "auth_token"
+        """POST with "auth_token".
 
         Send an access token as from facebook to get user information
-
         """
 
         status_code = status.HTTP_200_OK
@@ -205,12 +204,9 @@ class AppleSocialAuthView(GenericAPIView):
     serializer_class = AppleSocialAuthSerializer
 
     def post(self, request):
-        """
-
-        POST with "auth_token"
+        """POST with "auth_token".
 
         Send an access token as from facebook to get user information
-
         """
 
         status_code = status.HTTP_200_OK
