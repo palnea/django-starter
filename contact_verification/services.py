@@ -15,7 +15,10 @@ from user.models import User
 class ContactVerificationService:
     @staticmethod
     def create_contact_verification(
-        data, send_code: bool = True
+        data,
+        send_code: bool = True,
+        language_code: str = "en",
+        user=None,
     ) -> (Dict, str, ContactVerification):
         medium = CommunicationMedium(data.get("medium", None))
         if not medium:
@@ -37,7 +40,7 @@ class ContactVerificationService:
         )
 
         if send_code:
-            contact_verification.send_code()
+            contact_verification.send_code(language_code=language_code, user=user)
         if contact_verification.status == ContactVerification.Status.FAILED:
             raise CustomException.from_exception(
                 Exception("Could not send the verification code"),
@@ -57,10 +60,7 @@ class ContactVerificationService:
 
     @staticmethod
     def verify_contact(validated_data: Dict) -> None:
-        """
-        Verifies a contact verification code.
-        Raises CustomException if verification fails.
-        """
+        """Verifies a contact verification code. Raises CustomException if verification fails."""
         code = validated_data.get("code")
         uuid = validated_data.get("uuid")
 

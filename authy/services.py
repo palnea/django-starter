@@ -16,7 +16,7 @@ from utils.generators import random_numeric_string
 class RegistrationService:
     @staticmethod
     @transaction.atomic
-    def register(data):
+    def register(data, language_code: str = "en", user=None):
         # Create user with password
         user_data = {
             x: data[x]
@@ -35,7 +35,7 @@ class RegistrationService:
                     )
                 )
                 contact_verification_id = str(code.get("id"))
-                contact_verification.send_code()
+                contact_verification.send_code(language_code=language_code, user=user)
             elif user.phone:
                 code, message, contact_verification = (
                     ContactVerificationService.create_contact_verification(
@@ -44,7 +44,7 @@ class RegistrationService:
                     )
                 )
                 contact_verification_id = str(code.get("id"))
-                contact_verification.send_code()
+                contact_verification.send_code(language_code=language_code, user=user)
         except Exception as e:
             raise CustomException.business_logic_error(
                 title=_("Could not send the verification code"),

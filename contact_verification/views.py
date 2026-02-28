@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from structlog import get_logger
 
+from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
@@ -40,8 +41,11 @@ class ContactVerificationViewSet(GenericViewSet):
         serializer.is_valid(raise_exception=True)
         validated_data = serializer.validated_data
 
+        context = GlobalContextMiddleware.get_global_context()
         content, message, _ = ContactVerificationService.create_contact_verification(
-            validated_data
+            validated_data,
+            language_code=context.language_code,
+            user=context.user,
         )
         view_response = ViewResponse(
             response_body=content,
