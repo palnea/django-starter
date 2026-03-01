@@ -13,6 +13,7 @@ from payment.types import BuyableType
 from payment.verifiers.appstore import AppStoreValidator
 from payment.verifiers.errors import InAppPyValidationError
 from user.models import User
+from vendor.clients.qonversion import QonversionClient
 from django.utils.translation import gettext_lazy as _
 
 log = get_logger(__name__)
@@ -104,3 +105,17 @@ class PaymentService:
                     ),
                 },
             )
+
+
+class QonversionService:
+    @staticmethod
+    def sync_user_identity(user: User, qonversion_user_id: str) -> User:
+        user.qonversion_user_id = qonversion_user_id
+        user.save(update_fields=["qonversion_user_id"])
+        return user
+
+    @staticmethod
+    def check_entitlements(user: User) -> dict:
+        client = QonversionClient()
+        user_id = user.qonversion_user_id or str(user.id)
+        return client.get_user_entitlements(user_id)

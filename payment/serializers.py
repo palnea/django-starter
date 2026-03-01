@@ -62,3 +62,23 @@ class BuyableSerializer(serializers.ModelSerializer):
             return BuyableSerializer(obj.special_offer_root).data
         else:
             return None
+
+
+class QonversionWebhookSerializer(serializers.Serializer):
+    event_name = serializers.CharField(required=True)
+    user_id = serializers.CharField(required=True)
+    custom_user_id = serializers.CharField(required=False, allow_blank=True)
+    product_id = serializers.CharField(required=False, allow_blank=True)
+    transaction_id = serializers.CharField(required=False, allow_blank=True)
+    original_transaction_id = serializers.CharField(required=False, allow_blank=True)
+    revenue = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
+    price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
+    expiration_timestamp = serializers.IntegerField(required=False, allow_null=True)
+
+
+class QonversionIdentifySerializer(serializers.Serializer):
+    qonversion_user_id = serializers.CharField(required=True)

@@ -47,6 +47,9 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
     creation_type = models.CharField(
         max_length=16, choices=UserCreationType.choices, null=False, blank=False
     )
+    qonversion_user_id = models.CharField(
+        max_length=255, blank=True, null=True, unique=True
+    )
 
     # Permission fields
     is_active = models.BooleanField(
@@ -158,9 +161,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
 
     @staticmethod
     def create_with_password(data: Dict[str, any]):
-        """
-        Creates a user with password
-        """
+        """Creates a user with password."""
         errors, validated_data = UserValidator(data).validate_create()
         if errors:
             raise CustomException.business_logic_error(

@@ -67,6 +67,7 @@ class PaymentVendor(models.TextChoices):
     FREE = "Free"
     APPLE = "AppleAppStore"
     GOOGLE = "GooglePlay"
+    QONVERSION = "Qonversion"
 
     def __eq__(self, other: Union[str, "PaymentVendor"]):
         if isinstance(other, str):

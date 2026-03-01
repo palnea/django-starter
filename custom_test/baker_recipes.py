@@ -5,6 +5,22 @@ from model_bakery.recipe import Recipe
 from payment.models import PaymentTransaction, Buyable
 from payment.types import PaymentStatus, PaymentVendor, SubscriptionPeriod, BuyableType
 
+qonversion_payment_transaction = Recipe(
+    PaymentTransaction,
+    list_amount=Decimal("10.0"),
+    charge_amount=Decimal("10.0"),
+    credit_amount=Decimal("0.0"),
+    payment_vendor=PaymentVendor.QONVERSION.value,
+    payment_method="qonversion",
+    currency="TRY",
+    tax_rate=0,
+    payer_id=None,
+    ip_address="",
+    status=PaymentStatus.SUCCEEDED,
+    receipt=None,
+    raw_product_data="raw_product_data",
+)
+
 google_payment_transaction = Recipe(
     PaymentTransaction,
     list_amount=Decimal("10.0"),
