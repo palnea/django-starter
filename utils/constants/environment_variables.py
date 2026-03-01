@@ -41,5 +41,5 @@ def get_environment(env_file=None) -> str:
                 str(env.get_value("ENV", default=None)), Environment.DEVELOPMENT
             ).value
         )
-    except:
+    except Exception:
         return Environment.DEVELOPMENT.value

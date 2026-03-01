@@ -30,7 +30,7 @@ def timezone_with_fallback(
 def exception_handled_timezone(timezone_string: str) -> Union[StaticTzInfo, DstTzInfo]:
     try:
         timezone = pytz.timezone(timezone_string)
-    except:
+    except Exception:
         timezone = None
     return timezone
 
@@ -43,7 +43,7 @@ def get_timezone_from_offset(offset_str: str) -> Union[StaticTzInfo, DstTzInfo, 
             hour = hour_shift.replace("+", "").replace("-", "")
             shift = int(hour)
             timezone_filter = "GMT" + sign + str(shift)
-        except:
+        except Exception:
             timezone_filter = (
                 offset_str  # In case timezone name is given instead of offset
             )
@@ -56,7 +56,7 @@ def get_timezone_from_offset(offset_str: str) -> Union[StaticTzInfo, DstTzInfo, 
         user_timezone = user_timezones[0]
         user_tz = pytz.timezone(user_timezone)
         return user_tz
-    except:
+    except Exception:
         return None
 
 

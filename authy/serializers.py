@@ -277,7 +277,7 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
             contact_permission = request.data.get("contact_permission", False)
         try:
             user_data["sub"]
-        except:
+        except Exception:
             raise serializers.ValidationError(
                 "The token is invalid or expired. Please login again."
             )
@@ -312,7 +312,7 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
 
 
 class FacebookSocialAuthSerializer(serializers.Serializer):
-    """Handles serialization of facebook related data"""
+    """Handles serialization of facebook related data."""
 
     auth_token = serializers.CharField()
 
@@ -343,7 +343,7 @@ class FacebookSocialAuthSerializer(serializers.Serializer):
 
 
 class AppleSocialAuthSerializer(serializers.Serializer):
-    """Handles serialization of apple related data"""
+    """Handles serialization of apple related data."""
 
     auth_token = serializers.CharField()
     code = serializers.CharField()

@@ -82,7 +82,7 @@ class AppStoreInAppPurchaseAPIClient:
         )
         try:
             response_json = json.loads(response.text)
-        except:
+        except Exception:
             log.error(
                 "Cannot serialize apple response",
                 method_name="get_transaction_info",
@@ -100,7 +100,7 @@ class AppStoreInAppPurchaseAPIClient:
         )
         try:
             response_json = json.loads(response.text)
-        except:
+        except Exception:
             log.error(
                 "Cannot serialize apple response",
                 method_name="get_subscription_info",
