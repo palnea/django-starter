@@ -1,6 +1,8 @@
+from django.conf import settings
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -12,10 +14,12 @@ from common.permissions.generic_permissions import (
     IsReadonly,
     ActionAwareModelPermissions,
 )
+from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
     ViewSuccessResponse,
+    ViewFailResponse,
     ViewResponse,
     ViewResponseNoContent,
 )
@@ -23,8 +27,9 @@ from payment.models import Buyable
 from payment.serializers import (
     ReceiptVerificationSerializer,
     BuyableSerializer,
+    QonversionIdentifySerializer,
 )
-from payment.services import PaymentService
+from payment.services import PaymentService, QonversionService
 from utils.built_in_overrides import flat_map
 from vendor.notification_handlers.qonversion_notification_handler import (
     QonversionNotificationHandler,
@@ -57,6 +62,27 @@ class PaymentViewSet(GenericViewSet):
             struct_logger=log,
             view_name=self.__class__.__name__,
             method_name="create",
+            request_body=request.data,
+            request_path=request.get_full_path(),
+            request_method=request.method,
+            view_response=view_response,
+        )
+        return view_response.rest_response
+
+    @action(detail=False, methods=["post"])
+    def qonversion_identify(self, request, *args, **kwargs):
+        serializer = QonversionIdentifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        qonversion_user_id = serializer.validated_data["qonversion_user_id"]
+        QonversionService.sync_user_identity(user, qonversion_user_id)
+        view_response = ViewSuccessResponse(
+            response_information_code=MessageCode.UPDATE_CONTENT_SUCCESS,
+        )
+        log_view_response(
+            struct_logger=log,
+            view_name=self.__class__.__name__,
+            method_name="qonversion_identify",
             request_body=request.data,
             request_path=request.get_full_path(),
             request_method=request.method,
@@ -267,16 +293,26 @@ class GooglePlayWebhookViewSet(GenericViewSet):
 
 class QonversionWebhookViewSet(GenericViewSet):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     @swagger_auto_schema(auto_schema=None)
     def create(self, request, *args, **kwargs):
         log.info("Qonversion webhook is received", request=str(request.data))
         if not QonversionNotificationVerifier.verify_authorization(request):
-            log.warning(
-                "Qonversion webhook authorization failed",
-                request_data=request.data,
+            view_response = ViewFailResponse(
+                error_msg="Webhook authorization failed.",
+                response_status=status.HTTP_401_UNAUTHORIZED,
+                response_information_code=ErrorCode.AUTHENTICATION_FAILED,
             )
-            view_response = ViewSuccessResponse()
+            log_view_response(
+                struct_logger=log,
+                view_name=self.__class__.__name__,
+                method_name="create",
+                request_body=request.data,
+                request_path=request.get_full_path(),
+                request_method=request.method,
+                view_response=view_response,
+            )
             return view_response.rest_response
         try:
             handler = QonversionNotificationHandler(request.data)

@@ -141,10 +141,10 @@ class QonversionWebhookViewTestCase(CustomAPITestCase):
         return_value=False,
     )
     @patch("payment.views.QonversionNotificationHandler")
-    def test_webhook__invalid_auth_returns_200_no_processing(
+    def test_webhook__invalid_auth_returns_401_no_processing(
         self, MockHandler, mock_auth
     ):
-        """Webhook with invalid auth should return 200 but not process."""
+        """Webhook with invalid auth should return 401 and not process."""
         payload = {
             "event_name": "subscription_renewed",
             "id": "test-event-id",
@@ -154,7 +154,7 @@ class QonversionWebhookViewTestCase(CustomAPITestCase):
             payload,
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         MockHandler.assert_not_called()
 
     @patch(
@@ -178,8 +178,8 @@ class QonversionWebhookViewTestCase(CustomAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_webhook__missing_auth_header_returns_200(self):
-        """Webhook without auth header should return 200 (no processing)."""
+    def test_webhook__missing_auth_header_returns_401(self):
+        """Webhook without auth header should return 401."""
         with patch(
             "payment.views.QonversionNotificationVerifier.verify_authorization",
             return_value=False,
@@ -193,4 +193,4 @@ class QonversionWebhookViewTestCase(CustomAPITestCase):
                 payload,
                 format="json",
             )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

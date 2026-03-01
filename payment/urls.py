@@ -26,6 +26,10 @@ googleplay_webhook_viewset = GooglePlayWebhookViewSet.as_view({"post": "create"}
 
 qonversion_webhook_viewset = QonversionWebhookViewSet.as_view({"post": "create"})
 
+payment_qonversion_identify_viewset = PaymentViewSet.as_view(
+    {"post": "qonversion_identify"}
+)
+
 urlpatterns = [
     path("verify_receipt/", payment_action_view_set, name="payment_action"),
     path("buyable/", buyable_viewset, name="buyable-viewset"),
@@ -42,5 +46,10 @@ urlpatterns = [
         "qonversion/webhook/",
         qonversion_webhook_viewset,
         name="qonversion-webhook-viewset",
+    ),
+    path(
+        "qonversion/identify/",
+        payment_qonversion_identify_viewset,
+        name="qonversion-identify",
     ),
 ]
