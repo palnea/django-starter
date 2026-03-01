@@ -79,5 +79,5 @@ SOCIAL_SECRET = os.environ.get("SOCIAL_SECRET", "dev-social-secret-123")
 
 try:
     from settings.local_overrides import *
-except:
+except Exception:
     pass

@@ -159,17 +159,17 @@ class UserSubscription(SoftDeleteModel):
     def safe_json(self):
         try:
             status = self.current_status
-        except:
+        except Exception:
             status = SubscriptionStatus.ACTIVE
 
         try:
             period = self.buyable.period
-        except:
+        except Exception:
             period = SubscriptionPeriod.MONTHLY.value
 
         try:
             type = self.buyable.type
-        except:
+        except Exception:
             type = BuyableType.PERSONAL_SUBSCRIPTION.value
 
         return {

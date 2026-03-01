@@ -1,7 +1,7 @@
 def try_getattr(object, name, default=None):
     try:
         return getattr(object, name, default)
-    except:
+    except Exception:
         return None
 
 

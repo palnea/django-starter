@@ -125,7 +125,7 @@ class TranslationViewSet(ModelViewSet):
     ):
         try:
             return self.handle_duplicate_locale_text_index(request)
-        except:
+        except Exception:
             raise create_exception
 
     def create(self, request, *args, **kwargs):
