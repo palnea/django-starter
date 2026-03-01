@@ -67,6 +67,7 @@ MIDDLEWARE = [
     "common.middlewares.health_check_middleware.HealthCheckMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -76,7 +77,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "common.middlewares.swagger_middleware.SwaggerAccessMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
