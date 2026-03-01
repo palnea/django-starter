@@ -1,5 +1,9 @@
 from settings.base import *
 
+# Development only — never enable in production
+DEBUG = True
+CORS_ALLOW_ALL_ORIGINS = True
+
 INSTALLED_APPS += (
     # other apps for production site
 )
