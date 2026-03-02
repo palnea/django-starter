@@ -87,8 +87,8 @@ class ViewSuccessResponse(ViewResponse):
 class ViewResponseNoContent(ViewResponse):
     def __init__(self, response_message: str = None):
         super().__init__(
-            {},
-            status.HTTP_204_NO_CONTENT,
+            None,
+            status.HTTP_200_OK,
             True,
             exception=None,
             response_information_code=MessageCode.GENERAL_SUCCESS,
