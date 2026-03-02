@@ -1,6 +1,49 @@
 from rest_framework.viewsets import ModelViewSet
 from django.http import Http404
 from rest_framework.generics import get_object_or_404
+from structlog import get_logger
+
+from common.response.view_response import log_view_response
+
+
+class LoggingMixin:
+    """
+    Mixin that automatically calls log_view_response for any view method
+    that returns a ViewResponse-backed DRF Response.
+
+    When a view method returns view_response.rest_response, the DRF Response
+    object carries a _view_response back-reference. This mixin detects that
+    annotation in finalize_response and calls log_view_response automatically,
+    eliminating the need for manual logging in every view method.
+
+    Usage:
+        class MyViewSet(LoggingMixin, ModelViewSet):
+            ...
+    """
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+
+        view_response = getattr(response, "_view_response", None)
+        if view_response is not None:
+            # Determine the method name: use the DRF action if available,
+            # otherwise fall back to the lowercased HTTP method.
+            method_name = getattr(self, "action", None) or request.method.lower()
+
+            # Use a logger scoped to the concrete view class's module.
+            logger = get_logger(self.__class__.__module__)
+
+            log_view_response(
+                struct_logger=logger,
+                view_name=self.__class__.__name__,
+                method_name=method_name,
+                request_body=request.data,
+                request_path=request.get_full_path(),
+                request_method=request.method,
+                view_response=view_response,
+            )
+
+        return response
 
 
 class OwnershipFilterMixin:
@@ -97,13 +140,15 @@ class UserIDInjectionMixin:
                 serializer.save(**save_kwargs)
 
 
-class OwnershipMixin(OwnershipFilterMixin, UserIDInjectionMixin):
+class OwnershipMixin(LoggingMixin, OwnershipFilterMixin, UserIDInjectionMixin):
     """
-    Combined mixin that provides both ownership filtering and user_id injection.
+    Combined mixin that provides ownership filtering, user_id injection,
+    and automatic view response logging.
 
     Use this for models that need complete ownership logic:
     - Filtering querysets by ownership
     - Auto-injecting user_id on create
+    - Automatic log_view_response calls for ViewResponse-backed responses
 
     Perfect replacement for the old IsOwner permission with side effects.
     """

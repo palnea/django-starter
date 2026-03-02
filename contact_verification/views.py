@@ -9,9 +9,9 @@ from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
-    log_view_response,
     ViewSuccessResponse,
 )
+from common.view_mixins import LoggingMixin
 from contact_verification.serializers import (
     ContactVerificationSerializer,
     CodeVerificationSerializer,
@@ -26,7 +26,7 @@ log = get_logger(__name__)
 
 
 # Create your views here.
-class ContactVerificationViewSet(GenericViewSet):
+class ContactVerificationViewSet(LoggingMixin, GenericViewSet):
     serializer_class = ContactVerificationSerializer
     permission_classes = [AllowAny]
 
@@ -55,16 +55,6 @@ class ContactVerificationViewSet(GenericViewSet):
             response_message=message,
         )
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
     @action(detail=False, methods=["post"])
@@ -81,20 +71,10 @@ class ContactVerificationViewSet(GenericViewSet):
             response_information_code=MessageCode.GENERAL_SUCCESS,
         )
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="verify",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
 
-class CodeVerificationViewSet(GenericViewSet):
+class CodeVerificationViewSet(LoggingMixin, GenericViewSet):
     serializer_class = CodeVerificationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -117,16 +97,6 @@ class CodeVerificationViewSet(GenericViewSet):
             response_message=_("Success"),
         )
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
     @action(detail=False, methods=["post"])
@@ -146,16 +116,6 @@ class CodeVerificationViewSet(GenericViewSet):
             is_successful=True,
             response_information_code=MessageCode.REGISTRATION_SUCCESS,
             response_message=_("Success"),
-        )
-
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
 
         return view_response.rest_response

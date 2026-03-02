@@ -13,9 +13,9 @@ from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
-    log_view_response,
     ViewSuccessResponse,
 )
+from common.view_mixins import LoggingMixin
 from .serializers import (
     UserLoginSerializer,
     UserRegisterSerializer,
@@ -31,7 +31,7 @@ from .services import RegistrationService, PasswordService
 log = get_logger(__name__)
 
 
-class UserLoginView(APIView):
+class UserLoginView(LoggingMixin, APIView):
     serializer_class = UserLoginSerializer
     permission_classes = (AllowAny,)
 
@@ -53,20 +53,10 @@ class UserLoginView(APIView):
                 response_message=_("Logged in successfully."),
             )
 
-            log_view_response(
-                struct_logger=log,
-                view_name=self.__class__.__name__,
-                method_name="post",
-                request_body=request.data,
-                request_path=request.get_full_path(),
-                request_method=request.method,
-                view_response=view_response,
-            )
-
             return view_response.rest_response
 
 
-class UserRegisterView(APIView):
+class UserRegisterView(LoggingMixin, APIView):
     serializer_class = UserRegisterSerializer
     permission_classes = (AllowAny,)
 
@@ -91,20 +81,10 @@ class UserRegisterView(APIView):
                 response_message=_("Registered successfully."),
             )
 
-            log_view_response(
-                struct_logger=log,
-                view_name=self.__class__.__name__,
-                method_name="post",
-                request_body=request.data,
-                request_path=request.get_full_path(),
-                request_method=request.method,
-                view_response=view_response,
-            )
-
             return view_response.rest_response
 
 
-class PasswordViewSet(GenericViewSet):
+class PasswordViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [AllowAny]
     serializer_class = ResetPasswordSerializer
 
@@ -113,20 +93,10 @@ class PasswordViewSet(GenericViewSet):
         PasswordService.reset_password(request.data)
         view_response = ViewSuccessResponse()
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="reset_password",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
 
-class UpdatePasswordViewSet(GenericViewSet):
+class UpdatePasswordViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdatePasswordSerializer
 
@@ -136,16 +106,6 @@ class UpdatePasswordViewSet(GenericViewSet):
 
         view_response = ViewSuccessResponse()
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
 
@@ -153,7 +113,7 @@ class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
 
 
-class GoogleSocialAuthView(GenericAPIView):
+class GoogleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = GoogleSocialAuthSerializer
 
@@ -176,7 +136,7 @@ class GoogleSocialAuthView(GenericAPIView):
         return view_response.rest_response
 
 
-class FacebookSocialAuthView(GenericAPIView):
+class FacebookSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = FacebookSocialAuthSerializer
 
@@ -199,7 +159,7 @@ class FacebookSocialAuthView(GenericAPIView):
         return view_response.rest_response
 
 
-class AppleSocialAuthView(GenericAPIView):
+class AppleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = AppleSocialAuthSerializer
 
