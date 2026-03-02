@@ -1,6 +1,7 @@
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -16,6 +17,7 @@ from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     log_view_response,
     ViewSuccessResponse,
+    ViewFailResponse,
     ViewResponse,
     ViewResponseNoContent,
 )
@@ -29,6 +31,10 @@ from utils.built_in_overrides import flat_map
 from vendor.notification_handlers.subscription_notification_handlers import (
     GoogleNotificationHandler,
     AppleNotificationHandler,
+)
+from vendor.verifiers.app_store_notification_verifier import InvalidTokenError
+from vendor.verifiers.google_play_notification_verifier import (
+    GooglePlayNotificationVerifier,
 )
 
 log = get_logger(__name__)
@@ -242,10 +248,25 @@ class BuyableViewSet(ModelViewSet):
 
 class GooglePlayWebhookViewSet(GenericViewSet):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     @swagger_auto_schema(auto_schema=None)
     def create(self, request, *args, **kwargs):
         log.info("Google Play webhook is received", request=str(request.data))
+
+        # Verify Google Pub/Sub OIDC bearer token
+        authorization_header = request.META.get("HTTP_AUTHORIZATION", "")
+        if not GooglePlayNotificationVerifier.verify_bearer_token(authorization_header):
+            log.warning(
+                "Google Play webhook rejected: invalid bearer token",
+                request_data=request.data,
+            )
+            view_response = ViewFailResponse(
+                error_msg=_("Webhook authentication failed"),
+                response_status=status.HTTP_403_FORBIDDEN,
+            )
+            return view_response.rest_response
+
         try:
             handler = GoogleNotificationHandler(request.data)
             handler.handle()
@@ -261,13 +282,30 @@ class GooglePlayWebhookViewSet(GenericViewSet):
 
 class AppStoreWebhookViewSet(GenericViewSet):
     permission_classes = [AllowAny]
+    authentication_classes = []
 
     @swagger_auto_schema(auto_schema=None)
     def create(self, request, *args, **kwargs):
         log.info("App Store webhook is received", request=str(request.data))
+
+        # Verify Apple JWS signature via the notification handler
+        # The AppleNotificationHandler.__init__ calls AppStoreNotificationVerifier.parse()
+        # which now performs full JWS signature verification against Apple's root CA.
+        # If the signature is invalid, an InvalidTokenError will be raised.
         try:
             handler = AppleNotificationHandler(request.data)
             handler.handle()
+        except InvalidTokenError as e:
+            log.warning(
+                "App Store webhook rejected: JWS signature verification failed",
+                request_data=request.data,
+                exception=str(e),
+            )
+            view_response = ViewFailResponse(
+                error_msg=_("Webhook authentication failed"),
+                response_status=status.HTTP_403_FORBIDDEN,
+            )
+            return view_response.rest_response
         except Exception as e:
             log.error(
                 "Unhandled App Store notification",
