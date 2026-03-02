@@ -13,7 +13,7 @@ from common.custom_exceptions.custom_exception import CustomException
 from common.response.response_information_codes.error_code import ErrorCode
 from payment.types import PaymentStatus, SubscriptionPeriod, BuyableType
 from user.models import User
-from utils.fields import DateTimeWithoutTZField
+from common.fields import DateTimeWithoutTZField
 
 if TYPE_CHECKING:
     from user.models import User
