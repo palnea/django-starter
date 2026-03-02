@@ -169,9 +169,13 @@ def log_view_response(
         traceback.format_exc() if view_response.exception is not None else None
     )
     # Determine the appropriate log function based on success and status code
+    status_code = view_response.response_status_code
     if view_response.is_successful:
         log_function = struct_logger.info
-    elif 400 <= view_response.response_status_code < 500:
+    elif 300 <= status_code < 400:
+        # Log 3xx redirections as info
+        log_function = struct_logger.info
+    elif 400 <= status_code < 500:
         # Log 4xx client errors as warnings
         log_function = struct_logger.warning
     else:

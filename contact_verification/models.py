@@ -61,15 +61,20 @@ class ContactVerification(models.Model):
         return latest_active_date > datetime.datetime.utcnow()
 
     def generate_code(self):
-        key = "".join(random.choice(string.digits) for x in range(6))
+        max_attempts = 10
         earliest_active_day = datetime.datetime.utcnow() - datetime.timedelta(
             seconds=self.valid_interval_in_seconds
         )
-        if ContactVerification.objects.filter(
-            code=key, created__gt=earliest_active_day
-        ).exists():
-            key = self.generate_code()
-        return key
+        for _ in range(max_attempts):
+            key = "".join(random.choice(string.digits) for x in range(6))
+            if not ContactVerification.objects.filter(
+                code=key, created__gt=earliest_active_day
+            ).exists():
+                return key
+        raise RuntimeError(
+            "Failed to generate a unique verification code after %d attempts"
+            % max_attempts
+        )
 
     def get_sender(self):
         return get_communication_service(CommunicationMedium(self.medium))
