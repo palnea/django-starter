@@ -21,7 +21,7 @@ from subscription.types import SubscriptionStatus
 from user.types import UserCreationType
 from user.validators import UserValidator
 from utils.converters import ModelConverter
-from utils.fields import DateTimeWithoutTZField
+from common.fields import DateTimeWithoutTZField
 
 
 class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
@@ -158,9 +158,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
 
     @staticmethod
     def create_with_password(data: Dict[str, any]):
-        """
-        Creates a user with password
-        """
+        """Creates a user with password."""
         errors, validated_data = UserValidator(data).validate_create()
         if errors:
             raise CustomException.business_logic_error(

@@ -19,7 +19,7 @@ from cloud_storage.get_cloud_storage_client import (
 from cloud_storage.idrive_client import CloudRequest
 from common.types import FileType
 from utils.converters import ModelConverter
-from utils.fields import DateTimeWithoutTZField
+from common.fields import DateTimeWithoutTZField
 
 
 def validate_ietf_code(value):
@@ -75,16 +75,12 @@ class Locale(models.Model):
         return f"{self.code} ({self.name})"
 
     def clean_fields(self, exclude=None):
-        """
-        Custom validation to ensure IETF code before saving the model.
-        """
+        """Custom validation to ensure IETF code before saving the model."""
         super().clean_fields(exclude=exclude)
         validate_ietf_code(self.code)
 
     def save(self, *args, **kwargs):
-        """
-        Override save method to perform custom validation before saving.
-        """
+        """Override save method to perform custom validation before saving."""
         self.full_clean()  # Call clean_fields for validation
         super().save(*args, **kwargs)
 
@@ -182,9 +178,7 @@ class Translation(SoftDeleteModel):
     def get_list_of_texts_from_id_list(
         translation_ids: List, locale_code: str
     ) -> Dict[int, str]:
-        """
-        Returns translated texts of given inputs
-        """
+        """Returns translated texts of given inputs."""
         translation_text_match = {}
 
         def update_translation_match(root_id: int, id: int, text: str):
@@ -344,9 +338,7 @@ class TranslatedFile(SoftDeleteModel):
     def get_list_of_urls_from_id_list(
         translation_ids: List, locale_code: str
     ) -> Dict[int, str]:
-        """
-        Returns translated texts of given inputs
-        """
+        """Returns translated texts of given inputs."""
         translation_url_match = {}
 
         def update_translation_match(root_id: int, id: int, url: str):

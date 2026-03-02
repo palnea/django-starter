@@ -9,7 +9,7 @@ from django_softdelete.models import SoftDeleteModel
 
 from payment.types import SubscriptionPeriod, BuyableType
 from subscription.types import SubscriptionStatus
-from utils.fields import DateTimeWithoutTZField
+from common.fields import DateTimeWithoutTZField
 
 
 # Create your models here.
