@@ -19,7 +19,6 @@ from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
-    log_view_response,
     ViewResponseNoContent,
 )
 from common.serializers import (
@@ -30,12 +29,13 @@ from common.serializers import (
     LocaleSerializer,
 )
 from common.services import TranslationService, TranslatedFileService
+from common.view_mixins import LoggingMixin
 from utils.converters import ValueConverter
 
 log = get_logger(__name__)
 
 
-class TranslationViewSet(ModelViewSet):
+class TranslationViewSet(LoggingMixin, ModelViewSet):
     permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = TranslationSerializer
     lookup_field = "id"
@@ -73,15 +73,6 @@ class TranslationViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.RETRIEVE_CONTENT_SUCCESS,
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="retrieve",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def list(self, request, *args, **kwargs):
@@ -91,15 +82,6 @@ class TranslationViewSet(ModelViewSet):
             response_status=response.status_code,
             is_successful=True,
             response_information_code=MessageCode.LIST_CONTENT_SUCCESS,
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="list",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -155,15 +137,6 @@ class TranslationViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def partial_update(self, request, *args, **kwargs):
@@ -174,15 +147,6 @@ class TranslationViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.UPDATE_CONTENT_SUCCESS,
             response_message=_("Updated successfully!"),
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="partial_update",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -196,15 +160,6 @@ class TranslationViewSet(ModelViewSet):
             view_response = ViewResponseNoContent(
                 response_message=_("Deleted successfully!")
             )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="destroy",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     @action(detail=False, methods=["post"])
@@ -224,19 +179,10 @@ class TranslationViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="bulk_create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
 
-class TranslatedFileViewSet(ModelViewSet):
+class TranslatedFileViewSet(LoggingMixin, ModelViewSet):
     permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = TranslatedFileSerializer
     lookup_field = "id"
@@ -274,15 +220,6 @@ class TranslatedFileViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.RETRIEVE_CONTENT_SUCCESS,
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="retrieve",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def list(self, request, *args, **kwargs):
@@ -292,15 +229,6 @@ class TranslatedFileViewSet(ModelViewSet):
             response_status=response.status_code,
             is_successful=True,
             response_information_code=MessageCode.LIST_CONTENT_SUCCESS,
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="list",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -313,15 +241,6 @@ class TranslatedFileViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def partial_update(self, request, *args, **kwargs):
@@ -332,15 +251,6 @@ class TranslatedFileViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.UPDATE_CONTENT_SUCCESS,
             response_message=_("Updated successfully!"),
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="partial_update",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -354,15 +264,6 @@ class TranslatedFileViewSet(ModelViewSet):
             view_response = ViewResponseNoContent(
                 response_message=_("Deleted successfully!")
             )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="destroy",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     @action(detail=False, methods=["post"])
@@ -379,19 +280,10 @@ class TranslatedFileViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="bulk_create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
 
-class LocaleViewSet(ModelViewSet):
+class LocaleViewSet(LoggingMixin, ModelViewSet):
     permission_classes = [ActionAwareModelPermissions | IsReadonly]
     serializer_class = LocaleSerializer
     queryset = Locale.objects.all()
@@ -426,15 +318,6 @@ class LocaleViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def partial_update(self, request, *args, **kwargs):
@@ -446,15 +329,6 @@ class LocaleViewSet(ModelViewSet):
             response_information_code=MessageCode.LIST_CONTENT_SUCCESS,
             response_message=_("Updated successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="partial_update",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def destroy(self, request, *args, **kwargs):
@@ -463,13 +337,4 @@ class LocaleViewSet(ModelViewSet):
             view_response = ViewResponseNoContent(_("Deleted successfully!"))
         except Http404:
             view_response = ViewResponseNoContent(_("Deleted successfully!"))
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="destroy",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response

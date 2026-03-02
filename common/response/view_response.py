@@ -39,7 +39,9 @@ class ViewResponse:
             "response_body": self._response_body,
             "message": self._response_message,
         }
-        return Response(data=data_content, status=self._response_status_code)
+        response = Response(data=data_content, status=self._response_status_code)
+        response._view_response = self
+        return response
 
     @property
     def error_message(self) -> Union[None, str]:

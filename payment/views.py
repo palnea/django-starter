@@ -14,11 +14,11 @@ from common.permissions.generic_permissions import (
 )
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
-    log_view_response,
     ViewSuccessResponse,
     ViewResponse,
     ViewResponseNoContent,
 )
+from common.view_mixins import LoggingMixin
 from payment.models import Buyable
 from payment.serializers import (
     ReceiptVerificationSerializer,
@@ -35,7 +35,7 @@ log = get_logger(__name__)
 
 
 # Create your views here.
-class PaymentViewSet(GenericViewSet):
+class PaymentViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = ReceiptVerificationSerializer
 
@@ -47,19 +47,10 @@ class PaymentViewSet(GenericViewSet):
         PaymentService.make_purchase(request, serializer.validated_data)
 
         view_response = ViewSuccessResponse()
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
 
-class BuyableViewSet(ModelViewSet):
+class BuyableViewSet(LoggingMixin, ModelViewSet):
     permission_classes = [IsReadonly | ActionAwareModelPermissions]
     serializer_class = BuyableSerializer
     queryset = (
@@ -101,15 +92,6 @@ class BuyableViewSet(ModelViewSet):
             response_status=response.status_code,
             is_successful=True,
             response_information_code=MessageCode.RETRIEVE_CONTENT_SUCCESS,
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="retrieve",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -167,15 +149,6 @@ class BuyableViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.LIST_CONTENT_SUCCESS,
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="list",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def create(self, request, *args, **kwargs):
@@ -187,15 +160,6 @@ class BuyableViewSet(ModelViewSet):
             response_information_code=MessageCode.CREATE_CONTENT_SUCCESS,
             response_message=_("Created successfully!"),
         )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
     def partial_update(self, request, *args, **kwargs):
@@ -206,15 +170,6 @@ class BuyableViewSet(ModelViewSet):
             is_successful=True,
             response_information_code=MessageCode.UPDATE_CONTENT_SUCCESS,
             response_message=_("Updated successfully!"),
-        )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="partial_update",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
         )
         return view_response.rest_response
 
@@ -228,15 +183,6 @@ class BuyableViewSet(ModelViewSet):
             view_response = ViewResponseNoContent(
                 response_message=_("Deleted successfully!")
             )
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="destroy",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
         return view_response.rest_response
 
 
