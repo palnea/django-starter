@@ -357,7 +357,6 @@ class StructuredErrorIntegrationTest(APITestCase):
         self.assertIn("email", data["errors"])
         self.assertIn("password", data["errors"])
 
-
     def test_custom_exception_handled_before_api_exception(self):
         """CustomException (subclass of APIException) must be handled by the CustomException branch of
         custom_exception_handler, not the generic APIException branch. This ensures the structured error format
