@@ -268,6 +268,16 @@ class IsOwner(permissions.BasePermission):
         return True  # For other operations, rely on object-level permissions
 
     def has_object_permission(self, request, view, obj):
+        # Staff and superusers bypass ownership checks.
+        # This is important when IsOwner is composed with ShortCircuitOr:
+        # an admin may pass has_permission via ActionAwareModelPermissions,
+        # but ShortCircuitOrPermission.has_object_permission evaluates all
+        # permission classes independently. Without this bypass, an admin
+        # who lacks a specific model-level permission would be blocked here
+        # even though they passed has_permission through a different class.
+        if request.user.is_staff or request.user.is_superuser:
+            return True
+
         # Special case: For User model, check id instead of user_id
         if obj.__class__.__name__ == "User":
             return str(obj.id) == str(request.user.id)
