@@ -10,7 +10,7 @@ from django.db.models import Q, UniqueConstraint
 from django.template.loader import render_to_string
 from django.utils.translation import activate
 from django.utils.translation import gettext_lazy as _
-from utils.fields import DateTimeWithoutTZField
+from common.fields import DateTimeWithoutTZField
 
 
 # Create your models here.
