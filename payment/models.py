@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from django_softdelete.models import SoftDeleteModel
+from django_softdelete.models import SoftDeleteManager, SoftDeleteModel
 from moneyed import Money, list_all_currencies
 from rest_framework import status
 
@@ -151,7 +151,7 @@ class PaymentTransaction(SoftDeleteModel):
         return Money(self.list_amount, self.currency)
 
 
-class PurchaseManager(models.Manager):
+class PurchaseManager(SoftDeleteManager):
     def create(self, buyables: List[Buyable], **obj_data):
         # Check if subscription buyable is passed alone
         if (
