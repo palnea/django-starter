@@ -11,6 +11,8 @@ from .views import (
     AppleSocialAuthView,
 )
 
+app_name = "authy"
+
 password_view_set = PasswordViewSet.as_view({"post": "reset_password"})
 update_password_viewset = UpdatePasswordViewSet.as_view({"post": "create"})
 

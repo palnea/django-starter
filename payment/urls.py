@@ -7,6 +7,8 @@ from payment.views import (
     AppStoreWebhookViewSet,
 )
 
+app_name = "payment"
+
 payment_action_view_set = PaymentViewSet.as_view(
     {
         "post": "make_purchase",

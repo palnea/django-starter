@@ -4,6 +4,8 @@ from .views import (
     UserViewSet,
 )
 
+app_name = "user"
+
 user_detail = UserViewSet.as_view(
     {"patch": "partial_update", "delete": "destroy", "get": "retrieve"}
 )

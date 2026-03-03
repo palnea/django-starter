@@ -77,10 +77,25 @@ jobs:
       - name: Compile Django messages
         run: poetry run python manage.py compilemessages
 
-      - name: Generate migrations
-        run: poetry run python manage.py makemigrations
+      - name: Check for missing migrations
+        run: poetry run python manage.py makemigrations --check --dry-run
 
       - name: Run Django tests
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-        run: poetry run python manage.py test --settings=settings.local_test
+        run: |
+          echo "Finding and running test files..."
+          temp_file=$(mktemp)
+          trap "rm -f $temp_file" EXIT
+
+          # Find and store unique test directories
+          find . -type f -name "test_*.py" -exec dirname {} \; | sort -u > $temp_file
+
+          while IFS= read -r dir; do
+              echo "Running Django tests in $dir..."
+              poetry run python manage.py test "$dir" --settings=settings.local_test
+              if [ $? -ne 0 ]; then
+                  echo "Tests failed in $dir. Please fix the tests and try again."
+                  exit 1
+              fi
+          done < "$temp_file"
