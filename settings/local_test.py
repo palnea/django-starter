@@ -8,3 +8,6 @@ TEST_MODE = True
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Disable throttling during tests to avoid rate-limit failures
+REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []

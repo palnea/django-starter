@@ -26,6 +26,7 @@ from .serializers import (
     FacebookSocialAuthSerializer,
     AppleSocialAuthSerializer,
 )
+from common.throttles import AuthRateThrottle
 from .services import RegistrationService, PasswordService
 
 log = get_logger(__name__)
@@ -34,6 +35,7 @@ log = get_logger(__name__)
 class UserLoginView(LoggingMixin, APIView):
     serializer_class = UserLoginSerializer
     permission_classes = (AllowAny,)
+    throttle_classes = [AuthRateThrottle]
 
     @swagger_auto_schema(request_body=UserLoginSerializer)
     def post(self, request):
@@ -59,6 +61,7 @@ class UserLoginView(LoggingMixin, APIView):
 class UserRegisterView(LoggingMixin, APIView):
     serializer_class = UserRegisterSerializer
     permission_classes = (AllowAny,)
+    throttle_classes = [AuthRateThrottle]
 
     @swagger_auto_schema(request_body=UserRegisterSerializer)
     def post(self, request):
@@ -87,6 +90,7 @@ class UserRegisterView(LoggingMixin, APIView):
 class PasswordViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [AllowAny]
     serializer_class = ResetPasswordSerializer
+    throttle_classes = [AuthRateThrottle]
 
     @action(detail=False, methods=["post"])
     def reset_password(self, request, *args, **kwargs):
@@ -116,6 +120,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 class GoogleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = GoogleSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".
@@ -139,6 +144,7 @@ class GoogleSocialAuthView(LoggingMixin, GenericAPIView):
 class FacebookSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = FacebookSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".
@@ -162,6 +168,7 @@ class FacebookSocialAuthView(LoggingMixin, GenericAPIView):
 class AppleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = AppleSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".
