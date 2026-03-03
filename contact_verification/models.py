@@ -130,8 +130,6 @@ class ContactVerification(models.Model):
             return False
         now = datetime.datetime.utcnow()
         difference = now - self.created
-        self.status = ContactVerification.Status.VERIFIED
-        self.save()
         return difference < datetime.timedelta(seconds=self.valid_interval_in_seconds)
 
     @transaction.atomic

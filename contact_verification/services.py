@@ -60,7 +60,6 @@ class ContactVerificationService:
         )
 
     @staticmethod
-    @transaction.atomic
     def verify_contact(validated_data: Dict) -> None:
         """Verifies a contact verification code. Raises CustomException if verification fails."""
         code = validated_data.get("code")
@@ -100,41 +99,45 @@ class ContactVerificationService:
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        contact_verification.status = ContactVerification.Status.VERIFIED
-        contact_verification.save(update_fields=["status"])
+        with transaction.atomic():
+            contact_verification.status = ContactVerification.Status.VERIFIED
+            contact_verification.save(update_fields=["status"])
 
-        CodeVerificationService.verify_user_contact(
-            email=(
-                contact_verification.receiver_address
-                if contact_verification.medium == CommunicationMedium.EMAIL
-                else None
-            ),
-            phone=(
-                contact_verification.receiver_address
-                if contact_verification.medium == CommunicationMedium.PHONE
-                else None
-            ),
-        )
+            CodeVerificationService.verify_user_contact(
+                email=(
+                    contact_verification.receiver_address
+                    if contact_verification.medium == CommunicationMedium.EMAIL
+                    else None
+                ),
+                phone=(
+                    contact_verification.receiver_address
+                    if contact_verification.medium == CommunicationMedium.PHONE
+                    else None
+                ),
+            )
 
 
 class CodeVerificationService:
     @staticmethod
-    @transaction.atomic
     def verify_code(code: str, email: str = None, phone: str = None):
-        contact_verification = ContactVerification.objects.filter(
-            code=code, receiver_address=email or phone
-        ).order_by("-id")
-        if (
-            not contact_verification.exists()
-            or not contact_verification.first().is_valid
-        ):
+        contact_verification = (
+            ContactVerification.objects.filter(
+                code=code, receiver_address=email or phone
+            )
+            .order_by("-id")
+            .first()
+        )
+        if not contact_verification or not contact_verification.is_valid:
             raise CustomException.validation_error(
                 field_errors={"code": [_("Code is invalid or expired")]},
                 title=_("Code is invalid or expired"),
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        CodeVerificationService.verify_user_contact(email=email, phone=phone)
+        with transaction.atomic():
+            contact_verification.status = ContactVerification.Status.VERIFIED
+            contact_verification.save(update_fields=["status"])
+            CodeVerificationService.verify_user_contact(email=email, phone=phone)
 
     @staticmethod
     def verify_user_contact(email: str = None, phone: str = None):

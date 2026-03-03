@@ -11,3 +11,8 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 # Disable throttling during tests to avoid rate-limit failures
 REST_FRAMEWORK["DEFAULT_THROTTLE_CLASSES"] = []
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
+    "anon": "100000/second",
+    "user": "100000/second",
+    "auth": "100000/second",
+}
