@@ -13,7 +13,7 @@ class GlobalContextBoundaryTestCase(TestCase):
     """
 
     GLOBAL_CONTEXT_PATTERN = re.compile(
-        r"(?:GlobalContextMiddleware|get_global_context|from\s+common\.middlewares\.global_context_middleware\s+import)"
+        r"(?:GlobalContextMiddleware|get_global_context|get_request_id|from\s+common\.middlewares\.global_context_middleware\s+import)"
     )
 
     # Relative path fragments that are ALLOWED to use GlobalContext
