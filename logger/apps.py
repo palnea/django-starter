@@ -11,5 +11,9 @@ class LoggerConfig(AppConfig):
     def ready(self):
         # Configure Structlog's processor pipeline
         structlog.configure(
-            processors=[send_to_newrelic, structlog.processors.JSONRenderer()],
+            processors=[
+                structlog.contextvars.merge_contextvars,
+                send_to_newrelic,
+                structlog.processors.JSONRenderer(),
+            ],
         )

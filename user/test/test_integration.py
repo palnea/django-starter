@@ -106,7 +106,7 @@ class UserViewSetTestCase(CustomAPITestCase):
         self.authenticate_as(user_to_delete)
         url = reverse("user-detail-viewset", kwargs={"user_id": user_to_delete.id})
         response = self.client.delete(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(User.objects.filter(id=user_to_delete.id).exists())
 
     def test_regular_user_cannot_delete_other_user_data(self):

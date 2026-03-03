@@ -39,7 +39,9 @@ class ViewResponse:
             "response_body": self._response_body,
             "message": self._response_message,
         }
-        return Response(data=data_content, status=self._response_status_code)
+        response = Response(data=data_content, status=self._response_status_code)
+        response._view_response = self
+        return response
 
     @property
     def error_message(self) -> Union[None, str]:
@@ -87,8 +89,8 @@ class ViewSuccessResponse(ViewResponse):
 class ViewResponseNoContent(ViewResponse):
     def __init__(self, response_message: str = None):
         super().__init__(
-            {},
-            status.HTTP_204_NO_CONTENT,
+            None,
+            status.HTTP_200_OK,
             True,
             exception=None,
             response_information_code=MessageCode.GENERAL_SUCCESS,
@@ -169,9 +171,13 @@ def log_view_response(
         traceback.format_exc() if view_response.exception is not None else None
     )
     # Determine the appropriate log function based on success and status code
+    status_code = view_response.response_status_code
     if view_response.is_successful:
         log_function = struct_logger.info
-    elif 400 <= view_response.response_status_code < 500:
+    elif 300 <= status_code < 400:
+        # Log 3xx redirections as info
+        log_function = struct_logger.info
+    elif 400 <= status_code < 500:
         # Log 4xx client errors as warnings
         log_function = struct_logger.warning
     else:

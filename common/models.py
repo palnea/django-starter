@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, Subquery, F, Prefetch
 from django.utils.translation import gettext_lazy as _
-from django_softdelete.models import SoftDeleteModel
+from django_softdelete.models import SoftDeleteManager, SoftDeleteModel
 
 from cloud_storage.constants.file_upload_constants import (
     get_storage_bucket,
@@ -109,7 +109,7 @@ class Locale(models.Model):
         return locale
 
 
-class TranslationManager(models.Manager):
+class TranslationManager(SoftDeleteManager):
     def get_queryset(self):
         return super(TranslationManager, self).get_queryset().select_related("root")
 

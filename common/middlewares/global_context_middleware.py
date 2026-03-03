@@ -1,7 +1,9 @@
-import threading
+import contextvars
+import uuid
 from typing import TYPE_CHECKING
 from typing import Union
 
+import structlog
 from django.utils.functional import cached_property
 from pytz.tzinfo import DstTzInfo, StaticTzInfo
 from rest_framework.request import Request
@@ -13,6 +15,16 @@ from django.core.cache import cache
 
 if TYPE_CHECKING:
     from user.models import User
+
+_global_context_var: contextvars.ContextVar["GlobalContext"] = contextvars.ContextVar(
+    "global_context"
+)
+_request_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("request_id")
+
+
+def get_request_id() -> str:
+    """Return the current request's correlation ID, or empty string if not in a request."""
+    return _request_id_var.get("")
 
 
 class GlobalContext:
@@ -112,19 +124,28 @@ class NullGlobalContext:
 
 
 class GlobalContextMiddleware:
-    """Provides storage for the "current" request object, so that code anywhere in your project can access it, without
-    it having to be passed to that code from the view.
+    """Provides storage for the "current" request context using contextvars, which is safe for both WSGI (threaded)
+    and ASGI (async) servers. Also generates/propagates a correlation ID (X-Request-ID) for every request.
     """
-
-    _contexts = {}
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request: Request):
+        # Generate or propagate correlation ID
+        request_id = request.META.get("HTTP_X_REQUEST_ID") or str(uuid.uuid4())
+        _request_id_var.set(request_id)
+
+        # Bind request_id to structlog contextvars so it appears in all log entries
+        structlog.contextvars.clear_contextvars()
+        structlog.contextvars.bind_contextvars(request_id=request_id)
+
         self.process_request(request)
         response = self.get_response(request)
         self.process_response(request, response)
+
+        # Attach correlation ID to response
+        response["X-Request-ID"] = request_id
         return response
 
     def process_request(self, request: Request):
@@ -133,25 +154,22 @@ class GlobalContextMiddleware:
         self.__class__.set_global_context(global_context)
 
     def process_response(self, request: Request, response: Response):
-        """Delete the current request to avoid leaking memory."""
+        """Clean up context to avoid leaking between requests."""
         self.__class__.del_global_context()
+        structlog.contextvars.clear_contextvars()
         return response
 
     @classmethod
     def get_global_context(cls, default=None) -> "GlobalContext":
-        """Retrieve the request object for the current thread, or the optionally provided default if there is no current
-        request.
-        """
-        return cls._contexts.get(
-            threading.current_thread(), default or NullGlobalContext()
-        )
+        """Retrieve the GlobalContext for the current execution context (thread or async task)."""
+        return _global_context_var.get(default or NullGlobalContext())
 
     @classmethod
     def set_global_context(cls, context: GlobalContext) -> None:
-        """Save the given request into storage for the current thread."""
-        cls._contexts[threading.current_thread()] = context
+        """Save the given context into the current execution context."""
+        _global_context_var.set(context)
 
     @classmethod
     def del_global_context(cls) -> None:
-        """Delete the request that was stored for the current thread."""
-        cls._contexts.pop(threading.current_thread(), None)
+        """Remove the context for the current execution context."""
+        _global_context_var.set(NullGlobalContext())

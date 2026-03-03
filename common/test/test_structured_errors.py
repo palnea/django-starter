@@ -20,10 +20,10 @@ from common.response.structured_error_response import (
 
 
 class StructuredErrorResponseTest(TestCase):
-    """Test the StructuredErrorResponse class functionality"""
+    """Test the StructuredErrorResponse class functionality."""
 
     def test_field_validation_error(self):
-        """Test field-based validation errors"""
+        """Test field-based validation errors."""
         field_errors = [
             FieldError(
                 field="email", code="invalid_format", message="Email format is invalid"
@@ -58,7 +58,7 @@ class StructuredErrorResponseTest(TestCase):
         self.assertEqual(email_error["message"], "Email format is invalid")
 
     def test_general_business_logic_error(self):
-        """Test general business logic errors"""
+        """Test general business logic errors."""
         general_error = GeneralError(
             title="Insufficient Balance",
             detail="Your account balance is too low",
@@ -82,7 +82,7 @@ class StructuredErrorResponseTest(TestCase):
         self.assertEqual(data["response_code"], "BALANCE_LOW")
 
     def test_multiple_general_errors(self):
-        """Test multiple general errors"""
+        """Test multiple general errors."""
         general_errors = [
             GeneralError(title="Error 1", detail="First error", code="ERR_1"),
             GeneralError(title="Error 2", detail="Second error", code="ERR_2"),
@@ -117,7 +117,7 @@ class StructuredErrorResponseTest(TestCase):
         self.assertEqual(first_error["code"], "ERR_1")
 
     def test_mixed_field_and_general_errors(self):
-        """Test combination of field and general errors"""
+        """Test combination of field and general errors."""
         field_errors = [
             FieldError(field="email", code="invalid", message="Invalid email")
         ]
@@ -147,7 +147,7 @@ class StructuredErrorResponseTest(TestCase):
         self.assertIn("email", data["errors"])
 
     def test_authentication_error(self):
-        """Test authentication errors"""
+        """Test authentication errors."""
         general_error = GeneralError(
             title="Invalid Token",
             detail="The provided authentication token is invalid",
@@ -167,7 +167,7 @@ class StructuredErrorResponseTest(TestCase):
         self.assertEqual(data["title"], "Invalid Token")
 
     def test_authorization_error(self):
-        """Test authorization errors"""
+        """Test authorization errors."""
         general_error = GeneralError(
             title="Access Denied",
             detail="You don't have permission to access this resource",
@@ -188,10 +188,10 @@ class StructuredErrorResponseTest(TestCase):
 
 
 class CustomExceptionTest(TestCase):
-    """Test the updated CustomException class with structured error support"""
+    """Test the updated CustomException class with structured error support."""
 
     def test_validation_error_creation(self):
-        """Test creating validation errors using CustomException"""
+        """Test creating validation errors using CustomException."""
         with self.assertRaises(CustomException) as context:
             raise CustomException.validation_error(
                 field_errors={
@@ -208,7 +208,7 @@ class CustomExceptionTest(TestCase):
         self.assertEqual(exc.instance, "/api/v1/auth/login")
 
     def test_business_logic_error_creation(self):
-        """Test creating business logic errors using CustomException"""
+        """Test creating business logic errors using CustomException."""
         with self.assertRaises(CustomException) as context:
             raise CustomException.business_logic_error(
                 title="Insufficient Balance",
@@ -223,7 +223,7 @@ class CustomExceptionTest(TestCase):
         self.assertEqual(exc.extra_data["balance"], 10.50)
 
     def test_authentication_error_creation(self):
-        """Test creating authentication errors using CustomException"""
+        """Test creating authentication errors using CustomException."""
         with self.assertRaises(CustomException) as context:
             raise CustomException.authentication_error(
                 title="Authentication Failed",
@@ -236,7 +236,7 @@ class CustomExceptionTest(TestCase):
         self.assertEqual(exc.title, "Authentication Failed")
 
     def test_not_found_error_creation(self):
-        """Test creating not found errors using CustomException"""
+        """Test creating not found errors using CustomException."""
         with self.assertRaises(CustomException) as context:
             raise CustomException.not_found_error(
                 title="User Not Found",
@@ -249,7 +249,7 @@ class CustomExceptionTest(TestCase):
         self.assertEqual(exc.title, "User Not Found")
 
     def test_direct_structured_implementation(self):
-        """Test that all CustomExceptions are now structured by default"""
+        """Test that all CustomExceptions are now structured by default."""
         with self.assertRaises(CustomException) as context:
             raise CustomException(
                 detail="User not found",
@@ -264,7 +264,7 @@ class CustomExceptionTest(TestCase):
         self.assertEqual(str(exc), "User not found")
 
     def test_multiple_business_logic_errors_creation(self):
-        """Test creating multiple business logic errors using CustomException"""
+        """Test creating multiple business logic errors using CustomException."""
         try:
             raise CustomException.multiple_business_logic_errors(
                 errors=[
@@ -291,10 +291,10 @@ class CustomExceptionTest(TestCase):
 
 
 class StructuredErrorIntegrationTest(APITestCase):
-    """Integration tests for structured error responses"""
+    """Integration tests for structured error responses."""
 
     def test_drf_validation_error_structure(self):
-        """Test that DRF ValidationError gets converted to structured format"""
+        """Test that DRF ValidationError gets converted to structured format."""
         # This would require a test view that raises ValidationError
         # For demonstration purposes, we'll test the conversion logic directly
         from rest_framework.exceptions import ValidationError
@@ -328,7 +328,7 @@ class StructuredErrorIntegrationTest(APITestCase):
         self.assertIn("password", data["errors"])
 
     def test_custom_exception_structured_response(self):
-        """Test that CustomException with structured data generates proper response"""
+        """Test that CustomException with structured data generates proper response."""
         from common.exception_handling.custom_exception_handler import (
             create_structured_response_from_custom_exception,
         )
@@ -357,12 +357,50 @@ class StructuredErrorIntegrationTest(APITestCase):
         self.assertIn("email", data["errors"])
         self.assertIn("password", data["errors"])
 
+    def test_custom_exception_handled_before_api_exception(self):
+        """CustomException (subclass of APIException) must be handled by the CustomException branch of
+        custom_exception_handler, not the generic APIException branch. This ensures the structured error format
+        with response_code starting with 'ERR_' is returned.
+        """
+        from rest_framework.exceptions import APIException
+        from common.exception_handling.custom_exception_handler import (
+            custom_exception_handler,
+        )
+
+        exc = CustomException.business_logic_error(
+            title="Already Inactive",
+            detail="User is already deactivated.",
+        )
+
+        # Sanity check: CustomException IS an APIException subclass
+        self.assertIsInstance(exc, APIException)
+
+        context = {
+            "request": type(
+                "obj",
+                (object,),
+                {"get_full_path": lambda self: "/api/v1/users/1/deactivate"},
+            )()
+        }
+
+        response = custom_exception_handler(exc, context)
+        data = response.data
+
+        # Must use the structured CustomException format
+        self.assertEqual(data["type"], "business_logic_error")
+        self.assertEqual(data["title"], "Already Inactive")
+        self.assertEqual(data["detail"], "User is already deactivated.")
+        self.assertTrue(
+            data["response_code"].startswith("ERR_"),
+            f"Expected response_code starting with 'ERR_', got '{data['response_code']}'",
+        )
+
 
 class ErrorResponseFormatTest(TestCase):
-    """Test specific error response formats for client consumption"""
+    """Test specific error response formats for client consumption."""
 
     def test_login_validation_error_format(self):
-        """Test the exact format expected for login validation errors"""
+        """Test the exact format expected for login validation errors."""
         field_errors = [
             FieldError(
                 field="email",
@@ -429,7 +467,7 @@ class ErrorResponseFormatTest(TestCase):
         self.assertEqual(len(data["errors"]["password"]), 1)
 
     def test_business_logic_error_format(self):
-        """Test the exact format expected for business logic errors"""
+        """Test the exact format expected for business logic errors."""
         from common.response.response_information_codes.general_error_code import (
             GeneralErrorCode,
         )

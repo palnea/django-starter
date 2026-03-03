@@ -13,9 +13,9 @@ from common.middlewares.global_context_middleware import GlobalContextMiddleware
 from common.response.response_information_codes.message_code import MessageCode
 from common.response.view_response import (
     ViewResponse,
-    log_view_response,
     ViewSuccessResponse,
 )
+from common.view_mixins import LoggingMixin
 from .serializers import (
     UserLoginSerializer,
     UserRegisterSerializer,
@@ -26,14 +26,16 @@ from .serializers import (
     FacebookSocialAuthSerializer,
     AppleSocialAuthSerializer,
 )
+from common.throttles import AuthRateThrottle
 from .services import RegistrationService, PasswordService
 
 log = get_logger(__name__)
 
 
-class UserLoginView(APIView):
+class UserLoginView(LoggingMixin, APIView):
     serializer_class = UserLoginSerializer
     permission_classes = (AllowAny,)
+    throttle_classes = [AuthRateThrottle]
 
     @swagger_auto_schema(request_body=UserLoginSerializer)
     def post(self, request):
@@ -53,22 +55,13 @@ class UserLoginView(APIView):
                 response_message=_("Logged in successfully."),
             )
 
-            log_view_response(
-                struct_logger=log,
-                view_name=self.__class__.__name__,
-                method_name="post",
-                request_body=request.data,
-                request_path=request.get_full_path(),
-                request_method=request.method,
-                view_response=view_response,
-            )
-
             return view_response.rest_response
 
 
-class UserRegisterView(APIView):
+class UserRegisterView(LoggingMixin, APIView):
     serializer_class = UserRegisterSerializer
     permission_classes = (AllowAny,)
+    throttle_classes = [AuthRateThrottle]
 
     @swagger_auto_schema(request_body=UserRegisterSerializer)
     def post(self, request):
@@ -91,42 +84,23 @@ class UserRegisterView(APIView):
                 response_message=_("Registered successfully."),
             )
 
-            log_view_response(
-                struct_logger=log,
-                view_name=self.__class__.__name__,
-                method_name="post",
-                request_body=request.data,
-                request_path=request.get_full_path(),
-                request_method=request.method,
-                view_response=view_response,
-            )
-
             return view_response.rest_response
 
 
-class PasswordViewSet(GenericViewSet):
+class PasswordViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [AllowAny]
     serializer_class = ResetPasswordSerializer
+    throttle_classes = [AuthRateThrottle]
 
     @action(detail=False, methods=["post"])
     def reset_password(self, request, *args, **kwargs):
         PasswordService.reset_password(request.data)
         view_response = ViewSuccessResponse()
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="reset_password",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
 
-class UpdatePasswordViewSet(GenericViewSet):
+class UpdatePasswordViewSet(LoggingMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = UpdatePasswordSerializer
 
@@ -136,16 +110,6 @@ class UpdatePasswordViewSet(GenericViewSet):
 
         view_response = ViewSuccessResponse()
 
-        log_view_response(
-            struct_logger=log,
-            view_name=self.__class__.__name__,
-            method_name="create",
-            request_body=request.data,
-            request_path=request.get_full_path(),
-            request_method=request.method,
-            view_response=view_response,
-        )
-
         return view_response.rest_response
 
 
@@ -153,9 +117,10 @@ class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
 
 
-class GoogleSocialAuthView(GenericAPIView):
+class GoogleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = GoogleSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".
@@ -176,9 +141,10 @@ class GoogleSocialAuthView(GenericAPIView):
         return view_response.rest_response
 
 
-class FacebookSocialAuthView(GenericAPIView):
+class FacebookSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = FacebookSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".
@@ -199,9 +165,10 @@ class FacebookSocialAuthView(GenericAPIView):
         return view_response.rest_response
 
 
-class AppleSocialAuthView(GenericAPIView):
+class AppleSocialAuthView(LoggingMixin, GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = AppleSocialAuthSerializer
+    throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
         """POST with "auth_token".

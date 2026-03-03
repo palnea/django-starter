@@ -14,6 +14,7 @@ from user.models import User
 
 class ContactVerificationService:
     @staticmethod
+    @transaction.atomic
     def create_contact_verification(
         data,
         send_code: bool = True,
@@ -59,6 +60,7 @@ class ContactVerificationService:
         )
 
     @staticmethod
+    @transaction.atomic
     def verify_contact(validated_data: Dict) -> None:
         """Verifies a contact verification code. Raises CustomException if verification fails."""
         code = validated_data.get("code")
