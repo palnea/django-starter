@@ -119,7 +119,7 @@ class StructuredErrorResponseTestCase(TestCase):
             PasswordService.reset_password({"email": "nonexistent@example.com"})
 
         # The actual title may be different due to translation or error handling layers
-        data = self.assert_structured_error_response(cm.exception, "not_found_error")
+        self.assert_structured_error_response(cm.exception, "not_found_error")
         # Just verify it's a not_found_error type, don't assert on specific title
         # as it may vary based on error handling layers
 
@@ -483,7 +483,7 @@ class StructuredErrorIntegrationTestCase(CustomIntegrationTestCase):
                         f"Status mismatch in {url_name} response",
                     )
 
-            except Exception as e:
+            except Exception:
                 # Skip if URL doesn't exist or other setup issues
                 continue
 

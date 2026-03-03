@@ -1,6 +1,3 @@
-from rest_framework.viewsets import ModelViewSet
-from django.http import Http404
-from rest_framework.generics import get_object_or_404
 
 
 class OwnershipFilterMixin:

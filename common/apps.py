@@ -6,4 +6,4 @@ class CommonConfig(AppConfig):
     name = "common"
 
     def ready(self):
-        from common import handlers
+        from common import handlers  # noqa: F401 — registers signal handlers

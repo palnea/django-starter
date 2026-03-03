@@ -24,7 +24,7 @@ def example_field_validation_errors():
             title="Form Validation Failed",
             instance="/api/v1/users",
         )
-    except CustomException as e:
+    except CustomException:
         # Would produce:
         # {
         #   "type": "validation_error",
@@ -55,7 +55,7 @@ def example_single_general_error():
             code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
             instance="/api/v1/payments",
         )
-    except CustomException as e:
+    except CustomException:
         # Would produce:
         # {
         #   "type": "business_logic_error",
@@ -91,7 +91,7 @@ def example_multiple_general_errors():
             ],
             instance="/api/v1/payments",
         )
-    except CustomException as e:
+    except CustomException:
         # Would produce:
         # {
         #   "type": "business_logic_error",
@@ -150,7 +150,7 @@ def example_mixed_field_and_general_errors():
         ),
     ]
 
-    response = StructuredErrorResponse(
+    _response = StructuredErrorResponse(
         error_type=StructuredErrorType.VALIDATION_ERROR,
         status_code=400,
         instance="/api/v1/auth/login",
@@ -360,7 +360,7 @@ def example_structured_field_codes():
             message="Please enter a valid email address",
             value="invalid-email-format",
         )
-    except CustomException as e:
+    except CustomException:
         # Would produce:
         # {
         #   "type": "validation_error",
@@ -408,7 +408,7 @@ def example_structured_general_codes():
             ],
             instance="/api/v1/payments",
         )
-    except CustomException as e:
+    except CustomException:
         # Would produce:
         # {
         #   "type": "business_logic_error",
@@ -480,7 +480,7 @@ def example_mixed_structured_codes():
         ),
     ]
 
-    response = StructuredErrorResponse(
+    _response = StructuredErrorResponse(
         error_type=StructuredErrorType.VALIDATION_ERROR,
         status_code=400,
         instance="/api/v1/auth/login",
@@ -495,12 +495,9 @@ def example_mixed_structured_codes():
 def example_drf_auto_conversion():
     """Example: DRF ValidationError auto-conversion to structured codes"""
     from rest_framework.exceptions import ValidationError
-    from common.exception_handling.custom_exception_handler import (
-        create_structured_response_from_validation_error,
-    )
 
     # DRF raises this validation error
-    drf_error = ValidationError(
+    _drf_error = ValidationError(
         {
             "email": ["This field is required.", "Enter a valid email address."],
             "password": ["This field may not be blank."],

@@ -56,7 +56,7 @@ class IDriveClient:
     def delete_file(self, file_path: str, bucket_name: str):
         try:
             self.client.delete_object(Bucket=bucket_name, Key=file_path)
-        except ClientError as e:
+        except ClientError:
             log.warning(
                 "Deletion on s3 client failed",
                 client=self.__class__,

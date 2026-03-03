@@ -93,7 +93,7 @@ class GlobalContextBoundaryTestCase(TestCase):
         self.assertEqual(
             violations,
             [],
-            f"GlobalContext must not be used in business logic layers. "
-            f"Pass data as explicit parameters instead.\n"
-            f"Violating files:\n" + "\n".join(f"  - {v}" for v in violations),
+            "GlobalContext must not be used in business logic layers. "
+            "Pass data as explicit parameters instead.\n"
+            "Violating files:\n" + "\n".join(f"  - {v}" for v in violations),
         )

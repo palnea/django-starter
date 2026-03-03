@@ -2,7 +2,6 @@ from rest_framework import serializers, status
 from django.utils.translation import gettext_lazy as _
 
 from common.custom_exceptions.custom_exception import CustomException
-from common.response.response_information_codes.error_code import ErrorCode
 from payment.models import Buyable
 from payment.types import PaymentVendor
 from user.models import User

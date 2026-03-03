@@ -1,6 +1,4 @@
-from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
-from model_bakery import baker
 from rest_framework import status
 
 from custom_test.base_test import CustomAPITestCase

@@ -53,6 +53,6 @@ def send_request(client, payload, headers):
     if django_settings.DEBUG:
         print(payload)
     else:
-        response = client.post(
+        _response = client.post(
             "https://log-api.eu.newrelic.com/log/v1", json=payload, headers=headers
         )

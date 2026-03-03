@@ -48,6 +48,11 @@ django-celery-beat = "^2.7"
 ruff = "^0.15.4"
 
 
+[tool.ruff.lint.per-file-ignores]
+"settings/*.py" = ["F403", "F405"]
+"manage/settings.py" = ["F403", "F405"]
+"**/apps.py" = ["F401"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

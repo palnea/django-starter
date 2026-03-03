@@ -5,14 +5,12 @@ This test file verifies that all DRF serializer validation errors are properly
 converted to the structured error format, ensuring consistency across the entire API.
 """
 
-from django.test import TestCase, override_settings
-from django.contrib.auth.models import User
-from rest_framework import serializers, status
-from rest_framework.test import APITestCase, APIRequestFactory
+from django.test import TestCase
+from rest_framework import serializers
+from rest_framework.test import APIRequestFactory
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from unittest.mock import Mock
 
 from common.exception_handling.custom_exception_handler import custom_exception_handler
 
@@ -93,7 +91,6 @@ class TestLoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         email = attrs.get("email")
-        password = attrs.get("password")
 
         # Simulate authentication check
         if email == "banned@example.com":
@@ -423,7 +420,7 @@ class DRFErrorCodeConsistencyTest(TestCase):
                 if "errors" in data and field_name in data["errors"]:
                     field_errors = data["errors"][field_name]
                     # At least one error should have the expected code
-                    codes = [error.get("code") for error in field_errors]
+                    _codes = [error.get("code") for error in field_errors]
                     # Note: Some codes might be 'invalid' as fallback, which is acceptable
 
 
