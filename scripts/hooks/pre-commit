@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Pre-commit hook for Django Starter Project
-# This hook runs Black formatting check and exception translation validation
+# This hook runs Black formatting check, Ruff linting, and exception translation validation
 
 # Function to find and activate virtual environment
 activate_venv() {
@@ -40,6 +40,11 @@ if ! command -v black &> /dev/null; then
     exit 1
 fi
 
+if ! command -v ruff &> /dev/null; then
+    echo "Ruff is not installed. Please install it with: pip install ruff"
+    exit 1
+fi
+
 if ! command -v python &> /dev/null; then
     echo "Python is not available. Please check your environment setup."
     exit 1
@@ -56,6 +61,18 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ Black formatting check passed"
+
+# Run Ruff lint check
+echo "Running Ruff lint check..."
+ruff check .
+
+if [ $? -ne 0 ]; then
+    echo "❌ Ruff lint check failed. Please fix the linting issues and try again."
+    echo "   Run: ruff check . --fix"
+    exit 1
+fi
+
+echo "✅ Ruff lint check passed"
 
 # Check exception translations
 echo "Checking exception translations..."
