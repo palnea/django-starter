@@ -175,8 +175,8 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
             )
 
     def verify(self):
-        purchase_token = self.receipt.get("Payload").get("json").get("purchaseToken")
-        product_sku = self.receipt.get("Payload").get("json").get("productId")
+        _purchase_token = self.receipt.get("Payload").get("json").get("purchaseToken")
+        _product_sku = self.receipt.get("Payload").get("json").get("productId")
 
         # api_credentials = {
         #     "type": settings.GOOGLE_PLAY_TYPE,
@@ -247,7 +247,7 @@ class GooglePurchaseStrategy(MobilePurchaseStrategy):
                 self._receipt,
                 self.receipt.get("Payload", {}).get("signature"),
             )
-        except InAppPyValidationError as e:
+        except InAppPyValidationError:
             raise CustomException.business_logic_error(
                 title=_("Invalid Receipt"),
                 detail=_("Provided receipt is not valid"),

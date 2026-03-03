@@ -1,15 +1,12 @@
 from typing import Dict, TYPE_CHECKING
 
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
-from rest_framework import status
 from rest_framework_simplejwt.tokens import Token
 
 from authy.custom.token_serializer import CustomTokenObtainPairSerializer
 from common.custom_exceptions.custom_exception import CustomException
-from common.response.response_information_codes.error_code import ErrorCode
 
 if TYPE_CHECKING:
     from user.models import User

@@ -21,9 +21,6 @@ from user.serializers import (
     UserPartialUpdateSerializer,
     UserSerializer,
 )
-from user.services import (
-    UserService,
-)
 
 log = get_logger(__name__)
 

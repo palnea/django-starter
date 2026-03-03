@@ -15,7 +15,7 @@ class CustomJWTAuthentication(JWTAuthentication):
                 if auth_token and "user_id" in auth_token:
                     user_id = auth_token["user_id"]
                     newrelic.agent.set_user_id(str(user_id))
-            except Exception as e:
+            except Exception:
                 import logging
 
                 logger = logging.getLogger(__name__)

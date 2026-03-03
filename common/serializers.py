@@ -6,7 +6,6 @@ from rest_framework import serializers, status
 from common.custom_exceptions.custom_exception import CustomException
 from common.models import Locale
 from common.models import Translation, TranslatedFile
-from common.response.response_information_codes.error_code import ErrorCode
 from common.types import FileType
 
 

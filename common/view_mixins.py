@@ -1,6 +1,3 @@
-from rest_framework.viewsets import ModelViewSet
-from django.http import Http404
-from rest_framework.generics import get_object_or_404
 from structlog import get_logger
 
 from common.response.view_response import log_view_response

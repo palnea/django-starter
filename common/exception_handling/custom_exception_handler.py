@@ -1,9 +1,7 @@
-from django.conf import settings
 from rest_framework.exceptions import APIException, ValidationError
-from rest_framework.views import exception_handler as drf_exception_handler
 from structlog import get_logger
 from django.utils.translation import gettext_lazy as _
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 from common.custom_exceptions.custom_exception import CustomException
 from common.exception_handling.exception_handler_mapper import (
@@ -17,7 +15,6 @@ from common.response.structured_error_response import (
     FieldError,
     GeneralError,
     StructuredErrorType,
-    convert_drf_validation_errors_to_structured,
 )
 from common.response.response_information_codes.field_error_code import FieldErrorCode
 from common.response.response_information_codes.general_error_code import (

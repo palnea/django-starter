@@ -127,7 +127,7 @@ class ExceptionTranslationTestCase(TestCase):
             try:
                 if callable(handler):
                     # Create a dummy exception instance
-                    if exception_class == Exception:
+                    if exception_class is Exception:
                         dummy_exception = Exception("test")
                     else:
                         dummy_exception = exception_class("test")

@@ -47,7 +47,13 @@ django-celery-beat = "^2.7"
 black = "^25.1.0"
 model-bakery = "^1.20.4"
 mock = "^5.2.0"
+ruff = "^0.15.4"
 
+
+[tool.ruff.lint.per-file-ignores]
+"settings/*.py" = ["F403", "F405"]
+"manage/settings.py" = ["F403", "F405"]
+"**/apps.py" = ["F401"]
 
 [build-system]
 requires = ["poetry-core"]

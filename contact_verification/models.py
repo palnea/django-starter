@@ -65,7 +65,7 @@ class ContactVerification(models.Model):
         earliest_active_day = datetime.datetime.utcnow() - datetime.timedelta(
             seconds=self.valid_interval_in_seconds
         )
-        for _ in range(max_attempts):
+        for _attempt in range(max_attempts):
             key = "".join(random.choice(string.digits) for x in range(6))
             if not ContactVerification.objects.filter(
                 code=key, created__gt=earliest_active_day
@@ -130,8 +130,6 @@ class ContactVerification(models.Model):
             return False
         now = datetime.datetime.utcnow()
         difference = now - self.created
-        self.status = ContactVerification.Status.VERIFIED
-        self.save()
         return difference < datetime.timedelta(seconds=self.valid_interval_in_seconds)
 
     @transaction.atomic

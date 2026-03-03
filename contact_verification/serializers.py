@@ -3,7 +3,6 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers, status
 
 from common.custom_exceptions.custom_exception import CustomException
-from common.response.response_information_codes.error_code import ErrorCode
 from communications.services import CommunicationMedium
 
 

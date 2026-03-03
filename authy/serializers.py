@@ -358,7 +358,6 @@ class AppleSocialAuthSerializer(serializers.Serializer):
         try:
             user_id = None
             email = user_data["email"]
-            name = None
             provider = "apple"
             return login_social_user(
                 provider=provider,

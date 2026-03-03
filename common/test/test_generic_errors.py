@@ -5,7 +5,7 @@ This test file verifies that generic errors not tied to specific fields
 properly include title and description data in the structured response.
 """
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from rest_framework import serializers, status
 from rest_framework.test import APIRequestFactory
 from rest_framework.exceptions import ValidationError
@@ -31,7 +31,6 @@ class GenericErrorTest(TestCase):
         """Test single DRF non-field error becomes generic error with title and detail"""
 
         # Create a ValidationError with non-field error
-        from rest_framework.fields import empty
 
         exc = ValidationError(
             {"non_field_errors": ["Start date cannot be after end date."]}

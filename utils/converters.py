@@ -55,7 +55,7 @@ class ModelConverter:
             if exclude and f.name in exclude:
                 continue
             if (
-                type(f) == models.ForeignKey
+                isinstance(f, models.ForeignKey)
                 and detailed_fields
                 and f.name in detailed_fields.keys()
             ):

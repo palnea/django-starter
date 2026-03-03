@@ -13,8 +13,8 @@ from custom_test.baker_recipes import (
     google_payment_transaction,
 )
 from custom_test.base_test import CustomAPITestCase
-from payment.models import Purchase, PaymentTransaction, Buyable
-from payment.types import PaymentStatus, PaymentVendor
+from payment.models import Purchase, Buyable
+from payment.types import PaymentVendor
 from subscription.models import UserSubscription
 from subscription.types import SubscriptionStatus
 from user.models import User
@@ -593,7 +593,7 @@ class AppleNotificationHandlerTestCase(CustomAPITestCase):
         handler.handle()
 
     def test_did_change_renewal_preference(self):
-        subscription = baker.make(
+        _subscription = baker.make(
             UserSubscription,
             user_id=self.user.id,
             buyable_id=self.product.id,
