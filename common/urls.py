@@ -6,6 +6,8 @@ from common.views import (
     LocaleViewSet,
 )
 
+app_name = "common"
+
 translation_viewset = TranslationViewSet.as_view({"get": "list", "post": "create"})
 
 translation_detail_viewset = TranslationViewSet.as_view(
