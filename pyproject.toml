@@ -47,6 +47,9 @@ django-celery-results = "^2.5"
 django-celery-beat = "^2.7"
 
 
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
