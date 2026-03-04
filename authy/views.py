@@ -1,5 +1,5 @@
 from django.utils.translation import gettext_lazy as _
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
@@ -37,7 +37,7 @@ class UserLoginView(LoggingMixin, APIView):
     permission_classes = (AllowAny,)
     throttle_classes = [AuthRateThrottle]
 
-    @swagger_auto_schema(request_body=UserLoginSerializer)
+    @extend_schema(request=UserLoginSerializer)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         valid = serializer.is_valid(raise_exception=True)
@@ -63,7 +63,7 @@ class UserRegisterView(LoggingMixin, APIView):
     permission_classes = (AllowAny,)
     throttle_classes = [AuthRateThrottle]
 
-    @swagger_auto_schema(request_body=UserRegisterSerializer)
+    @extend_schema(request=UserRegisterSerializer)
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         valid = serializer.is_valid(raise_exception=True)

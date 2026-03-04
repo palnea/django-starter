@@ -10,8 +10,7 @@ from common.middlewares.global_context_middleware import (
 
 
 def get_action_permission_name(view_class, action, app_label=None):
-    """
-    Centralized function to generate consistent action permission names.
+    """Centralized function to generate consistent action permission names.
 
     Args:
         view_class: The ViewSet class (e.g., UserViewSet)
@@ -37,11 +36,10 @@ def get_action_permission_name(view_class, action, app_label=None):
 
 
 class ShortCircuitOr:
-    """
-    Short-circuiting OR operator for permissions that stops evaluation
-    once the first permission passes, preventing unwanted side effects.
+    """Short-circuiting OR operator for permissions that stops evaluation once the first permission passes, preventing
+    unwanted side effects.
 
-    Usage:
+    Examples:
         permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
     """
 
@@ -53,13 +51,11 @@ class ShortCircuitOr:
 
 
 class ShortCircuitOrPermission(permissions.BasePermission):
-    """
-    Permission class that implements short-circuiting OR logic.
-    Difference between using ShortCircuitOr and | in permissions is:
-    - ShortCircuitOr will stop evaluating permissions once the first one passes
-    - | will evaluate all permissions and return True if any pass
+    """Permission class that implements short-circuiting OR logic. Difference between using ShortCircuitOr and | in
+    permissions is: - ShortCircuitOr will stop evaluating permissions once the first one passes - | will evaluate
+    all permissions and return True if any pass.
 
-    Example:
+    Examples:
         permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)] // Won't evaluate IsOwnerWithoutSideEffects if ActionAwareModelPermissions passes
         permission_classes = [ActionAwareModelPermissions | IsOwnerWithoutSideEffects] // Will evaluate both permissions and return True if any pass
     """
@@ -83,10 +79,9 @@ class ShortCircuitOrPermission(permissions.BasePermission):
 
 
 class ConditionalPermission(permissions.BasePermission):
-    """
-    Applies different permissions based on conditions.
+    """Applies different permissions based on conditions.
 
-    Usage:
+    Examples:
         permission_classes = [ConditionalPermission({
             lambda r, v: r.user.has_perm('user.view_user'): ActionAwareModelPermissions,
             lambda r, v: True: IsOwnerWithoutSideEffects  # Default case
@@ -114,10 +109,10 @@ class ConditionalPermission(permissions.BasePermission):
 
 
 class IsActionPermissionGranted(permissions.BasePermission):
-    """
-    Enhanced action-based permission check that uses actual DRF action names.
+    """Enhanced action-based permission check that uses actual DRF action names.
 
     Permission format: {app_label}.{view_name}_{action}
+
     Examples:
     - user.user_reset_password (for reset_password action)
     - user.user_promote_to_admin (for promote_to_admin action)
@@ -150,8 +145,7 @@ class IsActionPermissionGranted(permissions.BasePermission):
 
 
 class ActionAwareModelPermissions(DjangoModelPermissions):
-    """
-    Enhanced Django model permissions that handles custom actions separately.
+    """Enhanced Django model permissions that handles custom actions separately.
 
     Standard CRUD operations use Django model permissions:
     - list/retrieve -> view_model
@@ -188,9 +182,7 @@ class ActionAwareModelPermissions(DjangoModelPermissions):
     }
 
     def get_required_permissions(self, method, model_cls):
-        """
-        Override to handle custom actions vs standard CRUD operations.
-        """
+        """Override to handle custom actions vs standard CRUD operations."""
         # Get the current action from the view
         action = getattr(self.view, "action", None)
 
@@ -215,10 +207,8 @@ class ActionAwareModelPermissions(DjangoModelPermissions):
         return super().has_permission(request, view)
 
     def has_object_permission(self, request, view, obj):
-        """
-        For object-level permissions:
-        - If user has model-level permissions, grant access (like admins)
-        - If user doesn't have model-level permissions, defer to ownership checks
+        """For object-level permissions: - If user has model-level permissions, grant access (like admins) - If user
+        doesn't have model-level permissions, defer to ownership checks.
         """
         # Store view reference needed for get_required_permissions
         self.view = view
@@ -237,8 +227,7 @@ class ActionAwareModelPermissions(DjangoModelPermissions):
 
 
 class IsOwner(permissions.BasePermission):
-    """
-    Enhanced ownership permission that detects attempts to access other users' data.
+    """Enhanced ownership permission that detects attempts to access other users' data.
 
     This version:
     - Checks for ownership field in query parameters (for list operations)
@@ -287,9 +276,7 @@ class IsOwner(permissions.BasePermission):
         return str(obj.user_id) == str(request.user.id)
 
     def _check_list_ownership_attempt(self, request, view):
-        """
-        Check if user is attempting to list/filter other users' data.
-        """
+        """Check if user is attempting to list/filter other users' data."""
         # Get the ownership field (default or from query params)
         ownership_field = getattr(view, "ownership_field", "user_id")
         query_ownership_field = request.query_params.get(
@@ -320,9 +307,7 @@ class IsOwner(permissions.BasePermission):
         return True
 
     def _check_create_ownership_attempt(self, request, view):
-        """
-        Check if user is attempting to create objects on behalf of others.
-        """
+        """Check if user is attempting to create objects on behalf of others."""
         # Check if user_id or similar fields are in the request data
         user_id_field = getattr(view, "user_id_field", "user_id")
 
@@ -356,17 +341,26 @@ class IsOwner(permissions.BasePermission):
 
 
 class IsReadonly(permissions.BasePermission):
-    """
-    Global permission check for read-only access
-    Allows only safe HTTP methods
+    """Global permission check for read-only access Allows only safe HTTP methods.
     """
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
 
 
-# Alias for backward compatibility and clear naming
-IsOwnerWithoutSideEffects = IsOwner
+# DEPRECATED: Use IsOwner directly — one name, one class. This alias will be removed in a future version.
+class IsOwnerWithoutSideEffects(IsOwner):
+    """Deprecated — use IsOwner directly."""
+
+    def __init_subclass__(cls, **kwargs):
+        import warnings
+
+        warnings.warn(
+            "IsOwnerWithoutSideEffects is deprecated. Use IsOwner directly — one name, one class.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init_subclass__(**kwargs)
 
 
 def check_ownership(
@@ -375,8 +369,7 @@ def check_ownership(
     check_query_params=True,
     check_request_data=True,
 ):
-    """
-    Decorator to check ownership for custom actions.
+    """Decorator to check ownership for custom actions.
 
     Args:
         ownership_field (str): Field name to check for ownership (default: 'user_id')
@@ -384,7 +377,7 @@ def check_ownership(
         check_query_params (bool): Whether to check query parameters for ownership attempts
         check_request_data (bool): Whether to check request data for ownership attempts
 
-    Usage:
+    Examples:
         @action(detail=True, methods=['post'])
         @check_ownership()
         def reset_password(self, request, pk=None):
@@ -459,9 +452,8 @@ def check_ownership(
 def _check_action_ownership(
     request, view, ownership_field, check_query_params, check_request_data
 ):
-    """
-    Helper function to check ownership violations in custom actions.
-    Returns a string describing the violation, or None if no violation.
+    """Helper function to check ownership violations in custom actions. Returns a string describing the violation, or
+    None if no violation.
     """
     current_user_id = str(request.user.id)
 
@@ -521,9 +513,7 @@ def _check_action_ownership(
 
 
 def _check_object_ownership(user, obj, ownership_field):
-    """
-    Helper function to check if user owns the object.
-    """
+    """Helper function to check if user owns the object."""
     # Special case: For User model, check id instead of user_id
     if obj.__class__.__name__ == "User":
         return str(obj.id) == str(user.id)
@@ -536,15 +526,14 @@ def _check_object_ownership(user, obj, ownership_field):
 
 
 def require_ownership(ownership_field="user_id", allow_admin=True):
-    """
-    Simple decorator for actions that require object ownership.
-    Only works with detail actions (actions that have pk parameter).
+    """Simple decorator for actions that require object ownership. Only works with detail actions (actions that have pk
+    parameter).
 
     Args:
         ownership_field (str): Field name to check for ownership
         allow_admin (bool): Whether to allow users with model permissions
 
-    Usage:
+    Examples:
         @action(detail=True, methods=['post'])
         @require_ownership()
         def activate(self, request, pk=None):

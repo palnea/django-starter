@@ -87,24 +87,28 @@ class Locale(models.Model):
     @classmethod
     def get_default(cls) -> "Locale":
         locale, created = cls.objects.get_or_create(
-            name="Turkish (Türkiye)",
             code="tr-TR",
-            territory="TR",
-            date_format="DD/MM/YYYY",
-            time_format="24h",
-            currency_code="TRY",
+            defaults={
+                "name": "Turkish (Türkiye)",
+                "territory": "TR",
+                "date_format": "DD/MM/YYYY",
+                "time_format": "24h",
+                "currency_code": "TRY",
+            },
         )
         return locale
 
     @classmethod
     def get_default_english(cls) -> "Locale":
         locale, created = cls.objects.get_or_create(
-            name="English (USA)",
             code="en-US",
-            territory="US",
-            date_format="MM/DD/YYYY",
-            time_format="12h",
-            currency_code="USD",
+            defaults={
+                "name": "English (USA)",
+                "territory": "US",
+                "date_format": "MM/DD/YYYY",
+                "time_format": "12h",
+                "currency_code": "USD",
+            },
         )
         return locale
 

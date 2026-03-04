@@ -23,15 +23,14 @@ STANDARD_ACTIONS = ["create", "destroy", "update", "partial_update", "retrieve",
 
 
 def get_viewsets(app_label=None):
-    """
-    Dynamically retrieve all viewsets that inherit from ModelViewSet for a specified app.
-    If no app_label is provided, retrieves viewsets for all installed apps.
+    """Dynamically retrieve all viewsets that inherit from ModelViewSet for a specified app. If no app_label is
+    provided, retrieves viewsets for all installed apps.
     """
     viewsets = []
     third_party_prefixes = [
         "django",
         "rest_framework",
-        "drf_yasg",
+        "drf_spectacular",
     ]
 
     for app_config in apps.get_app_configs():
@@ -81,9 +80,7 @@ def get_viewsets(app_label=None):
 
 
 def get_all_actions(viewset_class: View) -> List[str]:
-    """
-    Retrieve all actions (standard and custom) for a given viewset.
-    """
+    """Retrieve all actions (standard and custom) for a given viewset."""
     # Standard actions in ModelViewSet
     standard_actions = [
         method
@@ -110,9 +107,8 @@ def get_all_actions(viewset_class: View) -> List[str]:
 
 
 def contains_permission(permission_classes, permission_class):
-    """
-    Recursively checks if a permission_class is contained within permission_classes,
-    handling both direct instances and compound expressions.
+    """Recursively checks if a permission_class is contained within permission_classes, handling both direct instances
+    and compound expressions.
     """
     # Ensure permission_classes is always a list
     if not isinstance(permission_classes, list):
@@ -143,8 +139,7 @@ def contains_permission(permission_classes, permission_class):
 
 @receiver(post_migrate)
 def create_permissions(sender, **kwargs):
-    """
-    Signal handler to create Django model permissions for ModelViewSet actions after migrations.
+    """Signal handler to create Django model permissions for ModelViewSet actions after migrations.
 
     This creates standard Django permissions that work with DjangoModelPermissions:
     - add_model
@@ -152,8 +147,8 @@ def create_permissions(sender, **kwargs):
     - delete_model
     - view_model
 
-    These are created automatically by Django for models, but this handler ensures
-    they exist for all models used in ViewSets and assigns them to the Admin group.
+    These are created automatically by Django for models, but this handler ensures they exist for all models used in
+    ViewSets and assigns them to the Admin group.
     """
     create_admin_group_with_all_permissions()
 
@@ -206,9 +201,7 @@ def create_permissions(sender, **kwargs):
 
 
 def create_admin_group_with_all_permissions():
-    """
-    Create Admin group and assign all permissions to it.
-    This ensures admins have access to all functionality.
+    """Create Admin group and assign all permissions to it. This ensures admins have access to all functionality.
     """
     admin_group, created = Group.objects.get_or_create(name="Admin")
 

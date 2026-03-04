@@ -1,7 +1,6 @@
 ﻿from django.test import override_settings
 from django.urls import reverse
-from mock import patch
-from mock.mock import Mock
+from unittest.mock import patch, Mock
 
 from communications.services import CommunicationMedium
 from contact_verification.models import ContactVerification
@@ -22,7 +21,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
 
         data = {"phone": phone}
 
-        url = reverse("contact-verification")
+        url = reverse("contact_verification:contact-verification")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 201)
@@ -48,7 +47,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
 
         data = {"uuid": contact_verification.id, "code": "123456"}
 
-        url = reverse("verify-contact")
+        url = reverse("contact_verification:verify-contact")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 200)
@@ -71,7 +70,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
         false_code = "123457"
         data = {"uuid": contact_verification.id, "code": false_code}
 
-        url = reverse("verify-contact")
+        url = reverse("contact_verification:verify-contact")
         for i in range(3):
             response = self.client.post(url, data, format="json")
 
@@ -101,7 +100,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
         """Test structured error response when both email and phone are missing"""
         data = {}  # No email or phone provided
 
-        url = reverse("contact-verification")
+        url = reverse("contact_verification:contact-verification")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -126,7 +125,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
         """Test structured error response when both email and phone are provided"""
         data = {"email": "test@example.com", "phone": "+905553330000"}
 
-        url = reverse("contact-verification")
+        url = reverse("contact_verification:contact-verification")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -149,7 +148,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
         """Test structured error response for invalid UUID"""
         data = {"uuid": "invalid-uuid-12345", "code": "123456"}
 
-        url = reverse("verify-contact")
+        url = reverse("contact_verification:verify-contact")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -172,7 +171,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
 
         data = {"uuid": contact_verification.id, "code": "wrong-code"}
 
-        url = reverse("verify-contact")
+        url = reverse("contact_verification:verify-contact")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -189,7 +188,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
     def test_contact_verification_email(self, m_send_email):
         email = "test@myapp.com"
         data = {"email": email}
-        url = reverse("contact-verification")
+        url = reverse("contact_verification:contact-verification")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 201)
         self.assertTrue(
@@ -209,7 +208,7 @@ class ContactVerificationTestCase(CustomAPITestCase):
         )
         code = "123456"
         data = {"uuid": contact_verification.id, "code": code}
-        url = reverse("verify-contact")
+        url = reverse("contact_verification:verify-contact")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get("response_code"), "MSG_GENERAL_SUCCESS")

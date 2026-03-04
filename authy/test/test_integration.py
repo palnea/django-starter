@@ -2,7 +2,7 @@ import jwt
 from django.contrib.auth.models import Group
 from django.test import override_settings
 from django.urls import reverse
-from mock import patch
+from unittest.mock import patch
 from model_bakery import baker
 
 from contact_verification.models import ContactVerification
@@ -45,7 +45,7 @@ class AuthenticationTestCase(CustomAPITestCase):
             "verify_password": confirm_password,
         }
 
-        url = reverse("register")
+        url = reverse("authy:register")
 
         user_query = User.objects.filter(phone=phone)
         self.assertFalse(user_query.exists())
@@ -55,7 +55,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         self.assertTrue(User.objects.filter(phone=phone).exists())
         self.assertEqual(response.status_code, 200)
 
-        url = reverse("login")
+        url = reverse("authy:login")
         contact_verification = (
             ContactVerification.objects.filter(receiver_address=phone)
             .order_by("-id")
@@ -84,7 +84,7 @@ class AuthenticationTestCase(CustomAPITestCase):
             "verify_password": confirm_password,
         }
 
-        url = reverse("register")
+        url = reverse("authy:register")
 
         self.assertFalse(User.objects.filter(email=email).exists())
 
@@ -95,7 +95,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get("response_body").get("access"), None)
 
-        url = reverse("login")
+        url = reverse("authy:login")
         contact_verification = (
             ContactVerification.objects.filter(receiver_address=email)
             .order_by("-id")
@@ -113,7 +113,7 @@ class AuthenticationTestCase(CustomAPITestCase):
     def test_login_with_phone(self):
         data = {"phone": str(self.user.phone), "password": "123"}
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(phone=self.user.phone).exists())
         response = self.client.post(url, data, format="json")
@@ -130,7 +130,7 @@ class AuthenticationTestCase(CustomAPITestCase):
     def test_login_with_invalid_phone(self):
         data = {"phone": "+905553330000", "password": "123"}
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(phone=self.user.phone).exists())
         response = self.client.post(url, data, format="json")
@@ -141,7 +141,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response when both email and phone are missing."""
         data = {"password": "password"}  # Missing email/phone
 
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -168,7 +168,7 @@ class AuthenticationTestCase(CustomAPITestCase):
             "password": "password",
         }
 
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 400)
@@ -183,7 +183,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response when user is not found."""
         data = {"email": "nonexistent@example.com", "password": "password"}
 
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 404)
@@ -197,7 +197,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response for invalid password."""
         data = {"email": self.email_user.email, "password": "wrong_password"}
 
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, 401)
@@ -210,7 +210,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response for password reset when credentials are missing."""
         data = {}  # No email or phone provided
 
-        url = reverse("reset_password")
+        url = reverse("authy:reset_password")
         response = self.client.post(url, data, format="json")
 
         # The actual behavior may vary - let's just test that we get a proper structured error response
@@ -222,7 +222,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response for password reset when both email and phone are provided."""
         data = {"email": "test@example.com", "phone": "+905555555555"}
 
-        url = reverse("reset_password")
+        url = reverse("authy:reset_password")
         response = self.client.post(url, data, format="json")
 
         # The actual behavior may vary - let's just test that we get a proper structured error response
@@ -234,7 +234,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         """Test structured error response for password reset when user is not found."""
         data = {"email": "nonexistent@example.com"}
 
-        url = reverse("reset_password")
+        url = reverse("authy:reset_password")
         response = self.client.post(url, data, format="json")
 
         # The actual behavior may vary - let's just test that we get a proper structured error response
@@ -254,7 +254,7 @@ class AuthenticationTestCase(CustomAPITestCase):
 
         # Test with email
         data = {"email": self.email_user.email}
-        url = reverse("contact-verification")
+        url = reverse("contact_verification:contact-verification")
         response = self.client.post(url, data, format="json")
 
         # The actual behavior may vary depending on how this endpoint handles errors
@@ -266,7 +266,7 @@ class AuthenticationTestCase(CustomAPITestCase):
     def test_login_email_verified(self):
         data = {"email": self.email_user.email, "password": self.email_password}
 
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
 
@@ -281,7 +281,7 @@ class AuthenticationTestCase(CustomAPITestCase):
     def test_login_with_invalid_email(self):
         data = {"email": "invalidemail@email.com", "password": self.email_password}
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
@@ -293,7 +293,7 @@ class AuthenticationTestCase(CustomAPITestCase):
         self.email_user.save()
         data = {"email": self.email_user.email, "password": self.email_password}
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
@@ -318,7 +318,7 @@ class AuthenticationTestCase(CustomAPITestCase):
             "verification_id": contact_verification.id,
         }
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
@@ -328,21 +328,21 @@ class AuthenticationTestCase(CustomAPITestCase):
     def test_refresh_token(self):
         data = {"email": self.email_user.email, "password": self.email_password}
 
-        url = reverse("login")
+        url = reverse("authy:login")
 
         self.assertTrue(User.objects.filter(email=self.email_user.email).exists())
         response = self.client.post(url, data, format="json")
         refresh_token = response.data["response_body"]["refresh"]
 
         data = {"refresh": refresh_token}
-        url = reverse("token_refresh")
+        url = reverse("authy:token_refresh")
         refresh_response = self.client.post(url, data, format="json")
         self.assertEqual(refresh_response.status_code, 200)
         self.assertNotEqual(refresh_response.data.get("access", None), None)
 
     def test_update_password(self):
         data = {"email": self.email_user.email}
-        url = reverse("reset_password")
+        url = reverse("authy:reset_password")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
 
@@ -371,7 +371,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "name": self.email_user.fullname,
         }
         data = {"auth_token": "auth_token"}
-        url = reverse("google_social_auth")
+        url = reverse("authy:google_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
 
@@ -386,7 +386,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "name": "New User",
         }
         data = {"auth_token": "auth_token"}
-        url = reverse("google_social_auth")
+        url = reverse("authy:google_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(
@@ -402,7 +402,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "name": self.email_user.fullname,
         }
         data = {"auth_token": "auth_token"}
-        url = reverse("facebook_social_auth")
+        url = reverse("authy:facebook_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
 
@@ -415,7 +415,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "name": "New User",
         }
         data = {"auth_token": "auth_token"}
-        url = reverse("facebook_social_auth")
+        url = reverse("authy:facebook_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(
@@ -431,7 +431,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "auth_token": "eyJraWQiOiJZdXlYb1kiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoiY29tLm15YXBwLm1vYmlsZSIsImV4cCI6OTk5OTk5OTk5OSwiaWF0IjoxNjk0NTYxNjA3LCJzdWIiOiIwMDEyMDEuNjJkNjkzZWE0NDZkNDMwNzgzNWQzOGM1YmMwNDkyNDEuMDgyMiIsImNfaGFzaCI6ImstZU5rcXhpMnRTbm1iV1BfaXJkUUEiLCJlbWFpbCI6Im15YXBwQHlvcG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOiJ0cnVlIiwiYXV0aF90aW1lIjoxNjk0NTYxNjA3LCJub25jZV9zdXBwb3J0ZWQiOnRydWV9.Rf50uJ1u8zF5MiGGMueGCk_Im_Cc4rWERIaRPLsQpvFUYcP4yc7sHvIZ3Yk7rmXgWC_fWCX7imm5PVg9mKlW3Q",
             "code": "code",
         }
-        url = reverse("apple_social_auth")
+        url = reverse("authy:apple_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
 
@@ -447,7 +447,7 @@ class SocialAuthenticationTestCase(CustomAPITestCase):
             "code": "code",
         }
 
-        url = reverse("apple_social_auth")
+        url = reverse("authy:apple_social_auth")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(

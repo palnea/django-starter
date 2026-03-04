@@ -1,6 +1,6 @@
 from django.http import Http404
 from django.utils.translation import gettext_lazy as _
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -189,7 +189,7 @@ class BuyableViewSet(LoggingMixin, ModelViewSet):
 class GooglePlayWebhookViewSet(GenericViewSet):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(auto_schema=None)
+    @extend_schema(exclude=True)
     def create(self, request, *args, **kwargs):
         log.info("Google Play webhook is received", request=str(request.data))
         try:
@@ -208,7 +208,7 @@ class GooglePlayWebhookViewSet(GenericViewSet):
 class AppStoreWebhookViewSet(GenericViewSet):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(auto_schema=None)
+    @extend_schema(exclude=True)
     def create(self, request, *args, **kwargs):
         log.info("App Store webhook is received", request=str(request.data))
         try:
