@@ -155,7 +155,9 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         self.assertEqual(Buyable.objects.count(), buyable_count + 1)
 
     def test_retrieve_buyable(self):
-        url = reverse("payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -163,14 +165,18 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         )
 
     def test_partial_update_buyable(self):
-        url = reverse("payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         response = self.client.patch(url, {"price": "111"}, format="json")
         buyable = Buyable.objects.get(id=self.monthly_buyable.id)
         self.assertEqual(Decimal("111"), buyable.price)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_buyable(self):
-        url = reverse("payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         self.client.delete(url, format="json")
         self.assertFalse(Buyable.objects.filter(id=self.monthly_buyable.id).exists())
 

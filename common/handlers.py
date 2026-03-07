@@ -201,8 +201,7 @@ def create_permissions(sender, **kwargs):
 
 
 def create_admin_group_with_all_permissions():
-    """Create Admin group and assign all permissions to it. This ensures admins have access to all functionality.
-    """
+    """Create Admin group and assign all permissions to it. This ensures admins have access to all functionality."""
     admin_group, created = Group.objects.get_or_create(name="Admin")
 
     # Assign all permissions to admin group

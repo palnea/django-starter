@@ -19,7 +19,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.views.decorators.cache import cache_page
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

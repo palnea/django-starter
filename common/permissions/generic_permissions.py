@@ -341,8 +341,7 @@ class IsOwner(permissions.BasePermission):
 
 
 class IsReadonly(permissions.BasePermission):
-    """Global permission check for read-only access Allows only safe HTTP methods.
-    """
+    """Global permission check for read-only access Allows only safe HTTP methods."""
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
