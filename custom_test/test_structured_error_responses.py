@@ -11,6 +11,7 @@ from mock.mock import Mock
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, RequestFactory
 
+from django.utils import translation
 from authy.helpers.token_helper import authenticate_user
 from authy.services import PasswordService
 from common.custom_exceptions.custom_exception import CustomException
@@ -38,9 +39,14 @@ class StructuredErrorResponseTestCase(TestCase):
     """Test that all updated CustomException usages return structured error responses"""
 
     def setUp(self):
+        translation.activate("en")
         self.factory = RequestFactory()
         self.mock_request = self.factory.get("/test")
         self.mock_request.user = AnonymousUser()
+
+    def tearDown(self):
+        translation.deactivate()
+        super().tearDown()
 
     def create_context(self, path="/test"):
         """Helper to create exception context"""
@@ -422,6 +428,14 @@ class StructuredErrorResponseTestCase(TestCase):
 
 class StructuredErrorIntegrationTestCase(CustomIntegrationTestCase):
     """Integration tests for structured error responses in API endpoints"""
+
+    def setUp(self):
+        translation.activate("en")
+        super().setUp()
+
+    def tearDown(self):
+        translation.deactivate()
+        super().tearDown()
 
     def test_all_structured_errors_include_required_fields(self):
         """Test that all structured errors include the required RFC 7807 fields"""

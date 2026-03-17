@@ -10,8 +10,8 @@ from custom_test.mixins import CRUDPermissionTestsMixin
 
 
 class LocaleViewTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
-    list_url_name = "locale-viewset"
-    detail_url_name = "locale-detail-viewset"
+    list_url_name = "common:locale-viewset"
+    detail_url_name = "common:locale-detail-viewset"
     create_data = {"name": "Permission Test Locale", "code": "en"}
     update_data = {"name": "Updated Name"}
 
@@ -25,13 +25,13 @@ class LocaleViewTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         return self.locale
 
     def test_list_locales(self):
-        url = reverse("locale-viewset")
+        url = reverse("common:locale-viewset")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 1)
 
     def test_paginated_list_locales(self):
-        url = reverse("locale-viewset")
+        url = reverse("common:locale-viewset")
         response = self.client.get(url, {"page": 1, "size": 2})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(
@@ -41,19 +41,19 @@ class LocaleViewTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
     def test_create_locale(self):
         data = {"name": "New locale", "code": "en"}
         locale_count = Locale.objects.count()
-        url = reverse("locale-viewset")
+        url = reverse("common:locale-viewset")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Locale.objects.count(), locale_count + 1)
 
     def test_retrieve_locale(self):
-        url = reverse("locale-detail-viewset", kwargs={"id": self.locale.id})
+        url = reverse("common:locale-detail-viewset", kwargs={"id": self.locale.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get("response_body").get("id"), self.locale.id)
 
     def test_partial_update_locale(self):
-        url = reverse("locale-detail-viewset", kwargs={"id": self.locale.id})
+        url = reverse("common:locale-detail-viewset", kwargs={"id": self.locale.id})
         name = "New name"
         response = self.client.patch(url, {"name": name}, format="json")
         updated_locale = Locale.objects.get(id=self.locale.id)
@@ -61,14 +61,14 @@ class LocaleViewTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_locale(self):
-        url = reverse("locale-detail-viewset", kwargs={"id": self.locale.id})
+        url = reverse("common:locale-detail-viewset", kwargs={"id": self.locale.id})
         self.client.delete(url, format="json")
         self.assertFalse(Locale.objects.filter(id=self.locale.id).exists())
 
 
 class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
-    list_url_name = "translation-viewset"
-    detail_url_name = "translation-detail-viewset"
+    list_url_name = "common:translation-viewset"
+    detail_url_name = "common:translation-detail-viewset"
     update_data = {"text": "Updated text"}
 
     def setUp(self):
@@ -93,7 +93,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         return self.root_translation
 
     def test_list_translations(self):
-        url = reverse("translation-viewset")
+        url = reverse("common:translation-viewset")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 2)
@@ -107,7 +107,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
         translation_count = Translation.objects.count()
         translations_count_of_root = self.root_translation.translations.count()
-        url = reverse("translation-viewset")
+        url = reverse("common:translation-viewset")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Translation.objects.count(), translation_count + 1)
@@ -121,7 +121,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
     def test_retrieve_translation(self):
         url = reverse(
-            "translation-detail-viewset", kwargs={"id": self.root_translation.id}
+            "common:translation-detail-viewset", kwargs={"id": self.root_translation.id}
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -131,7 +131,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
     def test_partial_update_translation(self):
         url = reverse(
-            "translation-detail-viewset", kwargs={"id": self.root_translation.id}
+            "common:translation-detail-viewset", kwargs={"id": self.root_translation.id}
         )
         response = self.client.patch(url, {"text": "Hello!"}, format="json")
         translation = Translation.objects.get(id=self.root_translation.id)
@@ -140,7 +140,7 @@ class TranslationTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
 
     def test_delete_translation(self):
         url = reverse(
-            "translation-detail-viewset", kwargs={"id": self.root_translation.id}
+            "common:translation-detail-viewset", kwargs={"id": self.root_translation.id}
         )
         self.client.delete(url, format="json")
         self.assertFalse(
@@ -173,7 +173,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
     @patch("cloud_storage.idrive_client.IDriveClient.create_presigned_url")
     def test_list_translated_files(self, mock_create_presigned_url):
         mock_create_presigned_url.return_value = "http://example.com"
-        url = reverse("translated-file-viewset")
+        url = reverse("common:translated-file-viewset")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 1)
@@ -190,7 +190,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
 
         translation_count = TranslatedFile.objects.count()
         translations_count_of_root = self.root_translated_file.translations.count()
-        url = reverse("translated-file-viewset")
+        url = reverse("common:translated-file-viewset")
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(TranslatedFile.objects.count(), translation_count + 1)
@@ -206,7 +206,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
     def test_retrieve_translated_file(self, mock_create_presigned_url):
         mock_create_presigned_url.return_value = "http://example.com"
         url = reverse(
-            "translated-file-detail-viewset",
+            "common:translated-file-detail-viewset",
             kwargs={"id": self.root_translated_file.id},
         )
         response = self.client.get(url)
@@ -219,7 +219,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
     def test_partial_update_translated_file(self, mock_create_presigned_url):
         mock_create_presigned_url.return_value = "http://example.com"
         url = reverse(
-            "translated-file-detail-viewset",
+            "common:translated-file-detail-viewset",
             kwargs={"id": self.root_translated_file.id},
         )
         response = self.client.patch(url, {"type": "AUDIO"}, format="json")
@@ -231,7 +231,7 @@ class TranslatedFileTestCase(CustomAPITestCase):
     def test_delete_translated_file(self, mock_create_presigned_url):
         mock_create_presigned_url.return_value = "http://example.com"
         url = reverse(
-            "translated-file-detail-viewset",
+            "common:translated-file-detail-viewset",
             kwargs={"id": self.root_translated_file.id},
         )
         self.client.delete(url, format="json")
