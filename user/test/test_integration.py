@@ -20,7 +20,9 @@ class UserViewSetTestCase(CustomAPITestCase):
         self.assertGreaterEqual(len(response.data.get("response_body")), 1)
 
     def test_retrieve_user(self):
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -28,7 +30,9 @@ class UserViewSetTestCase(CustomAPITestCase):
         )
 
     def test_partial_update_user(self):
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         fullname = "teacher"
         response = self.client.patch(url, {"fullname": fullname}, format="json")
         updated_user = User.objects.get(id=self.other_user.id)
@@ -36,7 +40,9 @@ class UserViewSetTestCase(CustomAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_user(self):
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         self.client.delete(url, format="json")
         self.assertFalse(User.objects.filter(id=self.other_user.id).exists())
 
@@ -73,7 +79,9 @@ class UserViewSetTestCase(CustomAPITestCase):
         This is correct behavior for object-level permission checks.
         """
         self.authenticate_as(self.user)
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -94,7 +102,9 @@ class UserViewSetTestCase(CustomAPITestCase):
         makes the object invisible to the user, which is better for security.
         """
         self.authenticate_as(self.user)
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         response = self.client.patch(
             url, {"fullname": "Should Not Work"}, format="json"
         )
@@ -112,7 +122,9 @@ class UserViewSetTestCase(CustomAPITestCase):
     def test_regular_user_cannot_delete_other_user_data(self):
         """Test that regular users cannot delete other users' data."""
         self.authenticate_as(self.user)
-        url = reverse("user:user-detail-viewset", kwargs={"user_id": self.other_user.id})
+        url = reverse(
+            "user:user-detail-viewset", kwargs={"user_id": self.other_user.id}
+        )
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(User.objects.filter(id=self.other_user.id).exists())
