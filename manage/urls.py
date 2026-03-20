@@ -15,24 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="MyApp API",
-        default_version="v1",
-        description="Monolith MyApp API",
-        terms_of_service="",
-        contact=openapi.Contact(email="dev@myapp.com"),
-        license=openapi.License(name="No Licenses"),
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
+from django.views.decorators.cache import cache_page, cache_control
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+    SpectacularRedocView,
 )
+from common.decorators import swagger_passcode_required
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -41,10 +33,26 @@ urlpatterns = [
     path("contact-verification/", include("contact_verification.urls")),
     path("payment/", include("payment.urls")),
     path("common/", include("common.urls")),
+    # API schema (OpenAPI 3.0 JSON — cached in production via cache_page)
+    path(
+        "api/schema/",
+        swagger_passcode_required(
+            cache_control(private=True)(
+                cache_page(settings.API_SCHEMA_CACHE_TIMEOUT)(
+                    SpectacularAPIView.as_view()
+                )
+            )
+        ),
+        name="schema",
+    ),
     path(
         "swagger/",
-        schema_view.with_ui("swagger", cache_timeout=0),
+        SpectacularSwaggerView.as_view(url_name="schema"),
         name="schema-swagger-ui",
     ),
-    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    path(
+        "redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="schema-redoc",
+    ),
 ]

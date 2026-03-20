@@ -6,11 +6,12 @@ to use the new structured error format are returning proper structured responses
 """
 
 import json
-from mock.mock import Mock
+from unittest.mock import Mock
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, RequestFactory
 
+from django.utils import translation
 from authy.helpers.token_helper import authenticate_user
 from authy.services import PasswordService
 from common.custom_exceptions.custom_exception import CustomException
@@ -38,9 +39,14 @@ class StructuredErrorResponseTestCase(TestCase):
     """Test that all updated CustomException usages return structured error responses"""
 
     def setUp(self):
+        translation.activate("en")
         self.factory = RequestFactory()
         self.mock_request = self.factory.get("/test")
         self.mock_request.user = AnonymousUser()
+
+    def tearDown(self):
+        translation.deactivate()
+        super().tearDown()
 
     def create_context(self, path="/test"):
         """Helper to create exception context"""
@@ -423,103 +429,107 @@ class StructuredErrorResponseTestCase(TestCase):
 class StructuredErrorIntegrationTestCase(CustomIntegrationTestCase):
     """Integration tests for structured error responses in API endpoints"""
 
+    def setUp(self):
+        translation.activate("en")
+        super().setUp()
+
+    def tearDown(self):
+        translation.deactivate()
+        super().tearDown()
+
     def test_all_structured_errors_include_required_fields(self):
         """Test that all structured errors include the required RFC 7807 fields"""
 
         # This test validates that all error responses contain the minimum required fields
         test_cases = [
             # Contact verification errors
-            ("contact-verification", "POST", {}, 400),
-            ("verify-contact", "POST", {"uuid": "invalid", "code": "123"}, 400),
+            ("contact_verification:contact-verification", "POST", {}, 400),
+            (
+                "contact_verification:verify-contact",
+                "POST",
+                {"uuid": "invalid", "code": "123"},
+                400,
+            ),
             # Authentication errors
-            ("login", "POST", {}, 400),
-            ("forgot-password", "POST", {}, 400),
+            ("authy:login", "POST", {}, 400),
+            ("authy:reset_password", "POST", {}, 400),
         ]
 
         for url_name, method, data, expected_status in test_cases:
-            try:
-                from django.urls import reverse
+            from django.urls import reverse
 
-                url = reverse(url_name)
+            url = reverse(url_name)
 
-                if method == "POST":
-                    response = self.client.post(url, data, format="json")
-                else:
-                    response = self.client.get(url, format="json")
+            if method == "POST":
+                response = self.client.post(url, data, format="json")
+            else:
+                response = self.client.get(url, format="json")
 
-                if response.status_code == expected_status:
-                    # Validate structured error format
-                    response_data = response.data
+            if response.status_code == expected_status:
+                # Validate structured error format
+                response_data = response.data
 
-                    # RFC 7807 required fields
-                    required_fields = ["type", "title", "status", "detail", "instance"]
-                    for field in required_fields:
-                        self.assertIn(
-                            field,
-                            response_data,
-                            f"Missing {field} in {url_name} response",
-                        )
-
-                    # Validate error type is one of our defined types
-                    valid_types = [
-                        "validation_error",
-                        "business_logic_error",
-                        "authentication_error",
-                        "authorization_error",
-                        "not_found_error",
-                        "client_error",
-                        "server_error",
-                    ]
+                # RFC 7807 required fields
+                required_fields = ["type", "title", "status", "detail", "instance"]
+                for field in required_fields:
                     self.assertIn(
-                        response_data["type"],
-                        valid_types,
-                        f"Invalid error type in {url_name} response",
+                        field,
+                        response_data,
+                        f"Missing {field} in {url_name} response",
                     )
 
-                    # Validate status code matches HTTP status
-                    self.assertEqual(
-                        response_data["status"],
-                        expected_status,
-                        f"Status mismatch in {url_name} response",
-                    )
+                # Validate error type is one of our defined types
+                valid_types = [
+                    "validation_error",
+                    "business_logic_error",
+                    "authentication_error",
+                    "authorization_error",
+                    "not_found_error",
+                    "client_error",
+                    "server_error",
+                ]
+                self.assertIn(
+                    response_data["type"],
+                    valid_types,
+                    f"Invalid error type in {url_name} response",
+                )
 
-            except Exception:
-                # Skip if URL doesn't exist or other setup issues
-                continue
+                # Validate status code matches HTTP status
+                self.assertEqual(
+                    response_data["status"],
+                    expected_status,
+                    f"Status mismatch in {url_name} response",
+                )
 
     def test_error_response_consistency(self):
         """Test that error responses are consistent across different endpoints"""
 
         # Test that similar error types have consistent structure
         validation_error_endpoints = [
-            ("contact-verification", {}),
-            ("verify-contact", {"uuid": "invalid", "code": "123"}),
+            ("contact_verification:contact-verification", {}),
+            ("contact_verification:verify-contact", {"uuid": "invalid", "code": "123"}),
         ]
 
         for url_name, data in validation_error_endpoints:
-            try:
-                from django.urls import reverse
+            from django.urls import reverse
 
-                url = reverse(url_name)
-                response = self.client.post(url, data, format="json")
+            url = reverse(url_name)
+            response = self.client.post(url, data, format="json")
 
-                if (
-                    response.status_code == 400
-                    and response.data.get("type") == "validation_error"
-                ):
-                    # All validation errors should have errors field
-                    self.assertIn(
-                        "errors",
-                        response.data,
-                        f"Validation error missing 'errors' field in {url_name}",
-                    )
+            if (
+                response.status_code == 400
+                and response.data.get("type") == "validation_error"
+            ):
+                # All validation errors should have errors field
+                self.assertIn(
+                    "errors",
+                    response.data,
+                    f"Validation error missing 'errors' field in {url_name}",
+                )
 
-                    # Errors should be a dict
-                    self.assertIsInstance(
-                        response.data["errors"],
-                        dict,
-                        f"Errors field should be dict in {url_name}",
-                    )
-
-            except Exception:
-                continue
+                # Errors should be a dict
+                self.assertIsInstance(
+                    response.data["errors"],
+                    dict,
+                    f"Errors field should be dict in {url_name}",
+                )

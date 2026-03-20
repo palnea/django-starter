@@ -24,7 +24,7 @@ class PurchaseTestCase(CustomAPITestCase):
 
     def _login_as_user(self):
         data = {"phone": str(self.user.phone), "password": self.user_password}
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
         self.access_token = response.data["response_body"]["access"]
 
@@ -64,7 +64,7 @@ class PurchaseTestCase(CustomAPITestCase):
             },
         }
 
-        url = reverse("payment_action")
+        url = reverse("payment:payment_action")
         response = self.client.post(
             url,
             data,
@@ -83,8 +83,8 @@ class PurchaseTestCase(CustomAPITestCase):
 
 
 class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
-    list_url_name = "buyable-viewset"
-    detail_url_name = "buyable-detail-viewset"
+    list_url_name = "payment:buyable-viewset"
+    detail_url_name = "payment:buyable-detail-viewset"
     create_data = {
         "name": "blabla",
         "price": "69.99",
@@ -132,14 +132,14 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
             Purchase(user=self.user)
 
     def test_list_buyables(self):
-        url = reverse("buyable-viewset")
+        url = reverse("payment:buyable-viewset")
         self.authenticate_as(None)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data.get("response_body")), 2)
 
     def test_create_buyables(self):
-        url = reverse("buyable-viewset")
+        url = reverse("payment:buyable-viewset")
         buyable_count = Buyable.objects.count()
         response = self.client.post(
             url,
@@ -155,7 +155,9 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         self.assertEqual(Buyable.objects.count(), buyable_count + 1)
 
     def test_retrieve_buyable(self):
-        url = reverse("buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -163,14 +165,18 @@ class BuyableTestCase(CRUDPermissionTestsMixin, CustomAPITestCase):
         )
 
     def test_partial_update_buyable(self):
-        url = reverse("buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         response = self.client.patch(url, {"price": "111"}, format="json")
         buyable = Buyable.objects.get(id=self.monthly_buyable.id)
         self.assertEqual(Decimal("111"), buyable.price)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_buyable(self):
-        url = reverse("buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id})
+        url = reverse(
+            "payment:buyable-detail-viewset", kwargs={"id": self.monthly_buyable.id}
+        )
         self.client.delete(url, format="json")
         self.assertFalse(Buyable.objects.filter(id=self.monthly_buyable.id).exists())
 

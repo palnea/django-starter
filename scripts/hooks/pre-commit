@@ -5,11 +5,14 @@
 
 # Function to find and activate virtual environment
 activate_venv() {
+    # Dynamically get project name from bin/setup
+    local PROJECT_NAME=$(grep -E '^PROJECT_NAME=' bin/setup | cut -d'"' -f2 || echo "")
+    
     # Try common virtual environment locations
     local venv_paths=(
         "venv/bin/activate"
         ".venv/bin/activate"
-        "$HOME/.virtualenvs/django-starter/bin/activate"
+        "$HOME/.virtualenvs/$PROJECT_NAME/bin/activate"
         "env/bin/activate"
     )
     
@@ -34,14 +37,9 @@ fi
 # Try to activate virtual environment
 activate_venv
 
-# Check if required tools are available
-if ! command -v black &> /dev/null; then
-    echo "Black is not installed. Please install it with: pip install black"
-    exit 1
-fi
-
-if ! command -v ruff &> /dev/null; then
-    echo "Ruff is not installed. Please install it with: pip install ruff"
+# Check if bin/lint is available
+if [ ! -x "bin/lint" ]; then
+    echo "bin/lint not found or not executable. Make sure you are in the project root."
     exit 1
 fi
 
@@ -50,34 +48,22 @@ if ! command -v python &> /dev/null; then
     exit 1
 fi
 
-# Run Black code check
-echo "Running Black check..."
-black --check .
+# Run linting and formatting checks
+echo "Running bin/lint checks..."
+bin/lint
 
 if [ $? -ne 0 ]; then
-    echo "❌ Black check failed. Please fix the formatting issues and try again."
-    echo "   Run: black . --fix"
+    echo "❌ Lint check failed. Please fix the formatting/linting issues and try again."
+    echo "   Run: bin/lint --fix"
     exit 1
 fi
 
-echo "✅ Black formatting check passed"
-
-# Run Ruff lint check
-echo "Running Ruff lint check..."
-ruff check .
-
-if [ $? -ne 0 ]; then
-    echo "❌ Ruff lint check failed. Please fix the linting issues and try again."
-    echo "   Run: ruff check . --fix"
-    exit 1
-fi
-
-echo "✅ Ruff lint check passed"
+echo "✅ Lint check passed"
 
 # Check exception translations
 echo "Checking exception translations..."
 if [ -f "bin/check-translations" ]; then
-    python bin/check-translations
+    poetry run python bin/check-translations
     if [ $? -ne 0 ]; then
         echo "❌ Exception translation check failed."
         exit 1

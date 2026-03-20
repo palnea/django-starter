@@ -12,7 +12,11 @@ class SwaggerAccessMiddleware:
 
     def __call__(self, request):
         # URLs to protect
-        protected_urls = [reverse("schema-swagger-ui"), reverse("schema-redoc")]
+        protected_urls = [
+            reverse("schema-swagger-ui"),
+            reverse("schema-redoc"),
+            reverse("schema"),
+        ]
 
         # Check if the request path is one of the protected URLs
         if any(url in request.path for url in protected_urls):

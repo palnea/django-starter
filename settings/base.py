@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "django_filters",
-    "drf_yasg",
+    "drf_spectacular",
     "django_celery_results",
     "django_celery_beat",
     "authy",
@@ -233,14 +233,29 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "common.pagination.CustomPageNumberPagination",
 }
 
-SWAGGER_SETTINGS = {
-    "DOC_EXPANSION": "list",
-    "APIS_SORTER": "alpha",
-    "USE_SESSION_AUTH": False,
-    "SECURITY_DEFINITIONS": {
-        "Bearer": {"type": "apiKey", "name": "Authorization", "in": "header"}
+REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "drf_spectacular.openapi.AutoSchema"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "MyApp API",
+    "VERSION": "v1",
+    "DESCRIPTION": "Monolith MyApp API",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "docExpansion": "list",
     },
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+            }
+        }
+    },
+    "SECURITY": [{"BearerAuth": []}],
 }
+
+# cache_timeout=0 in development (DEBUG=True), 1 hour in production
+API_SCHEMA_CACHE_TIMEOUT = 0 if DEBUG else 3600
 
 SWAGGER_ACCESS_PASSCODE = os.environ.get("SWAGGER_ACCESS_PASSCODE")
 

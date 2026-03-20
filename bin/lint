@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Change to the project root directory
+cd "$(dirname "$0")/.."
+
+# Check for arguments
+if [[ "$1" == "--fix" ]]; then
+    echo "Running Black (formatting)..."
+    poetry run black .
+    
+    echo "Running Ruff (fixing)..."
+    poetry run ruff check --fix .
+    
+    echo "Linting and formatting complete!"
+else
+    if [[ "$1" == "--check" ]]; then
+        echo "Notice: '--check' is the default behavior. Use '--fix' to auto-fix."
+    elif [[ -n "$1" ]]; then
+        echo "Usage: bin/lint [--fix]"
+        exit 1
+    fi
+
+    echo "Running Black (checking)..."
+    poetry run black --check .
+    
+    echo "Running Ruff (checking)..."
+    poetry run ruff check .
+    
+    echo "Lint checks passed!"
+fi

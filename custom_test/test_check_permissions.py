@@ -19,14 +19,12 @@ from common.permissions.generic_permissions import (
 class PermissionExistenceTestCase(TestCase):
 
     def get_all_viewsets(self) -> List[Tuple[Union[View, str]]]:
-        """
-        Dynamically retrieve all viewsets that inherit from ModelViewSet.
-        """
+        """Dynamically retrieve all viewsets that inherit from ModelViewSet."""
         viewsets = []
         third_party_prefixes = [
             "django",
             "rest_framework",
-            "drf_yasg",
+            "drf_spectacular",
         ]
 
         for app_config in apps.get_app_configs():
@@ -84,9 +82,7 @@ class PermissionExistenceTestCase(TestCase):
         return viewsets
 
     def get_all_actions(self, viewset_class: View) -> List[str]:
-        """
-        Retrieve all actions (standard and custom) for a given viewset.
-        """
+        """Retrieve all actions (standard and custom) for a given viewset."""
         # Standard actions in ModelViewSet
         standard_actions = [
             method
@@ -112,9 +108,8 @@ class PermissionExistenceTestCase(TestCase):
         return standard_actions + custom_actions
 
     def contains_permission(self, permission_classes, permission_class):
-        """
-        Recursively checks if a permission_class is contained within permission_classes,
-        handling both direct instances and compound expressions.
+        """Recursively checks if a permission_class is contained within permission_classes, handling both direct
+        instances and compound expressions.
         """
         # Ensure permission_classes is always a list
         if not isinstance(permission_classes, list):

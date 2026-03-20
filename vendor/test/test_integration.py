@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
-from mock.mock import patch, call, MagicMock
+from unittest.mock import patch, call, MagicMock
 from model_bakery import baker
 
 from custom_test.baker_recipes import (

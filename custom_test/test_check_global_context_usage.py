@@ -54,7 +54,7 @@ class GlobalContextBoundaryTestCase(TestCase):
     def test_global_context_not_used_in_business_logic(self):
         """GlobalContextMiddleware must not be imported in models, services, tasks, or serializers."""
         violations = []
-        third_party_prefixes = ["django", "rest_framework", "drf_yasg"]
+        third_party_prefixes = ["django", "rest_framework", "drf_spectacular"]
 
         for app_config in apps.get_app_configs():
             # Skip third-party apps
