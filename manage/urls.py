@@ -18,12 +18,13 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_page, cache_control
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from common.decorators import swagger_passcode_required
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -35,7 +36,13 @@ urlpatterns = [
     # API schema (OpenAPI 3.0 JSON — cached in production via cache_page)
     path(
         "api/schema/",
-        cache_page(settings.API_SCHEMA_CACHE_TIMEOUT)(SpectacularAPIView.as_view()),
+        swagger_passcode_required(
+            cache_control(private=True)(
+                cache_page(settings.API_SCHEMA_CACHE_TIMEOUT)(
+                    SpectacularAPIView.as_view()
+                )
+            )
+        ),
         name="schema",
     ),
     path(
