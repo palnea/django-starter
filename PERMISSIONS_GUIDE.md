@@ -50,7 +50,7 @@ class UserViewSet(ModelViewSet):
         # If user has model permissions, use Django permissions
         lambda r, v: r.user.has_perm('user.view_user'): ActionAwareModelPermissions,
         # Otherwise, use ownership logic
-        lambda r, v: True: IsOwnerWithoutSideEffects  # Default case
+        lambda r, v: True: IsOwner  # Default case
     })]
 ```
 
@@ -87,30 +87,8 @@ class AdminOnlyViewSet(ModelViewSet):
 
 **Perfect for:** Admin-only resources where no ownership logic is needed, enhanced security for custom actions
 
-### 2. IsOwnerWithoutSideEffects (Composition-Safe)
 
-**Pure ownership permission designed for composition with other permissions.**
-
-```python
-from common.permissions.generic_permissions import (
-    IsOwner, ActionAwareModelPermissions, ShortCircuitOr
-)
-
-
-class DocumentViewSet(ModelViewSet):
-    # ✅ Admin OR Owner - safe composition
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
-    queryset = Document.objects.all()
-
-    def get_queryset(self):
-        if not self.request.user.has_perm('documents.view_document'):
-            return Document.objects.filter(user_id=self.request.user.id)
-        return Document.objects.all()
-```
-
-**Perfect for:** Composition scenarios where you need ownership checks without side effects
-
-### 3. IsActionPermissionGranted (Action-Specific Permissions)
+### 2. IsActionPermissionGranted (Action-Specific Permissions)
 
 **Granular permission checks for specific ViewSet actions.**
 
@@ -133,7 +111,7 @@ class UserViewSet(ModelViewSet):
 
 **Perfect for:** Fine-grained permission control over individual actions
 
-### 4. IsReadonly (Read-Only Access)
+### 3. IsReadonly (Read-Only Access)
 
 **Global permission check for read-only access.**
 
@@ -157,7 +135,7 @@ class PublicViewSet(ModelViewSet):
 from common.view_mixins import OwnershipMixin
 
 class DocumentViewSet(OwnershipMixin, ModelViewSet):
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     queryset = Document.objects.all()
     # Mixin automatically handles:
     # - Queryset filtering by ownership for users without model permissions
@@ -217,7 +195,7 @@ class BlogPostViewSet(ModelViewSet):
         # Staff can manage all posts
         lambda r, v: r.user.is_staff: ActionAwareModelPermissions,
         # Authors can manage their own posts
-        lambda r, v: r.user.groups.filter(name='Authors').exists(): IsOwnerWithoutSideEffects,
+        lambda r, v: r.user.groups.filter(name='Authors').exists(): IsOwner,
         # Readers can only view
         lambda r, v: True: IsReadonly
     })]
@@ -244,7 +222,7 @@ class UserViewSet(OwnershipMixin, ModelViewSet):
     """
     permission_classes = [ShortCircuitOr(
         ActionAwareModelPermissions,     # For CRUD + custom actions with proper permissions
-        IsOwnerWithoutSideEffects        # For ownership-based access
+        IsOwner        # For ownership-based access
     )]
     
     @action(detail=True, methods=['post'])
@@ -282,15 +260,15 @@ class ProjectModelPermissionsWithOwnership(DjangoModelPermissions):
 ```python
 # Generic, reusable composition for any use case
 class UserViewSet(OwnershipMixin, ModelViewSet):
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
 
 class DocumentViewSet(OwnershipMixin, ModelViewSet):
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
 
 class BlogPostViewSet(ModelViewSet):
     permission_classes = [ConditionalPermission({
         lambda r, v: r.user.has_perm('blog.change_post'): ActionAwareModelPermissions,
-        lambda r, v: True: IsOwnerWithoutSideEffects
+        lambda r, v: True: IsOwner
     })]
 ```
 
@@ -306,7 +284,7 @@ class BlogPostViewSet(ModelViewSet):
 # Complex combinations without specialized classes
 permission_classes = [ShortCircuitOr(
     IsAdminUser,
-    IsOwnerWithoutSideEffects & IsTeamMember,
+    IsOwner & IsTeamMember,
     IsReadonly
 )]
 ```
@@ -316,7 +294,7 @@ permission_classes = [ShortCircuitOr(
 # Clear, readable permission rules
 permission_classes = [ConditionalPermission({
     lambda r, v: r.user.has_perm('app.admin_access'): AllowAny,
-    lambda r, v: r.user.is_verified: IsOwnerWithoutSideEffects,
+    lambda r, v: r.user.is_verified: IsOwner,
     lambda r, v: True: IsReadonly
 })]
 ```
@@ -331,7 +309,7 @@ permission_classes = [ConditionalPermission({
 ### Pattern 1: Admin OR Owner (Most Common)
 ```python
 class DocumentViewSet(OwnershipMixin, ModelViewSet):
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     # OwnershipMixin handles all side effects (filtering + injection)
 ```
 
@@ -348,7 +326,7 @@ permission_classes = [IsReadonly | ActionAwareModelPermissions]
 ### Pattern 4: Pure Ownership with Explicit Control
 ```python
 class DocumentViewSet(OwnershipFilterMixin, ModelViewSet):
-    permission_classes = [IsOwnerWithoutSideEffects]
+    permission_classes = [IsOwner]
     # Manual control over what side effects to include
 ```
 
@@ -368,16 +346,16 @@ class DocumentViewSet(ModelViewSet):
 
 # New: Generic composition
 class DocumentViewSet(OwnershipMixin, ModelViewSet):
-    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+    permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
 ```
 
 ### From Standard OR Composition
 ```python
 # Old: Side effects with standard OR
-permission_classes = [ActionAwareModelPermissions | IsOwnerWithoutSideEffects]  # ❌ Potential evaluation issues
+permission_classes = [ActionAwareModelPermissions | IsOwner]  # ❌ Potential evaluation issues
 
 # New: Safe composition with short-circuiting
-permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]  # ✅ No side effects
+permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]  # ✅ No side effects
 ```
 
 ### Key Changes from Documentation

@@ -1,5 +1,5 @@
 from django.urls import reverse
-from mock.mock import patch
+from unittest.mock import patch
 from model_bakery import baker
 from rest_framework import status
 

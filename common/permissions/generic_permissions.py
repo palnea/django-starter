@@ -40,7 +40,7 @@ class ShortCircuitOr:
     unwanted side effects.
 
     Examples:
-        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)]
+        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)]
     """
 
     def __init__(self, *permissions):
@@ -56,8 +56,8 @@ class ShortCircuitOrPermission(permissions.BasePermission):
     all permissions and return True if any pass.
 
     Examples:
-        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwnerWithoutSideEffects)] // Won't evaluate IsOwnerWithoutSideEffects if ActionAwareModelPermissions passes
-        permission_classes = [ActionAwareModelPermissions | IsOwnerWithoutSideEffects] // Will evaluate both permissions and return True if any pass
+        permission_classes = [ShortCircuitOr(ActionAwareModelPermissions, IsOwner)] // Won't evaluate IsOwner if ActionAwareModelPermissions passes
+        permission_classes = [ActionAwareModelPermissions | IsOwner] // Will evaluate both permissions and return True if any pass
     """
 
     def __init__(self, permission_classes):
@@ -84,7 +84,7 @@ class ConditionalPermission(permissions.BasePermission):
     Examples:
         permission_classes = [ConditionalPermission({
             lambda r, v: r.user.has_perm('user.view_user'): ActionAwareModelPermissions,
-            lambda r, v: True: IsOwnerWithoutSideEffects  # Default case
+            lambda r, v: True: IsOwner  # Default case
         })]
     """
 
@@ -345,21 +345,6 @@ class IsReadonly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS
-
-
-# DEPRECATED: Use IsOwner directly — one name, one class. This alias will be removed in a future version.
-class IsOwnerWithoutSideEffects(IsOwner):
-    """Deprecated — use IsOwner directly."""
-
-    def __init_subclass__(cls, **kwargs):
-        import warnings
-
-        warnings.warn(
-            "IsOwnerWithoutSideEffects is deprecated. Use IsOwner directly — one name, one class.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        super().__init_subclass__(**kwargs)
 
 
 def check_ownership(

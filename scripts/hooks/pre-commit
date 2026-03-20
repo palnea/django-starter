@@ -5,11 +5,14 @@
 
 # Function to find and activate virtual environment
 activate_venv() {
+    # Dynamically get project name from bin/setup
+    local PROJECT_NAME=$(grep -E '^PROJECT_NAME=' bin/setup | cut -d'"' -f2 || echo "")
+    
     # Try common virtual environment locations
     local venv_paths=(
         "venv/bin/activate"
         ".venv/bin/activate"
-        "$HOME/.virtualenvs/django-starter/bin/activate"
+        "$HOME/.virtualenvs/$PROJECT_NAME/bin/activate"
         "env/bin/activate"
     )
     

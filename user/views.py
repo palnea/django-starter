@@ -32,7 +32,7 @@ class UserViewSet(OwnershipMixin, ModelViewSet):
 
     Permissions:
     - ActionAwareModelPermissions: Enhanced Django model permissions for admins with action-level granularity
-    - IsOwnerWithoutSideEffects: Ownership checks for regular users
+    - IsOwner: Ownership checks for regular users
     - ShortCircuitOr: Combines permissions without side effects
 
     Mixins:
