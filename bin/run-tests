@@ -1,16 +1,37 @@
 #!/bin/bash
 
-# Run all test_*.py files in the repository
-echo "Finding and running test files..."
+# Separate positional arguments (paths/apps) from options (flags like --failfast)
+PATHS=()
+OPTIONS=()
+
+for arg in "$@"; do
+    if [[ "$arg" == -* ]]; then
+        OPTIONS+=("$arg")
+    else
+        PATHS+=("$arg")
+    fi
+done
+
+# If no specific paths are provided, search the current directory
+if [ ${#PATHS[@]} -eq 0 ]; then
+    PATHS=(".")
+fi
+
+# Run test_*.py files in the specified paths
+echo "Finding and running test files in: ${PATHS[*]}"
 temp_file=$(mktemp)
 trap "rm -f $temp_file" EXIT
 
-# Find and store unique test directories
-find . -type f -name "test_*.py" -exec dirname {} \; | sort -u > $temp_file
+if [ ${#OPTIONS[@]} -gt 0 ]; then
+    echo "Applying options to all tests: ${OPTIONS[*]}"
+fi
+
+# Find and store unique test directories within the given paths
+find "${PATHS[@]}" -type f -name "test_*.py" -exec dirname {} \; 2>/dev/null | sort -u > "$temp_file"
 
 while IFS= read -r dir; do
     echo "Running Django tests in $dir..."
-    python manage.py test "$dir" --settings=settings.local_test
+    python manage.py test --settings=settings.local_test "$dir" "${OPTIONS[@]}"
     if [ $? -ne 0 ]; then
         echo "Tests failed in $dir. Please fix the tests and try again."
         exit 1
