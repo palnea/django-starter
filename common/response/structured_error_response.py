@@ -82,6 +82,7 @@ class StructuredErrorResponse:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to RFC 7807 compliant dictionary"""
         response_data = {
+            "success": False,
             "type": self.error_type.value,
             "status": self.status_code,
         }
