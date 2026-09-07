@@ -123,7 +123,6 @@ def demo_business_logic_generic_errors():
                 title=_("Insufficient Funds"),
                 detail=f"Your account balance is ${user_balance:.2f}, but this transaction requires ${amount:.2f}. Please add funds to your account or reduce the transaction amount.",
                 code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-                instance="/api/v1/payments/process",
                 extra_data={
                     "current_balance": float(user_balance),
                     "required_amount": float(amount),
@@ -138,7 +137,6 @@ def demo_business_logic_generic_errors():
                     "Trial accounts are limited to transactions of $100 or less. Please upgrade your account to process larger transactions."
                 ),
                 code=ErrorCode.PERMISSION_DENIED,
-                instance="/api/v1/payments/process",
                 extra_data={
                     "account_type": user_type,
                     "transaction_limit": 100,
@@ -179,7 +177,6 @@ def demo_system_maintenance_errors():
                 ),
                 code=ErrorCode.AN_ERROR_OCCURED,
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                instance="/api/v1/system/status",
                 extra_data={
                     "maintenance_type": "scheduled",
                     "estimated_completion": "2024-01-01T15:30:00Z",
@@ -195,7 +192,6 @@ def demo_system_maintenance_errors():
                 ),
                 code=ErrorCode.THROTTLED,
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                instance="/api/v1/heavy-operation",
                 extra_data={
                     "queue_position": 42,
                     "estimated_wait_seconds": 120,
@@ -232,7 +228,6 @@ def demo_business_rule_violations():
                 ),
                 code=ErrorCode.ACTIVE_SUBSCRIPTION_EXISTS,
                 status_code=status.HTTP_409_CONFLICT,
-                instance="/api/v1/subscriptions/create",
                 extra_data={
                     "existing_subscription": {
                         "id": existing_subscriptions[0].id,
@@ -250,7 +245,6 @@ def demo_business_rule_violations():
                     "Premium subscriptions are only available to accounts that have been active for at least 30 days. Your account is {days} days old."
                 ).format(days=user.account_age_days),
                 code=ErrorCode.VERIFICATION_PREREQUISITE_NOT_SATISFIED,
-                instance="/api/v1/subscriptions/create",
                 extra_data={
                     "account_age_days": user.account_age_days,
                     "required_age_days": 30,
@@ -292,7 +286,6 @@ def demo_authentication_generic_errors():
                 detail=_(
                     "This endpoint requires authentication. Please provide a valid access token in the Authorization header."
                 ),
-                instance="/api/v1/protected-resource",
             )
 
         if token == "expired":
@@ -301,7 +294,6 @@ def demo_authentication_generic_errors():
                 detail=_(
                     "Your authentication token has expired. Please log in again to continue."
                 ),
-                instance="/api/v1/protected-resource",
             )
 
         if token == "invalid":
@@ -310,7 +302,6 @@ def demo_authentication_generic_errors():
                 detail=_(
                     "The provided authentication token is invalid or malformed. Please check your credentials and try again."
                 ),
-                instance="/api/v1/protected-resource",
             )
 
     """
@@ -336,7 +327,6 @@ def demo_authorization_generic_errors():
                 detail=_(
                     "Your account has been temporarily suspended. Please contact support for assistance."
                 ),
-                instance=f"/api/v1/{resource}",
             )
 
         if action == "delete" and user.role != "admin":
@@ -345,7 +335,6 @@ def demo_authorization_generic_errors():
                 detail=_(
                     "You need administrator privileges to delete resources. Please contact your system administrator if you believe this is an error."
                 ),
-                instance=f"/api/v1/{resource}",
             )
 
         if action == "export" and not user.has_export_permission:
@@ -354,7 +343,6 @@ def demo_authorization_generic_errors():
                 detail=_(
                     "Data export functionality requires special permissions. Please request export access from your administrator."
                 ),
-                instance=f"/api/v1/{resource}/export",
             )
 
     """
@@ -426,15 +414,13 @@ def demo_mixed_field_and_generic_errors():
             "username": [
                 {
                     "code": "reserved_username",
-                    "message": "This username is reserved",
-                    "value": null
+                    "message": "This username is reserved"
                 }
             ],
             "password": [
                 {
                     "code": "min_length",
-                    "message": "Ensure this field has at least 8 characters.",
-                    "value": null
+                    "message": "Ensure this field has at least 8 characters."
                 }
             ]
         }

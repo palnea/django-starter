@@ -60,7 +60,6 @@ class UserLoginSerializer(serializers.Serializer):
                     "phone": [_("Cannot be empty if no email provided")],
                 },
                 title=_("Contact Information Required"),
-                instance="/api/v1/auth/login",
             )
 
         if email and phone:
@@ -71,7 +70,6 @@ class UserLoginSerializer(serializers.Serializer):
                     "phone": [_("Should not be provided if email provided")],
                 },
                 title=_("Only One Contact Method Allowed"),
-                instance="/api/v1/auth/login",
             )
 
         if data.get("verification_code") and data.get("verification_id"):
@@ -96,7 +94,6 @@ class UserLoginSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={field_name: [str(error_message)]},
                 title=_("User Not Found"),
-                instance="/api/v1/auth/login",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
@@ -104,14 +101,12 @@ class UserLoginSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors={"email": [_("Email is not verified")]},
                 title=_("Email Verification Required"),
-                instance="/api/v1/auth/login",
             )
 
         if phone and not user.phone_verified:
             raise CustomException.validation_error(
                 field_errors={"phone": [_("Phone is not verified")]},
                 title=_("Phone Verification Required"),
-                instance="/api/v1/auth/login",
             )
 
         return authenticate_user(user, password)
@@ -146,14 +141,12 @@ class UserRegisterSerializer(serializers.Serializer):
                     "phone": [_("Cannot be empty if no email provided")],
                 },
                 title=_("Contact Information Required"),
-                instance="/api/v1/auth/register",
             )
 
         if not password == verify_password:
             raise CustomException.validation_error(
                 field_errors={"verify_password": [_("Password doesn't match")]},
                 title=_("Password Mismatch"),
-                instance="/api/v1/auth/register",
             )
 
         validation = {
@@ -200,7 +193,6 @@ class UpdatePasswordSerializer(serializers.Serializer):
             raise CustomException.validation_error(
                 field_errors=errors,
                 title=_("Password Change Failed"),
-                instance="/api/v1/auth/change-password",
             )
 
         user.set_password(new_password)
@@ -288,7 +280,6 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
                 detail=_(
                     "Google client ID doesn't match with system's client ID. Please try logging in again."
                 ),
-                instance="/api/v1/auth/google",
             )
 
         try:

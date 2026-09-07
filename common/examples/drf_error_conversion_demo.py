@@ -48,15 +48,13 @@ def demo_simple_field_errors():
                 "email": [
                     {
                         "code": "invalid",
-                        "message": "Enter a valid email address.",
-                        "value": None
+                        "message": "Enter a valid email address."
                     }
                 ],
                 "password": [
                     {
                         "code": "min_length",
-                        "message": "Ensure this field has at least 8 characters.",
-                        "value": None
+                        "message": "Ensure this field has at least 8 characters."
                     }
                 ]
             }
@@ -127,15 +125,13 @@ def demo_custom_field_validation():
                 "username": [
                     {
                         "code": "username_too_short",
-                        "message": "Username must be at least 3 characters long",
-                        "value": None
+                        "message": "Username must be at least 3 characters long"
                     }
                 ],
                 "email": [
                     {
                         "code": "email_exists",
-                        "message": "A user with this email already exists",
-                        "value": None
+                        "message": "A user with this email already exists"
                     }
                 ]
             }
@@ -203,15 +199,13 @@ def demo_object_level_validation():
                 "new_password": [
                     {
                         "code": "invalid",
-                        "message": "New password and confirmation do not match",
-                        "value": None
+                        "message": "New password and confirmation do not match"
                     }
                 ],
                 "confirm_password": [
                     {
                         "code": "invalid", 
-                        "message": "Password confirmation does not match",
-                        "value": None
+                        "message": "Password confirmation does not match"
                     }
                 ]
             }
@@ -329,29 +323,25 @@ def demo_nested_serializer_errors():
                 "username": [
                     {
                         "code": "min_length",
-                        "message": "Ensure this field has at least 3 characters.",
-                        "value": None
+                        "message": "Ensure this field has at least 3 characters."
                     }
                 ],
                 "email": [
                     {
                         "code": "invalid",
-                        "message": "Enter a valid email address.",
-                        "value": None
+                        "message": "Enter a valid email address."
                     }
                 ],
                 "address.street": [
                     {
                         "code": "blank",
-                        "message": "This field may not be blank.",
-                        "value": None
+                        "message": "This field may not be blank."
                     }
                 ],
                 "address.zipcode": [
                     {
                         "code": "invalid_zipcode",
-                        "message": "Zipcode must contain only digits",
-                        "value": None
+                        "message": "Zipcode must contain only digits"
                     }
                 ]
             }
@@ -413,50 +403,43 @@ def demo_list_serializer_errors():
                 "order_id": [
                     {
                         "code": "blank",
-                        "message": "This field may not be blank.",
-                        "value": None
+                        "message": "This field may not be blank."
                     }
                 ],
                 "customer_email": [
                     {
                         "code": "invalid",
-                        "message": "Enter a valid email address.",
-                        "value": None
+                        "message": "Enter a valid email address."
                     }
                 ],
                 "items.1.name": [
                     {
                         "code": "blank",
-                        "message": "This field may not be blank.",
-                        "value": None
+                        "message": "This field may not be blank."
                     }
                 ],
                 "items.1.quantity": [
                     {
                         "code": "min_value",
-                        "message": "Ensure this value is greater than or equal to 1.",
-                        "value": None
+                        "message": "Ensure this value is greater than or equal to 1."
                     }
                 ],
                 "items.1.price": [
                     {
                         "code": "min_value",
-                        "message": "Ensure this value is greater than or equal to 0.01.",
-                        "value": None
+                        "message": "Ensure this value is greater than or equal to 0.01."
                     }
                 ],
                 "items.2.name": [
                     {
                         "code": "required",
-                        "message": "This field is required.",
-                        "value": None
+                        "message": "This field is required."
                     }
                 ],
                 "items.2.quantity": [
                     {
                         "code": "min_value",
-                        "message": "Ensure this value is greater than or equal to 1.",
-                        "value": None
+                        "message": "Ensure this value is greater than or equal to 1."
                     }
                 ]
             }

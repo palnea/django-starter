@@ -6,8 +6,24 @@
 #   Host: localhost  Port: 8000
 #
 # The virtualenv is the one created by bin/setup (~/.virtualenvs/myapp).
+#
+# Usage:
+#   bin/server           Normal development server (DEBUG=True).
+#   bin/server --prod    Production-like mode. Runs collectstatic, then serves
+#                        with DEBUG=False so whitenoise resolves static files
+#                        through staticfiles.json exactly as production does.
+#                        Use it to catch broken asset references before deploy.
 
 set -e
+
+PROD_MODE=false
+EXTRA_ARGS=()
+for arg in "$@"; do
+    case "$arg" in
+        --prod) PROD_MODE=true ;;
+        *) EXTRA_ARGS+=("$arg") ;;
+    esac
+done
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -28,6 +44,26 @@ source "$VENV_PATH/bin/activate"
 
 # Environment variables matching the PyCharm configuration
 export PYTHONUNBUFFERED=1
+
+if [ "$PROD_MODE" = true ]; then
+    export DJANGO_SETTINGS_MODULE=settings.local_prod
+
+    # staticfiles/ is build output and is not committed, so it has to exist
+    # before whitenoise can resolve anything through the manifest.
+    echo -e "${BLUE}[INFO]${NC}  Collecting static files ..."
+    python manage.py collectstatic --noinput --clear > /dev/null
+
+    echo -e "${BLUE}[INFO]${NC}  Virtualenv : $VENV_PATH"
+    echo -e "${BLUE}[INFO]${NC}  Settings   : $DJANGO_SETTINGS_MODULE (DEBUG=False)"
+    echo -e "${BLUE}[INFO]${NC}  Static     : whitenoise, hashed names from staticfiles.json"
+    echo -e "${BLUE}[INFO]${NC}  Starting production-like server at http://localhost:8000 ..."
+    echo ""
+
+    # --nostatic keeps Django's staticfiles app from intercepting /static/, so
+    # whitenoise serves it the same way it does in production.
+    exec python manage.py runserver --nostatic localhost:8000 "${EXTRA_ARGS[@]}"
+fi
+
 export DJANGO_SETTINGS_MODULE=manage.settings
 
 echo -e "${BLUE}[INFO]${NC}  Virtualenv : $VENV_PATH"
@@ -35,4 +71,4 @@ echo -e "${BLUE}[INFO]${NC}  Settings   : $DJANGO_SETTINGS_MODULE"
 echo -e "${BLUE}[INFO]${NC}  Starting Django server at http://localhost:8000 ..."
 echo ""
 
-exec python manage.py runserver localhost:8000
+exec python manage.py runserver localhost:8000 "${EXTRA_ARGS[@]}"

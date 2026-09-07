@@ -113,7 +113,7 @@ class StructuredErrorResponseTest(TestCase):
         # Check first error
         first_error = data["errors"]["general"][0]
         self.assertEqual(first_error["title"], "Error 1")
-        self.assertEqual(first_error["detail"], "First error")
+        self.assertEqual(first_error["message"], "First error")
         self.assertEqual(first_error["code"], "ERR_1")
 
     def test_mixed_field_and_general_errors(self):
@@ -199,13 +199,11 @@ class CustomExceptionTest(TestCase):
                     "password": ["Password is too short"],
                 },
                 title="Validation Failed",
-                instance="/api/v1/auth/login",
             )
 
         exc = context.exception
         self.assertTrue(exc.has_field_errors())
         self.assertEqual(exc.title, "Validation Failed")
-        self.assertEqual(exc.instance, "/api/v1/auth/login")
 
     def test_business_logic_error_creation(self):
         """Test creating business logic errors using CustomException."""
@@ -214,7 +212,6 @@ class CustomExceptionTest(TestCase):
                 title="Insufficient Balance",
                 detail="Your account balance is too low",
                 code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-                instance="/api/v1/transactions",
                 extra_data={"balance": 10.50},
             )
 
@@ -228,7 +225,6 @@ class CustomExceptionTest(TestCase):
             raise CustomException.authentication_error(
                 title="Authentication Failed",
                 detail="Token has expired",
-                instance="/api/v1/protected",
             )
 
         exc = context.exception
@@ -241,7 +237,6 @@ class CustomExceptionTest(TestCase):
             raise CustomException.not_found_error(
                 title="User Not Found",
                 detail="User with ID 12345 does not exist",
-                instance="/api/v1/users/12345",
             )
 
         exc = context.exception
@@ -279,7 +274,6 @@ class CustomExceptionTest(TestCase):
                         "code": "daily_limit_exceeded",
                     },
                 ],
-                instance="/api/v1/payments",
             )
         except CustomException as exc:
             self.assertIsNotNone(exc.title)
@@ -339,7 +333,6 @@ class StructuredErrorIntegrationTest(APITestCase):
                 "password": ["Password too short"],
             },
             title="Login Failed",
-            instance="/api/v1/auth/login",
         )
 
         context = {
@@ -442,14 +435,12 @@ class ErrorResponseFormatTest(TestCase):
                     {
                         "code": "invalid_format",
                         "message": "The email format is incorrect",
-                        "value": None,
                     }
                 ],
                 "password": [
                     {
                         "code": "required",
                         "message": "Password is required",
-                        "value": None,
                     }
                 ],
             },

@@ -164,7 +164,7 @@ class DRFSerializerStructuredErrorTest(TestCase):
             for error in field_errors:
                 self.assertIn("code", error)
                 self.assertIn("message", error)
-                self.assertIn("value", error)
+                self.assertNotIn("value", error)
 
     def test_custom_validation_errors(self):
         """Test custom field validation errors"""

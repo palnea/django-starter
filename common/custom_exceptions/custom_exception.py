@@ -30,7 +30,6 @@ class CustomException(APIException):
         message=None,
         field_errors: Optional[Dict[str, List[Union[str, FieldErrorCode]]]] = None,
         title: Optional[str] = None,
-        instance: Optional[str] = None,
         extra_data: Optional[Dict[str, Any]] = None,
         error_type: Optional[str] = None,
     ):
@@ -48,7 +47,6 @@ class CustomException(APIException):
         self.title = title or str(
             self.default_message
         )  # Ensure all exceptions have a title
-        self.instance = instance
         self.extra_data = extra_data or {}
         self.error_type = error_type
 
@@ -66,10 +64,9 @@ class CustomException(APIException):
         status_code=None,
         message: str = None,
         title: str = None,
-        instance: str = None,
     ):
         detail = str(exc)
-        return cls(detail, code, status_code, message, title=title, instance=instance)
+        return cls(detail, code, status_code, message, title=title)
 
     @classmethod
     def validation_error(
@@ -77,7 +74,6 @@ class CustomException(APIException):
         field_errors: Dict[str, List[Union[str, FieldErrorCode]]] = None,
         general_message: str = None,
         title: str = None,
-        instance: str = None,
         status_code: int = status.HTTP_400_BAD_REQUEST,
     ):
         """Create a validation error with field-specific errors using structured codes"""
@@ -88,7 +84,6 @@ class CustomException(APIException):
             message=_("Request parameters are not valid!"),
             field_errors=field_errors,
             title=title or _("Validation Error"),
-            instance=instance,
             error_type="validation_error",
         )
 
@@ -99,7 +94,6 @@ class CustomException(APIException):
         detail: str,
         code: ErrorCode = None,
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        instance: str = None,
         extra_data: Dict[str, Any] = None,
     ):
         """Create a business logic error"""
@@ -109,15 +103,12 @@ class CustomException(APIException):
             status_code=status_code,
             message=title,
             title=title,
-            instance=instance,
             extra_data=extra_data,
             error_type="business_logic_error",
         )
 
     @classmethod
-    def authentication_error(
-        cls, title: str = None, detail: str = None, instance: str = None
-    ):
+    def authentication_error(cls, title: str = None, detail: str = None):
         """Create an authentication error"""
         return cls(
             detail=detail or _("Authentication credentials were missing or invalid."),
@@ -125,14 +116,11 @@ class CustomException(APIException):
             status_code=status.HTTP_401_UNAUTHORIZED,
             message=title or _("Authentication Failed"),
             title=title or _("Authentication Failed"),
-            instance=instance,
             error_type="authentication_error",
         )
 
     @classmethod
-    def authorization_error(
-        cls, title: str = None, detail: str = None, instance: str = None
-    ):
+    def authorization_error(cls, title: str = None, detail: str = None):
         """Create an authorization error"""
         return cls(
             detail=detail or _("You do not have permission to perform this action."),
@@ -140,14 +128,11 @@ class CustomException(APIException):
             status_code=status.HTTP_403_FORBIDDEN,
             message=title or _("Access Denied"),
             title=title or _("Access Denied"),
-            instance=instance,
             error_type="authorization_error",
         )
 
     @classmethod
-    def not_found_error(
-        cls, title: str = None, detail: str = None, instance: str = None
-    ):
+    def not_found_error(cls, title: str = None, detail: str = None):
         """Create a not found error"""
         return cls(
             detail=detail or _("The requested resource was not found."),
@@ -155,12 +140,11 @@ class CustomException(APIException):
             status_code=status.HTTP_404_NOT_FOUND,
             message=title or _("Not Found"),
             title=title or _("Not Found"),
-            instance=instance,
             error_type="not_found_error",
         )
 
     @classmethod
-    def client_error(cls, title: str = None, detail: str = None, instance: str = None):
+    def client_error(cls, title: str = None, detail: str = None):
         """Create a client error (4xx)"""
         return cls(
             detail=detail or _("Bad request."),
@@ -168,12 +152,11 @@ class CustomException(APIException):
             status_code=status.HTTP_400_BAD_REQUEST,
             message=title or _("Client Error"),
             title=title or _("Client Error"),
-            instance=instance,
             error_type="client_error",
         )
 
     @classmethod
-    def server_error(cls, title: str = None, detail: str = None, instance: str = None):
+    def server_error(cls, title: str = None, detail: str = None):
         """Create a server error (5xx)"""
         return cls(
             detail=detail or _("Internal server error."),
@@ -181,7 +164,6 @@ class CustomException(APIException):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=title or _("Server Error"),
             title=title or _("Server Error"),
-            instance=instance,
             error_type="server_error",
         )
 
@@ -192,7 +174,6 @@ class CustomException(APIException):
             Dict[str, Union[str, GeneralErrorCode]]
         ],  # Now supports typed codes
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        instance: str = None,
         extra_data: Dict[str, Any] = None,
     ):
         """
@@ -201,7 +182,6 @@ class CustomException(APIException):
         Args:
             errors: List of error dictionaries with "title", "detail", and optionally "code"
             status_code: HTTP status code
-            instance: Request path or resource identifier
             extra_data: Additional response data
 
         Example:
@@ -231,7 +211,6 @@ class CustomException(APIException):
             status_code=status_code,
             message=main_title,
             title=main_title,
-            instance=instance,
             extra_data=multiple_errors_data,
             error_type="business_logic_error",
         )
@@ -242,8 +221,6 @@ class CustomException(APIException):
         field: str,
         code: FieldErrorCode,
         message: str,
-        instance: str = None,
-        value: Any = None,
     ):
         """
         Create a single field validation error with structured code.
@@ -253,7 +230,6 @@ class CustomException(APIException):
                 field="email",
                 code=FieldErrorCode.INVALID_EMAIL,
                 message="Please enter a valid email address",
-                value="invalid-email"
             )
         """
         field_errors = {field: [code]}  # Use the enum directly
@@ -265,8 +241,6 @@ class CustomException(APIException):
             message=_("Validation failed"),
             field_errors=field_errors,
             title=_("Validation Error"),
-            instance=instance,
-            extra_data={"field_value": value} if value is not None else None,
         )
 
     def has_field_errors(self) -> bool:
