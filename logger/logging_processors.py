@@ -1,10 +1,12 @@
 import concurrent.futures
+import threading
 
 import httpx
 import newrelic.agent
 from django.conf import settings as django_settings
 
 executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+_queue_semaphore = threading.BoundedSemaphore(1000)
 
 
 def send_to_newrelic(logger, log_method, event_dict):
@@ -44,9 +46,23 @@ def send_to_newrelic(logger, log_method, event_dict):
     )
     client = httpx.Client(limits=limits, transport=transport)
 
-    executor.submit(send_request, client, payload, headers)
+    if _queue_semaphore.acquire(blocking=False):
+        try:
+            executor.submit(_bounded_send_request, client, payload, headers)
+        except Exception:
+            _queue_semaphore.release()
+    else:
+        if django_settings.DEBUG:
+            print("Log queue full (1000 pending tasks). Dropping remote log entry.")
 
     return event_dict
+
+
+def _bounded_send_request(client, payload, headers):
+    try:
+        send_request(client, payload, headers)
+    finally:
+        _queue_semaphore.release()
 
 
 def send_request(client, payload, headers):
