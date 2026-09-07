@@ -176,7 +176,7 @@ Services and views raise `CustomException` (from `common/custom_exceptions/custo
 
 ```python
 CustomException.validation_error(field_errors={"email": [FieldErrorCode.INVALID_EMAIL]})
-CustomException.field_validation_error(field="email", code=FieldErrorCode.INVALID_EMAIL, message="...", value="bad@")
+CustomException.field_validation_error(field="email", code=FieldErrorCode.INVALID_EMAIL, message="...")
 CustomException.business_logic_error(title="Conflict", detail="Already exists.")
 CustomException.multiple_business_logic_errors(errors=[{"title": "...", "detail": "...", "code": GeneralErrorCode.X}])
 CustomException.not_found_error(title="Not Found", detail="Resource missing.")
@@ -188,23 +188,31 @@ CustomException.server_error()
 
 **Error codes:**
 
-- `ErrorCode` enum — values serialized as `ERR_{NAME}` (e.g., `ERR_NOT_FOUND_ERROR`)
-- `FieldErrorCode` enum — field-level validation codes
-- `GeneralErrorCode` enum — for `multiple_business_logic_errors`
+- `ErrorCode` enum — values serialized as `ERR_{NAME}` (e.g., `ERR_NOT_FOUND_ERROR`). This is what `response_code` carries, and it is present on **every** error response.
+- `FieldErrorCode` enum — field-level validation codes, serialized as the lowercased member name (e.g., `invalid_email`)
+- `GeneralErrorCode` enum — for `multiple_business_logic_errors`, serialized the same lowercased way
 
 **Error response shape** (from exception handler):
 
 ```json
 {
+  "success": false,
   "type": "...",
   "status": 400,
   "title": "...",
   "detail": "...",
-  "instance": "...",
+  "instance": "/auth/login",
   "response_code": "ERR_...",
-  "errors": { "field": [{ "code": "FIELD_ERR_...", "message": "...", "value": "..." }] }
+  "errors": { "email": [{ "code": "invalid_email", "message": "..." }] }
 }
 ```
+
+**Rules for the error envelope:**
+
+- `response_code` is **always** present and always `ERR_`-prefixed, including on errors raised by DRF's own validators.
+- `instance` is derived from the request path by the handler. Never pass it by hand, there is no `instance=` argument.
+- Every entry in the `errors` map shares a `{code, message}` core. Entries under the reserved `general` key (used when there are multiple non-field errors) add a `title` on top of that core.
+- Field entries never echo the submitted value back.
 
 ### Logging
 

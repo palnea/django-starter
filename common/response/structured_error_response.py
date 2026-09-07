@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional, Union
 from django.utils.translation import gettext_lazy as _
 from rest_framework.response import Response
 
+from .response_information_codes.error_code import ErrorCode
 from .response_information_codes.field_error_code import FieldErrorCode
 from .response_information_codes.general_error_code import GeneralErrorCode
 
@@ -20,6 +21,19 @@ class StructuredErrorType(Enum):
     NOT_FOUND_ERROR = "not_found_error"
 
 
+# Every error response carries a response_code. When neither the response nor its
+# general error supplies one, it is derived from the error type via this map.
+DEFAULT_ERROR_CODE_BY_TYPE = {
+    StructuredErrorType.VALIDATION_ERROR: ErrorCode.GENERAL_VALIDATION_ERROR,
+    StructuredErrorType.AUTHENTICATION_ERROR: ErrorCode.AUTHENTICATION_FAILED,
+    StructuredErrorType.AUTHORIZATION_ERROR: ErrorCode.PERMISSION_DENIED,
+    StructuredErrorType.NOT_FOUND_ERROR: ErrorCode.NOT_FOUND_ERROR,
+    StructuredErrorType.CLIENT_ERROR: ErrorCode.BAD_REQUEST,
+    StructuredErrorType.BUSINESS_LOGIC_ERROR: ErrorCode.AN_ERROR_OCCURED,
+    StructuredErrorType.SERVER_ERROR: ErrorCode.INTERNAL_SERVER_ERROR,
+}
+
+
 @dataclass
 class FieldError:
     """Represents a field-specific validation error"""
@@ -29,7 +43,6 @@ class FieldError:
         FieldErrorCode, str
     ]  # Support both enum and string for backward compatibility
     message: str
-    value: Any = None
 
     def get_code_value(self) -> str:
         """Get string value regardless of input type"""
@@ -79,21 +92,34 @@ class StructuredErrorResponse:
         self.error_code = error_code
         self.extra_data = extra_data or {}
 
+    def resolve_response_code(self) -> str:
+        """
+        Resolve the response_code, which is always present on an error response.
+
+        The response-level code wins. A lone general error supplies the code when the
+        response carries none, and the error type provides the final fallback so no
+        construction path can produce a body without a response_code.
+        """
+        if self.error_code:
+            return self.error_code.value
+
+        if len(self.general_errors) == 1 and self.general_errors[0].code:
+            return self.general_errors[0].get_code_value()
+
+        return DEFAULT_ERROR_CODE_BY_TYPE[self.error_type].value
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to RFC 7807 compliant dictionary"""
         response_data = {
             "success": False,
             "type": self.error_type.value,
             "status": self.status_code,
+            "response_code": self.resolve_response_code(),
         }
 
         # Add instance if provided
         if self.instance:
             response_data["instance"] = self.instance
-
-        # Add main error code if provided
-        if self.error_code:
-            response_data["response_code"] = self.error_code.value
 
         # Handle general errors - now supporting multiple
         if self.general_errors:
@@ -102,21 +128,23 @@ class StructuredErrorResponse:
                 general_error = self.general_errors[0]
                 response_data["title"] = general_error.title
                 response_data["detail"] = general_error.detail
-                if general_error.code:
-                    response_data["response_code"] = general_error.get_code_value()
             else:
-                # Multiple general errors: use array format
+                # Multiple general errors: use array format. Entries share the
+                # {code, message} shape of field entries and add their own title.
                 response_data["title"] = _("Multiple Issues Found")
                 response_data["detail"] = _(
                     "Multiple issues were identified with your request."
                 )
                 response_data["errors"] = response_data.get("errors", {})
-                response_data["errors"]["general"] = []
-                for error in self.general_errors:
-                    error_item = {"title": error.title, "detail": error.detail}
-                    if error.code:
-                        error_item["code"] = error.get_code_value()
-                    response_data["errors"]["general"].append(error_item)
+                response_data["errors"]["general"] = [
+                    {
+                        "code": error.get_code_value()
+                        or GeneralErrorCode.UNKNOWN_ERROR.value,
+                        "message": error.detail,
+                        "title": error.title,
+                    }
+                    for error in self.general_errors
+                ]
 
         # Handle field errors
         if self.field_errors:
@@ -140,7 +168,6 @@ class StructuredErrorResponse:
                     {
                         "code": field_error.get_code_value(),
                         "message": field_error.message,
-                        "value": field_error.value,
                     }
                 )
 

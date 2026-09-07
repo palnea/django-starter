@@ -113,8 +113,21 @@ class UpdatePasswordViewSet(LoggingMixin, GenericViewSet):
         return view_response.rest_response
 
 
-class CustomTokenRefreshView(TokenRefreshView):
+class CustomTokenRefreshView(LoggingMixin, TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        view_response = ViewResponse(
+            response_body=serializer.validated_data,
+            response_status=status.HTTP_200_OK,
+            is_successful=True,
+            response_information_code=MessageCode.GENERAL_SUCCESS,
+        )
+
+        return view_response.rest_response
 
 
 class GoogleSocialAuthView(LoggingMixin, GenericAPIView):
