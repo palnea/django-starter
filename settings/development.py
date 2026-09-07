@@ -10,8 +10,11 @@ INSTALLED_APPS += (
 
 ALLOWED_HOSTS += ["localhost", "127.0.0.1", "[::1]", "*"]
 
+# bin/setup writes DATABASE_URL into .env. The fallback below only applies to a
+# checkout with no .env, so it points at the standard PostgreSQL port, which is
+# also what CI uses.
 DATABASES["default"] = dj_database_url.parse(
-    os.environ.get("DATABASE_URL", "postgresql://localhost:6666/myapp")
+    os.environ.get("DATABASE_URL", "postgresql://localhost:5432/myapp")
 )
 
 SIMPLE_JWT["SIGNING_KEY"] = SECRET_KEY
