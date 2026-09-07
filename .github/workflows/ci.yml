@@ -80,6 +80,13 @@ jobs:
       - name: Check for missing migrations
         run: poetry run python manage.py makemigrations --check --dry-run
 
+      # staticfiles/ is build output and is not committed. Production builds it
+      # in the release phase (Procfile -> bin/release), so CI builds it too. This
+      # keeps CI able to run anything with DEBUG=False, where whitenoise resolves
+      # every {% static %} through staticfiles.json and raises without it.
+      - name: Collect static files
+        run: poetry run python manage.py collectstatic --noinput
+
       - name: Run Django tests
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
