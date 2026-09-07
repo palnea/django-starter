@@ -17,9 +17,18 @@ PYTHON_VERSION="3.14.3"
 PROJECT_NAME="myapp"
 VENV_PATH="$HOME/.virtualenvs/$PROJECT_NAME"
 DB_NAME="myapp"
-DB_PORT="6666"
 DB_HOST="localhost"
-DATABASE_URL="postgresql://$DB_HOST:$DB_PORT/$DB_NAME"
+
+# Port policy:
+#   - Unset DB_PORT (the default): adopt whatever port the local PostgreSQL is
+#     already serving on. Nothing global is modified.
+#   - DB_PORT=<n>: require that port. If the running server is on a different
+#     one, its postgresql.conf is rewritten and the service restarted.
+#   - PG_FRESH_INSTALL_PORT is only used when no server exists yet.
+DB_PORT="${DB_PORT:-}"
+DB_PORT_REQUESTED="$DB_PORT"
+PG_FRESH_INSTALL_PORT="${PG_FRESH_INSTALL_PORT:-5432}"
+DATABASE_URL=""
 
 # Helper functions
 print_status() {
@@ -44,6 +53,58 @@ check_command() {
     else
         return 1
     fi
+}
+
+# Name of the installed Homebrew PostgreSQL formula, any version.
+# Prefer a service that is actually started, then any registered service,
+# then any installed formula. Never assumes a specific major version.
+pg_detect_service() {
+    local svc
+    svc=$(brew services list 2>/dev/null | awk '$2=="started" && $1 ~ /^postgresql/ {print $1; exit}')
+    [[ -n "$svc" ]] || svc=$(brew services list 2>/dev/null | awk '$1 ~ /^postgresql/ {print $1; exit}')
+    [[ -n "$svc" ]] || svc=$(brew list --formula 2>/dev/null | grep -E "^postgresql(@[0-9.]+)?$" | head -1)
+    echo "$svc"
+}
+
+# The port a local PostgreSQL is actually answering on, or empty if none is.
+# Checks the requested port first, then the common ones, then anything a
+# running postgres process is bound to.
+pg_running_port() {
+    local candidates=() p
+    [[ -n "$DB_PORT_REQUESTED" ]] && candidates+=("$DB_PORT_REQUESTED")
+    candidates+=(5432 6666)
+    while read -r p; do
+        [[ -n "$p" ]] && candidates+=("$p")
+    done < <(ps -eo args 2>/dev/null | grep "[p]ostgres .*-p " | sed -E 's/.*-p ([0-9]+).*/\1/')
+
+    for p in "${candidates[@]}"; do
+        if pg_isready -h "$DB_HOST" -p "$p" &> /dev/null; then
+            echo "$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Path to postgresql.conf. Asks the running server first, which is always
+# authoritative, and only falls back to globbing the Homebrew data dirs.
+pg_detect_config() {
+    local port="$1" cfg d
+    if [[ -n "$port" ]]; then
+        cfg=$(psql -h "$DB_HOST" -p "$port" -d postgres -tAc "SHOW config_file" 2>/dev/null | tr -d '[:space:]')
+        if [[ -n "$cfg" && -f "$cfg" ]]; then
+            echo "$cfg"
+            return 0
+        fi
+    fi
+    for d in /opt/homebrew/var/postgresql@* /opt/homebrew/var/postgres \
+             /usr/local/var/postgresql@* /usr/local/var/postgres; do
+        if [[ -f "$d/postgresql.conf" ]]; then
+            echo "$d/postgresql.conf"
+            return 0
+        fi
+    done
+    return 1
 }
 
 # Main setup
@@ -104,8 +165,8 @@ install_postgresql() {
             if brew install postgresql; then
                 print_success "PostgreSQL installed successfully"
             else
-                print_warning "Trying to install PostgreSQL@15..."
-                brew install postgresql@15
+                print_warning "Trying to install PostgreSQL@17..."
+                brew install postgresql@17
             fi
         else
             print_error "Homebrew not found. Please install Homebrew first: https://brew.sh/"
@@ -132,7 +193,7 @@ if brew services list | grep -q postgresql; then
 elif brew list --formula | grep -q "^postgresql"; then
     PG_SERVER_INSTALLED=true
     print_success "PostgreSQL server already installed"
-elif check_command psql && [[ -d "/opt/homebrew/var/postgresql@14" || -d "/opt/homebrew/var/postgresql@15" || -d "/opt/homebrew/var/postgresql" ]]; then
+elif check_command psql && compgen -G "/opt/homebrew/var/postgresql*" > /dev/null; then
     print_warning "PostgreSQL client found but server may need reinstallation"
     print_status "Installing PostgreSQL server..."
     install_postgresql
@@ -160,26 +221,12 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sleep 2
     
     # Check what PostgreSQL services are available
-    PG_SERVICE=""
-    if brew services list | grep -q "postgresql@"; then
-        # Find the specific version installed
-        PG_SERVICE=$(brew services list | grep "postgresql@" | head -1 | awk '{print $1}')
-        print_status "Found versioned PostgreSQL service: $PG_SERVICE"
-    elif brew services list | grep -q "postgresql[^@]"; then
-        PG_SERVICE="postgresql"
+    PG_SERVICE=$(pg_detect_service)
+    if [[ -n "$PG_SERVICE" ]]; then
         print_status "Found PostgreSQL service: $PG_SERVICE"
     else
-        # If not found in services, try to find installed PostgreSQL
-        if brew list --formula | grep -q "^postgresql@"; then
-            PG_SERVICE=$(brew list --formula | grep "^postgresql@" | head -1)
-            print_status "Found installed PostgreSQL formula: $PG_SERVICE"
-        elif brew list --formula | grep -q "^postgresql$"; then
-            PG_SERVICE="postgresql"
-            print_status "Found installed PostgreSQL formula: $PG_SERVICE"
-        else
-            print_warning "No PostgreSQL installation found, using default"
-            PG_SERVICE="postgresql"
-        fi
+        print_warning "No PostgreSQL installation found, using default"
+        PG_SERVICE="postgresql"
     fi
     
     # Check if PostgreSQL is running and start it if needed
@@ -197,14 +244,14 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
                 fi
             fi
         fi
+
         
         # Start the service
         if brew services start "$PG_SERVICE"; then
             print_success "PostgreSQL service started: $PG_SERVICE"
         else
-            print_warning "Failed to start $PG_SERVICE, trying alternatives..."
-            # Try common alternatives
-            for service in postgresql postgresql@15 postgresql@14 postgresql@13; do
+            print_warning "Failed to start $PG_SERVICE, trying every installed formula..."
+            for service in $(brew list --formula 2>/dev/null | grep -E "^postgresql(@[0-9.]+)?$"); do
                 print_status "Trying to start $service..."
                 if brew services start "$service" 2>/dev/null; then
                     print_success "Started $service"
@@ -220,7 +267,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     
     # Set PostgreSQL PATH based on installed version
     if [[ -n "$PG_SERVICE" && "$PG_SERVICE" != "postgresql" ]]; then
-        # Versioned PostgreSQL (e.g., postgresql@15)
+        # Versioned PostgreSQL (e.g., postgresql@17)
         if [[ -d "/opt/homebrew/opt/$PG_SERVICE/bin" ]]; then
             export PATH="/opt/homebrew/opt/$PG_SERVICE/bin:$PATH"
             print_success "Added $PG_SERVICE to PATH"
@@ -247,80 +294,111 @@ else
     fi
 fi
 
-# Configure PostgreSQL to run on custom port 6666
-print_status "Configuring PostgreSQL to run on port $DB_PORT..."
+# Resolve the port to use.
+#
+# By default we adopt whatever port the local PostgreSQL is already serving on
+# rather than rewriting its postgresql.conf. That config is global: moving a
+# shared Homebrew server to a private port breaks every other project on the
+# machine. CI already runs on 5432, and the only reference to a fixed port in
+# this repo is a fallback default in settings/development.py that .env overrides,
+# so there is nothing to be gained by forcing one here.
+#
+# Set DB_PORT explicitly to require a specific port, and the reconfiguration
+# path below runs instead.
+DETECTED_PORT="$(pg_running_port || true)"
 
-# Find PostgreSQL configuration file
-PG_CONFIG_FILE=""
-if [[ -f "/opt/homebrew/var/postgres/postgresql.conf" ]]; then
-    PG_CONFIG_FILE="/opt/homebrew/var/postgres/postgresql.conf"
-elif [[ -f "/opt/homebrew/var/postgresql@15/postgresql.conf" ]]; then
-    PG_CONFIG_FILE="/opt/homebrew/var/postgresql@15/postgresql.conf"
-elif [[ -f "/opt/homebrew/var/postgresql@14/postgresql.conf" ]]; then
-    PG_CONFIG_FILE="/opt/homebrew/var/postgresql@14/postgresql.conf"
-elif [[ -f "/usr/local/var/postgres/postgresql.conf" ]]; then
-    PG_CONFIG_FILE="/usr/local/var/postgres/postgresql.conf"
-fi
-
-if [[ -n "$PG_CONFIG_FILE" && -f "$PG_CONFIG_FILE" ]]; then
-    print_status "Found PostgreSQL config at: $PG_CONFIG_FILE"
-    # Stop PostgreSQL before modifying config
-    if brew services list | grep postgresql | grep -q "started"; then
-        print_status "Stopping PostgreSQL to update configuration..."
-        for service in postgresql postgresql@15 postgresql@14; do
-            brew services stop "$service" 2>/dev/null || true
-        done
-        sleep 2
-    fi
-    
-    # Update port in configuration
-    if grep -q "^port = " "$PG_CONFIG_FILE"; then
-        sed -i'' -e "s/^port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
-    elif grep -q "^#port = " "$PG_CONFIG_FILE"; then
-        sed -i'' -e "s/^#port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
-    else
-        echo "port = $DB_PORT" >> "$PG_CONFIG_FILE"
-    fi
-    print_success "PostgreSQL configured to use port $DB_PORT"
-    
-    # Restart PostgreSQL with new configuration
-    print_status "Restarting PostgreSQL with new port configuration..."
-    for service in postgresql postgresql@15 postgresql@14; do
-        if brew services start "$service" 2>/dev/null; then
-            print_success "Started $service on port $DB_PORT"
-            PG_SERVICE="$service"
-            break
-        fi
-    done
-    sleep 5
+if [[ -z "$DB_PORT_REQUESTED" && -n "$DETECTED_PORT" ]]; then
+    DB_PORT="$DETECTED_PORT"
+    print_success "Adopting the running PostgreSQL on port $DB_PORT (nothing reconfigured)"
+elif [[ -z "$DB_PORT_REQUESTED" ]]; then
+    DB_PORT="$PG_FRESH_INSTALL_PORT"
+    print_status "No running PostgreSQL detected, will use port $DB_PORT"
 else
-    print_warning "PostgreSQL config file not found, trying to start with default settings on port $DB_PORT"
+    DB_PORT="$DB_PORT_REQUESTED"
+    print_status "Port $DB_PORT explicitly requested"
 fi
 
-# Check if PostgreSQL is accessible on the configured port
+# Only touch postgresql.conf when a specific port was demanded and the server
+# is not already on it.
+if [[ -n "$DB_PORT_REQUESTED" && "$DETECTED_PORT" != "$DB_PORT" ]]; then
+    print_status "Configuring PostgreSQL to run on port $DB_PORT..."
+    PG_CONFIG_FILE="$(pg_detect_config "$DETECTED_PORT" || true)"
+
+    if [[ -n "$PG_CONFIG_FILE" && -f "$PG_CONFIG_FILE" ]]; then
+        print_status "Found PostgreSQL config at: $PG_CONFIG_FILE"
+        print_warning "This changes the port for ALL users of this PostgreSQL installation."
+
+        if brew services list | grep -q "^$PG_SERVICE.*started"; then
+            print_status "Stopping $PG_SERVICE to update configuration..."
+            brew services stop "$PG_SERVICE" 2>/dev/null || true
+            sleep 2
+        fi
+
+        cp "$PG_CONFIG_FILE" "$PG_CONFIG_FILE.bak.$(date +%s)" 2>/dev/null || true
+        if grep -q "^port = " "$PG_CONFIG_FILE"; then
+            sed -i'' -e "s/^port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
+        elif grep -q "^#port = " "$PG_CONFIG_FILE"; then
+            sed -i'' -e "s/^#port = .*/port = $DB_PORT/" "$PG_CONFIG_FILE"
+        else
+            echo "port = $DB_PORT" >> "$PG_CONFIG_FILE"
+        fi
+        print_success "PostgreSQL configured to use port $DB_PORT"
+
+        print_status "Restarting $PG_SERVICE with the new port configuration..."
+        brew services start "$PG_SERVICE" 2>/dev/null || true
+        sleep 5
+    else
+        print_warning "Could not locate postgresql.conf, leaving the server configuration alone"
+    fi
+fi
+
+# Make sure the server is actually up, starting it if it is not.
 print_status "Checking PostgreSQL accessibility on port $DB_PORT..."
 max_attempts=10
 attempt=1
+started_once=false
 
 while [ $attempt -le $max_attempts ]; do
     if pg_isready -h "$DB_HOST" -p "$DB_PORT" &> /dev/null; then
         print_success "PostgreSQL is running and accessible on port $DB_PORT"
         break
-    elif [ $attempt -eq $max_attempts ]; then
-        print_error "PostgreSQL is not accessible on port $DB_PORT after $max_attempts attempts"
-        print_status "Trying to check if PostgreSQL is running on default port 5432..."
-        if pg_isready -h "$DB_HOST" -p 5432 &> /dev/null; then
-            print_warning "PostgreSQL is running on port 5432, but Django expects port $DB_PORT"
-            print_status "You may need to manually configure PostgreSQL port or update Django settings"
-        fi
-        print_error "Please check PostgreSQL installation and configuration"
-        exit 1
-    else
-        print_status "Waiting for PostgreSQL to be ready on port $DB_PORT... (attempt $attempt/$max_attempts)"
-        sleep 2
-        ((attempt++))
     fi
+
+    # One attempt to start the service before giving up on it.
+    if [[ "$started_once" == false && -n "$PG_SERVICE" ]]; then
+        print_status "Starting $PG_SERVICE..."
+        brew services start "$PG_SERVICE" 2>/dev/null || true
+        started_once=true
+        sleep 3
+        continue
+    fi
+
+    if [ $attempt -eq $max_attempts ]; then
+        # Last resort: the server may have come up somewhere else entirely.
+        FALLBACK_PORT="$(pg_running_port || true)"
+        if [[ -n "$FALLBACK_PORT" && "$FALLBACK_PORT" != "$DB_PORT" ]]; then
+            if [[ -z "$DB_PORT_REQUESTED" ]]; then
+                print_warning "PostgreSQL answered on port $FALLBACK_PORT instead, adopting it"
+                DB_PORT="$FALLBACK_PORT"
+                break
+            fi
+            print_error "Port $DB_PORT was requested but PostgreSQL is serving on $FALLBACK_PORT"
+            print_status "Re-run without DB_PORT set to just use port $FALLBACK_PORT:"
+            print_status "    bin/setup"
+            exit 1
+        fi
+        print_error "PostgreSQL is not accessible on port $DB_PORT after $max_attempts attempts"
+        print_status "Check that it is installed and running: brew services list | grep postgresql"
+        exit 1
+    fi
+
+    print_status "Waiting for PostgreSQL to be ready on port $DB_PORT... (attempt $attempt/$max_attempts)"
+    sleep 2
+    ((attempt++))
 done
+
+# Now that the port is settled, the connection string can be built.
+DATABASE_URL="postgresql://$DB_HOST:$DB_PORT/$DB_NAME"
 
 # Set up PostgreSQL user and database
 print_status "Setting up PostgreSQL user and database..."
@@ -377,38 +455,40 @@ create_pg_user
 
 # Configure PostgreSQL authentication for Django compatibility
 print_status "Configuring PostgreSQL authentication..."
-if [[ -n "$PG_CONFIG_FILE" ]]; then
-    PG_HBA_FILE=$(dirname "$PG_CONFIG_FILE")/pg_hba.conf
-    if [[ -f "$PG_HBA_FILE" ]]; then
+
+# If we can already reach the server, its auth is fine and there is nothing to
+# do. Appending blanket "trust" lines to a shared pg_hba.conf disables password
+# authentication for every database on the machine, so it is a last resort.
+if psql -h "$DB_HOST" -p "$DB_PORT" -d postgres -c "SELECT 1;" &> /dev/null; then
+    print_success "PostgreSQL authentication already works, leaving pg_hba.conf alone"
+else
+    PG_CONFIG_FILE="${PG_CONFIG_FILE:-$(pg_detect_config "$DB_PORT" || true)}"
+    PG_HBA_FILE=""
+    [[ -n "$PG_CONFIG_FILE" ]] && PG_HBA_FILE="$(dirname "$PG_CONFIG_FILE")/pg_hba.conf"
+
+    if [[ -n "$PG_HBA_FILE" && -f "$PG_HBA_FILE" ]]; then
         print_status "Found pg_hba.conf at: $PG_HBA_FILE"
-        # Ensure local connections are allowed (needed for Django's default DATABASE_URL)
-        if ! grep -q "local   all             all                                     trust" "$PG_HBA_FILE"; then
-            print_status "Adding local trust authentication to pg_hba.conf..."
-            # Stop PostgreSQL to modify auth config
-            for service in postgresql postgresql@15 postgresql@14; do
-                brew services stop "$service" 2>/dev/null || true
-            done
+        if ! grep -q "^local   all             all                                     trust" "$PG_HBA_FILE"; then
+            print_warning "Could not connect. Enabling local trust authentication."
+            print_warning "This affects every database served by this PostgreSQL installation."
+
+            brew services stop "$PG_SERVICE" 2>/dev/null || true
             sleep 2
-            
-            # Backup and modify pg_hba.conf
-            cp "$PG_HBA_FILE" "$PG_HBA_FILE.backup" 2>/dev/null || true
+
+            cp "$PG_HBA_FILE" "$PG_HBA_FILE.backup.$(date +%s)" 2>/dev/null || true
             echo "# Added by bin/setup for Django compatibility" >> "$PG_HBA_FILE"
             echo "local   all             all                                     trust" >> "$PG_HBA_FILE"
             echo "host    all             all             127.0.0.1/32            trust" >> "$PG_HBA_FILE"
             echo "host    all             all             ::1/128                 trust" >> "$PG_HBA_FILE"
-            
-            # Restart PostgreSQL with new auth config
-            print_status "Restarting PostgreSQL with updated authentication..."
-            for service in postgresql postgresql@15 postgresql@14; do
-                if brew services start "$service" 2>/dev/null; then
-                    print_success "Started $service with updated authentication"
-                    break
-                fi
-            done
+
+            print_status "Restarting $PG_SERVICE with updated authentication..."
+            brew services start "$PG_SERVICE" 2>/dev/null || true
             sleep 5
         else
             print_success "PostgreSQL already configured for local trust authentication"
         fi
+    else
+        print_warning "Could not locate pg_hba.conf, skipping authentication configuration"
     fi
 fi
 
@@ -450,8 +530,8 @@ create_database
 # Update DATABASE_URL to match Django development settings expectations
 print_status "Configuring DATABASE_URL to match Django settings..."
 
-# Django development settings expect: postgresql://localhost:6666/myapp (no username)
-# We'll test if this format works, and fallback to user-specific format if needed
+# Django development settings prefer a URL with no username.
+# Test that form first, and fall back to a user-specific one if needed.
 
 if psql "postgresql://localhost:$DB_PORT/$DB_NAME" -c "SELECT 1;" &> /dev/null; then
     # Perfect! This matches Django's expected format exactly
