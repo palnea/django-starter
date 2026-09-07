@@ -22,7 +22,6 @@ def example_field_validation_errors():
                 "password": ["Password is too short"],
             },
             title="Form Validation Failed",
-            instance="/api/v1/users",
         )
     except CustomException:
         # Would produce:
@@ -35,11 +34,11 @@ def example_field_validation_errors():
         #   "instance": "/api/v1/users",
         #   "errors": {
         #     "email": [
-        #       {"code": "invalid", "message": "Invalid email format", "value": null},
-        #       {"code": "invalid", "message": "Email is required", "value": null}
+        #       {"code": "invalid", "message": "Invalid email format"},
+        #       {"code": "invalid", "message": "Email is required"}
         #     ],
         #     "password": [
-        #       {"code": "invalid", "message": "Password is too short", "value": null}
+        #       {"code": "invalid", "message": "Password is too short"}
         #     ]
         #   }
         # }
@@ -53,7 +52,6 @@ def example_single_general_error():
             title="Insufficient Funds",
             detail="Your account balance of $50.00 is insufficient for this $75.00 transaction.",
             code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-            instance="/api/v1/payments",
         )
     except CustomException:
         # Would produce:
@@ -89,7 +87,6 @@ def example_multiple_general_errors():
                     "code": "merchant_unavailable",
                 },
             ],
-            instance="/api/v1/payments",
         )
     except CustomException:
         # Would produce:
@@ -103,19 +100,19 @@ def example_multiple_general_errors():
         #   "errors": {
         #     "general": [
         #       {
-        #         "title": "Insufficient Funds",
-        #         "detail": "Your account balance is $50.00, but this transaction requires $75.00.",
-        #         "code": "insufficient_funds"
+        #         "code": "insufficient_funds",
+        #         "message": "Your account balance is $50.00, but this transaction requires $75.00.",
+        #         "title": "Insufficient Funds"
         #       },
         #       {
-        #         "title": "Daily Limit Exceeded",
-        #         "detail": "You have exceeded your daily transaction limit of $500.00.",
-        #         "code": "daily_limit_exceeded"
+        #         "code": "daily_limit_exceeded",
+        #         "message": "You have exceeded your daily transaction limit of $500.00.",
+        #         "title": "Daily Limit Exceeded"
         #       },
         #       {
-        #         "title": "Merchant Unavailable",
-        #         "detail": "The merchant's payment system is currently unavailable. Please try again later.",
-        #         "code": "merchant_unavailable"
+        #         "code": "merchant_unavailable",
+        #         "message": "The merchant's payment system is currently unavailable. Please try again later.",
+        #         "title": "Merchant Unavailable"
         #       }
         #     ]
         #   }
@@ -153,7 +150,6 @@ def example_mixed_field_and_general_errors():
     _response = StructuredErrorResponse(
         error_type=StructuredErrorType.VALIDATION_ERROR,
         status_code=400,
-        instance="/api/v1/auth/login",
         general_errors=general_errors,
         field_errors=field_errors,
         error_code=ErrorCode.GENERAL_VALIDATION_ERROR,
@@ -170,21 +166,21 @@ def example_mixed_field_and_general_errors():
     #   "errors": {
     #     "general": [
     #       {
-    #         "title": "Account Temporarily Locked",
-    #         "detail": "Your account has been temporarily locked due to multiple failed login attempts.",
-    #         "code": "account_locked"
+    #         "code": "account_locked",
+    #         "message": "Your account has been temporarily locked due to multiple failed login attempts.",
+    #         "title": "Account Temporarily Locked"
     #       },
     #       {
-    #         "title": "System Maintenance",
-    #         "detail": "Our authentication system is undergoing maintenance. Some features may be limited.",
-    #         "code": "system_maintenance"
+    #         "code": "system_maintenance",
+    #         "message": "Our authentication system is undergoing maintenance. Some features may be limited.",
+    #         "title": "System Maintenance"
     #       }
     #     ],
     #     "email": [
-    #       {"code": "invalid_format", "message": "Email must contain @ symbol", "value": null}
+    #       {"code": "invalid_format", "message": "Email must contain @ symbol"}
     #     ],
     #     "password": [
-    #       {"code": "too_weak", "message": "Password must contain special characters", "value": null}
+    #       {"code": "too_weak", "message": "Password must contain special characters"}
     #     ]
     #   }
     # }
@@ -294,12 +290,12 @@ def example_drf_serializer_conversion():
         "detail": "Multiple issues were identified with your request.",
         "errors": {
             "email": [
-                {"code": "required", "message": "This field is required.", "value": null},
-                {"code": "invalid", "message": "Enter a valid email.", "value": null}
+                {"code": "required", "message": "This field is required."},
+                {"code": "invalid", "message": "Enter a valid email."}
             ],
             "general": [
-                {"title": "Validation Error", "detail": "User already exists.", "code": "validation_error"},
-                {"title": "Validation Error", "detail": "Terms must be accepted.", "code": "validation_error"}
+                {"code": "validation_error", "message": "User already exists.", "title": "Validation Error"},
+                {"code": "validation_error", "message": "Terms must be accepted.", "title": "Validation Error"}
             ]
         }
     }
@@ -358,7 +354,6 @@ def example_structured_field_codes():
             field="email",
             code=FieldErrorCode.INVALID_EMAIL,
             message="Please enter a valid email address",
-            value="invalid-email-format",
         )
     except CustomException:
         # Would produce:
@@ -372,8 +367,7 @@ def example_structured_field_codes():
         #     "email": [
         #       {
         #         "code": "invalid_email",
-        #         "message": "Please enter a valid email address",
-        #         "value": "invalid-email-format"
+        #         "message": "Please enter a valid email address"
         #       }
         #     ]
         #   }
@@ -406,7 +400,6 @@ def example_structured_general_codes():
                     "code": GeneralErrorCode.SYSTEM_MAINTENANCE,
                 },
             ],
-            instance="/api/v1/payments",
         )
     except CustomException:
         # Would produce:
@@ -420,19 +413,19 @@ def example_structured_general_codes():
         #   "errors": {
         #     "general": [
         #       {
-        #         "title": "Insufficient Funds",
-        #         "detail": "Your account balance is $50.00, but this transaction requires $75.00.",
-        #         "code": "insufficient_funds"
+        #         "code": "insufficient_funds",
+        #         "message": "Your account balance is $50.00, but this transaction requires $75.00.",
+        #         "title": "Insufficient Funds"
         #       },
         #       {
-        #         "title": "Daily Limit Exceeded",
-        #         "detail": "You have exceeded your daily transaction limit of $500.00.",
-        #         "code": "daily_limit_exceeded"
+        #         "code": "daily_limit_exceeded",
+        #         "message": "You have exceeded your daily transaction limit of $500.00.",
+        #         "title": "Daily Limit Exceeded"
         #       },
         #       {
-        #         "title": "Service Maintenance",
-        #         "detail": "Our payment system is undergoing scheduled maintenance.",
-        #         "code": "system_maintenance"
+        #         "code": "system_maintenance",
+        #         "message": "Our payment system is undergoing scheduled maintenance.",
+        #         "title": "Service Maintenance"
         #       }
         #     ]
         #   }
@@ -483,7 +476,6 @@ def example_mixed_structured_codes():
     _response = StructuredErrorResponse(
         error_type=StructuredErrorType.VALIDATION_ERROR,
         status_code=400,
-        instance="/api/v1/auth/login",
         general_errors=general_errors,
         field_errors=field_errors,
         error_code=ErrorCode.GENERAL_VALIDATION_ERROR,
@@ -513,17 +505,17 @@ def example_drf_auto_conversion():
     #   "detail": "Multiple issues were identified with your request.",
     #   "errors": {
     #     "email": [
-    #       {"code": "required", "message": "This field is required.", "value": null},
-    #       {"code": "invalid_email", "message": "Enter a valid email address.", "value": null}
+    #       {"code": "required", "message": "This field is required."},
+    #       {"code": "invalid_email", "message": "Enter a valid email address."}
     #     ],
     #     "password": [
-    #       {"code": "blank", "message": "This field may not be blank.", "value": null}
+    #       {"code": "blank", "message": "This field may not be blank."}
     #     ],
     #     "general": [
     #       {
-    #         "title": "Validation Error",
-    #         "detail": "User with this email already exists.",
-    #         "code": "validation_error"
+    #         "code": "validation_error",
+    #         "message": "User with this email already exists.",
+    #         "title": "Validation Error"
     #       }
     #     ]
     #   }

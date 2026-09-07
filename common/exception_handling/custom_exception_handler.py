@@ -16,6 +16,7 @@ from common.response.structured_error_response import (
     GeneralError,
     StructuredErrorType,
 )
+from common.response.response_information_codes.error_code import ErrorCode
 from common.response.response_information_codes.field_error_code import FieldErrorCode
 from common.response.response_information_codes.general_error_code import (
     GeneralErrorCode,
@@ -44,7 +45,12 @@ def create_structured_response_from_custom_exception(
         for field_name, errors in exc.field_errors.items():
             for error in errors:
                 # Convert string error codes to FieldErrorCode enum
-                if isinstance(error, str):
+                if isinstance(error, FieldErrorCode):
+                    # Already a structured code, as built by field_validation_error.
+                    # The human-readable message lives on the exception detail.
+                    error_code = error
+                    error_message = str(exc.detail)
+                elif isinstance(error, str):
                     # Simple string error - use invalid code
                     error_code = FieldErrorCode.INVALID
                     error_message = error
@@ -125,7 +131,7 @@ def create_structured_response_from_custom_exception(
     structured_response = StructuredErrorResponse(
         error_type=error_type,
         status_code=exc.status_code,
-        instance=exc.instance or request_path,
+        instance=request_path,
         general_errors=general_errors,
         field_errors=field_errors,
         error_code=exc.code,
@@ -229,6 +235,7 @@ def create_structured_response_from_validation_error(
         instance=request_path,
         general_errors=general_errors,
         field_errors=field_errors,
+        error_code=ErrorCode.GENERAL_VALIDATION_ERROR,
     )
 
     return structured_response.to_response()
@@ -328,6 +335,7 @@ def create_structured_response_from_generic_exception(
         status_code=500,
         instance=request_path,
         general_errors=[general_error],
+        error_code=ErrorCode.INTERNAL_SERVER_ERROR,
     )
 
     return structured_response.to_response()

@@ -84,7 +84,7 @@ class GenericErrorTest(TestCase):
         # Verify each error is properly structured
         for i, error_item in enumerate(data["errors"]["general"]):
             self.assertEqual(error_item["title"], "Validation Error")
-            self.assertEqual(error_item["detail"], errors[i])
+            self.assertEqual(error_item["message"], errors[i])
             self.assertEqual(error_item["code"], "validation_error")
 
     def test_business_logic_generic_error(self):
@@ -95,7 +95,6 @@ class GenericErrorTest(TestCase):
                 title="Insufficient Funds",
                 detail="Your account balance is $50.00, but this transaction requires $75.00. Please add funds to your account.",
                 code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-                instance="/api/v1/payments",
                 extra_data={"current_balance": 50.0, "required_amount": 75.0},
             )
         except CustomException as exc:
@@ -125,7 +124,6 @@ class GenericErrorTest(TestCase):
             raise CustomException.authentication_error(
                 title="Session Expired",
                 detail="Your authentication token has expired. Please log in again to continue.",
-                instance="/api/v1/protected",
             )
         except CustomException as exc:
             context = self._get_mock_context("/api/v1/protected")
@@ -150,7 +148,6 @@ class GenericErrorTest(TestCase):
             raise CustomException.authorization_error(
                 title="Insufficient Permissions",
                 detail="You need administrator privileges to delete resources. Please contact your system administrator.",
-                instance="/api/v1/users",
             )
         except CustomException as exc:
             context = self._get_mock_context("/api/v1/users")
@@ -174,7 +171,6 @@ class GenericErrorTest(TestCase):
                 detail="Our systems are currently undergoing scheduled maintenance. Please try again in 30 minutes.",
                 code=ErrorCode.AN_ERROR_OCCURED,
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                instance="/api/v1/system",
                 extra_data={
                     "maintenance_type": "scheduled",
                     "estimated_completion": "2024-01-01T15:30:00Z",
@@ -203,7 +199,6 @@ class GenericErrorTest(TestCase):
                 detail="You already have an active subscription. To change your plan, please use the upgrade option or cancel your current subscription first.",
                 code=ErrorCode.ACTIVE_SUBSCRIPTION_EXISTS,
                 status_code=status.HTTP_409_CONFLICT,
-                instance="/api/v1/subscriptions",
                 extra_data={
                     "existing_subscription": {"id": 12345, "plan": "standard"},
                     "suggested_actions": ["upgrade", "cancel_current"],
@@ -383,7 +378,6 @@ class ErrorResponseStructureTest(TestCase):
                 title="Rich Error",
                 detail="Detailed description",
                 code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-                instance="/api/v1/test",
                 extra_data={
                     "custom_field": "custom_value",
                     "numeric_field": 42,
@@ -399,7 +393,7 @@ class ErrorResponseStructureTest(TestCase):
 
             # Verify optional fields are included
             self.assertEqual(data["response_code"], "ERR_NOT_ENOUGH_BALANCE_LEFT")
-            self.assertEqual(data["instance"], "/api/v1/test")
+            self.assertEqual(data["instance"], "/api/test")
             self.assertEqual(data["custom_field"], "custom_value")
             self.assertEqual(data["numeric_field"], 42)
             self.assertEqual(data["array_field"], [1, 2, 3])
@@ -413,7 +407,6 @@ class ErrorResponseStructureTest(TestCase):
             raise CustomException.business_logic_error(
                 title=_("Internationalized Title"),
                 detail=_("This is an internationalized error detail message."),
-                instance="/api/v1/i18n",
             )
         except CustomException as exc:
             factory = APIRequestFactory()

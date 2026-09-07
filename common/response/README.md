@@ -56,15 +56,13 @@ For form validation with field-specific error messages:
     "email": [
       {
         "code": "invalid_email",
-        "message": "Please enter a valid email address",
-        "value": "invalid-format"
+        "message": "Please enter a valid email address"
       }
     ],
     "password": [
       {
         "code": "required",
-        "message": "Password is required",
-        "value": null
+        "message": "Password is required"
       }
     ]
   }
@@ -131,16 +129,16 @@ Combining field validation with general notifications:
   "instance": "/api/v1/auth/login",
   "errors": {
     "email": [
-      {"code": "invalid_format", "message": "Email must contain @ symbol", "value": null}
+      {"code": "invalid_format", "message": "Email must contain @ symbol"}
     ],
     "password": [
-      {"code": "too_weak", "message": "Password must contain special characters", "value": null}
+      {"code": "too_weak", "message": "Password must contain special characters"}
     ],
     "general": [
       {
-        "title": "Account Temporarily Locked",
-        "detail": "Your account has been temporarily locked due to multiple failed login attempts.",
-        "code": "account_locked"
+        "code": "account_locked",
+        "message": "Your account has been temporarily locked due to multiple failed login attempts.",
+        "title": "Account Temporarily Locked"
       }
     ]
   }
@@ -174,8 +172,7 @@ class UserSerializer(serializers.ModelSerializer):
         "email": [
             {
                 "code": "invalid",
-                "message": "Email must contain @ symbol",
-                "value": null
+                "message": "Email must contain @ symbol"
             }
         ]
     }
@@ -197,7 +194,6 @@ raise CustomException.field_validation_error(
     field="email",
     code=FieldErrorCode.INVALID_EMAIL,
     message="Please enter a valid email address",
-    value="invalid-format"
 )
 
 # Business logic with enum codes  
@@ -205,7 +201,6 @@ raise CustomException.business_logic_error(
     title="Insufficient Funds",
     detail="Your account balance is $50.00, but this transaction requires $75.00.",
     code=GeneralErrorCode.INSUFFICIENT_FUNDS,
-    instance="/api/v1/payments"
 )
 ```
 
@@ -219,7 +214,6 @@ raise CustomException.validation_error(
         "password": ["Password must be at least 8 characters long"]
     },
     title=_("Validation Error"),
-    instance="/api/v1/auth/login"
 )
 ```
 
@@ -233,7 +227,6 @@ raise CustomException.business_logic_error(
     title=_("Insufficient Balance"),
     detail=_("Your account balance is $10.50, but this transaction requires $25.00"),
     code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-    instance="/api/v1/transactions",
     extra_data={
         "balance": 10.50,
         "required_amount": 25.00
@@ -264,7 +257,6 @@ raise CustomException.multiple_business_logic_errors(
             "code": GeneralErrorCode.SERVICE_UNAVAILABLE
         }
     ],
-    instance="/api/v1/payments"
 )
 ```
 
@@ -398,7 +390,6 @@ raise CustomException(
 raise CustomException.not_found_error(
     title=_("Content not found!"),
     detail=_("User not found"),
-    instance=request.path
 )
 ```
 
@@ -423,7 +414,6 @@ raise CustomException.validation_error(
         "phone": ["Cannot be empty if no email provided"]
     },
     title=_("Contact Information Required"),
-    instance="/api/v1/auth/login"
 )
 ```
 
@@ -443,7 +433,6 @@ raise CustomException.business_logic_error(
     title=_("Insufficient Balance"),
     detail=f"Your account balance is ${current_balance}, but this transaction requires ${required_amount}",
     code=ErrorCode.NOT_ENOUGH_BALANCE_LEFT,
-    instance="/api/v1/transactions",
     extra_data={
         "current_balance": current_balance,
         "required_amount": required_amount

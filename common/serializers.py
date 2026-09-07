@@ -29,7 +29,6 @@ class TranslationBulkCreateSerializer(serializers.Serializer):
                 detail=_(
                     "The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"
                 ),
-                instance="/api/v1/translations",
             )
         if not attrs.get("root").get("locale_id") == english_locale.id:
             raise CustomException.validation_error(
@@ -41,7 +40,6 @@ class TranslationBulkCreateSerializer(serializers.Serializer):
                     ]
                 },
                 title=_("Invalid Locale"),
-                instance="/api/v1/translations",
             )
 
         return attrs
@@ -115,7 +113,6 @@ class TranslatedFileBulkCreateSerializer(serializers.Serializer):
                 detail=_(
                     "The locale that refers to English language doesn't exist. Please create a locale with 'en' code first!"
                 ),
-                instance="/api/v1/translated-files",
             )
         if not attrs.get("root").get("locale_id") == english_locale.id:
             raise CustomException.validation_error(
@@ -127,7 +124,6 @@ class TranslatedFileBulkCreateSerializer(serializers.Serializer):
                     ]
                 },
                 title=_("Invalid Locale"),
-                instance="/api/v1/translated-files",
             )
 
         return attrs

@@ -59,7 +59,6 @@ class PaymentService:
                     title=_("Receipt Verification Failed"),
                     detail=f"The {data.get('store', 'store')} receipt could not be verified. Please check your receipt and try again.",
                     code=ErrorCode.INVALID_RECEIPT,
-                    instance="/api/v1/purchases",
                     extra_data={
                         "store": data.get("store", None),
                         "receipt_status": "verification_failed",
@@ -94,7 +93,6 @@ class PaymentService:
                 ),
                 code=ErrorCode.ACTIVE_SUBSCRIPTION_EXISTS,
                 status_code=status.HTTP_409_CONFLICT,
-                instance="/api/v1/subscriptions",
                 extra_data={
                     "existing_subscription_type": active_subscription_buyable.type,
                     "subscription_id": (

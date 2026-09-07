@@ -338,7 +338,9 @@ class AuthenticationTestCase(CustomAPITestCase):
         url = reverse("authy:token_refresh")
         refresh_response = self.client.post(url, data, format="json")
         self.assertEqual(refresh_response.status_code, 200)
-        self.assertNotEqual(refresh_response.data.get("access", None), None)
+        self.assertNotEqual(
+            refresh_response.data["response_body"].get("access", None), None
+        )
 
     def test_update_password(self):
         data = {"email": self.email_user.email}

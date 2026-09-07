@@ -45,7 +45,7 @@ def authenticate_response(user: "User"):
         validation = {
             "access": str(access_token),
             "refresh": str(refresh_token),
-            "user": user.to_dict(exclude=["phone", "products"]),
+            "user": user.to_dict(exclude=["phone", "products", "password"]),
         }
         return validation
     except ObjectDoesNotExist:
