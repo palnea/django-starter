@@ -57,7 +57,7 @@ class CustomIntegrationTestCase(TestCase):
             data = {"phone": phone_str, "password": password}
         else:
             data = {"email": user.email, "password": password}
-        url = reverse("login")
+        url = reverse("authy:login")
         response = self.client.post(url, data, format="json")
         return response.data["response_body"]
 
