@@ -3,8 +3,9 @@ Exception Handler Mapper
 
 This module maps Django and DRF exceptions to structured error responses.
 
-⚠️  IMPORTANT: When adding new exception handlers, follow the guide in README.md
-    to ensure proper internationalization and avoid test failures.
+⚠️  IMPORTANT: When adding new exception handlers, follow the guide in
+    docs/conventions/i18n.md to ensure proper internationalization and avoid
+    test failures.
 
 The translation system works as follows:
 1. Mark ALL strings for translation in the section below

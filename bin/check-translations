@@ -103,7 +103,7 @@ def main():
     else:
         print("❌ Translation validation failed!")
         print("\nPlease fix the issues above before committing.")
-        print("See common/exception_handling/README.md for guidance.")
+        print("See docs/conventions/i18n.md for guidance.")
         return 1
 
 
