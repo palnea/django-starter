@@ -48,6 +48,13 @@ Refreshing rotates the refresh token and blacklists the old one, through
 `rest_framework_simplejwt.token_blacklist`. A stolen refresh token is therefore
 usable once, and reuse of a rotated token fails.
 
+A malformed, expired, or blacklisted refresh token is rejected with `401`,
+`type: authentication_error`, `response_code: ERR_INVALID_TOKEN`.
+`CustomTokenRefreshView.post` translates simplejwt's `TokenError` into
+`InvalidToken` for this, exactly as simplejwt's own `TokenViewBase.post` does.
+Without that translation the plain `TokenError` falls through the exception
+handler as a 500.
+
 ### What is in a token
 
 `CustomTokenObtainPairSerializer.get_token()` adds to both tokens:
