@@ -6,6 +6,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.views import TokenRefreshView
 from structlog import get_logger
 
@@ -118,7 +119,14 @@ class CustomTokenRefreshView(LoggingMixin, TokenRefreshView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+
+        # Mirror simplejwt's TokenViewBase.post: a malformed or expired token
+        # raises TokenError, a plain Exception the handler would render as a
+        # 500. InvalidToken is an APIException the mapper turns into a 401.
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0]) from e
 
         view_response = ViewResponse(
             response_body=serializer.validated_data,

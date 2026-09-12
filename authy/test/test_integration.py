@@ -342,6 +342,17 @@ class AuthenticationTestCase(CustomAPITestCase):
             refresh_response.data["response_body"].get("access", None), None
         )
 
+    def test_refresh_token_with_invalid_token_is_rejected(self):
+        """A malformed refresh token must be rejected as 401, not surface as a 500."""
+        data = {"refresh": "corrupted-by-the-foundation-harness"}
+
+        url = reverse("authy:token_refresh")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data.get("type"), "authentication_error")
+        self.assertEqual(response.data.get("response_code"), "ERR_INVALID_TOKEN")
+
     def test_update_password(self):
         data = {"email": self.email_user.email}
         url = reverse("authy:reset_password")
