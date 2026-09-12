@@ -168,6 +168,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = "user.User"
+SILENCED_SYSTEM_CHECKS = ["auth.E003"]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

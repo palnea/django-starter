@@ -32,7 +32,7 @@ class User(AbstractBaseUser, SoftDeleteModel, PermissionsMixin):
     )
     phone = PhoneNumberField(null=True, blank=True)
     phone_verified = models.BooleanField(null=False, blank=False, default=False)
-    email = models.EmailField(null=True, blank=True, unique=True)
+    email = models.EmailField(null=True, blank=True)
     email_verified = models.BooleanField(null=False, blank=False, default=False)
 
     # User profile fields

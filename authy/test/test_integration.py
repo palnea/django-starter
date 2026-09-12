@@ -110,6 +110,61 @@ class AuthenticationTestCase(CustomAPITestCase):
         user = user_query.first()
         self.assertTrue(user.email_verified)
 
+    @patch("communications.clients.sms.NetgsmSMSClient.send_sms")
+    @patch("communications.clients.email.DjangoEmailClient.send_email")
+    def test_registration_with_deleted_user_email(self, mock_send_email, mock_send_sms):
+        mock_send_email.return_value = True
+        mock_send_sms.return_value = True
+        password = "password"
+        confirm_password = "password"
+        email = "deleted_user@yopmail.com"
+        data = {
+            "email": email,
+            "password": password,
+            "verify_password": confirm_password,
+        }
+
+        url = reverse("authy:register")
+
+        # Initial registration succeeds
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        # Duplicate registration while user is active fails with ERR_DUPLICATE_KEY_ERROR
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data.get("response_code"), "ERR_DUPLICATE_KEY_ERROR")
+
+        # Soft-delete the user
+        user = User.objects.get(email=email)
+        user.delete()
+        self.assertFalse(User.objects.filter(email=email).exists())
+        self.assertTrue(User.deleted_objects.filter(email=email).exists())
+
+        # Register back with the same email should succeed
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(email=email).exists())
+        new_user = User.objects.get(email=email)
+        self.assertNotEqual(new_user.id, user.id)
+
+        # The re-registered user can complete verification and log in
+        login_url = reverse("authy:login")
+        code_id = response.data.get("response_body").get("code_id")
+        contact_verification = ContactVerification.objects.get(id=code_id)
+        login_data = {
+            "email": email,
+            "password": password,
+            "verification_code": contact_verification.code,
+            "verification_id": code_id,
+        }
+        login_response = self.client.post(login_url, login_data, format="json")
+        self.assertEqual(login_response.status_code, 200)
+        self.assertIsNotNone(login_response.data.get("response_body").get("access"))
+
+        new_user.refresh_from_db()
+        self.assertTrue(new_user.email_verified)
+
     def test_login_with_phone(self):
         data = {"phone": str(self.user.phone), "password": "123"}
 

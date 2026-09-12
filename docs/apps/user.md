@@ -21,7 +21,7 @@ the other. Add profile fields directly to `User`.
 | Field | Notes |
 |---|---|
 | `id` | `UUIDField`, primary key, `default=uuid.uuid4`, not editable |
-| `email` | Nullable, unique. **This is `USERNAME_FIELD`** |
+| `email` | Nullable, unique for live rows. **This is `USERNAME_FIELD`** |
 | `email_verified` | Set by `contact_verification`, or by social login |
 | `phone` | `PhoneNumberField`, nullable |
 | `phone_verified` | Set by `contact_verification` |
@@ -58,8 +58,9 @@ database, which is why registration and login both require exactly one of them.
 And **uniqueness only applies to live rows**, so soft-deleting a user frees their
 email and phone for reuse.
 
-Note `email` also carries `unique=True` on the field itself, in addition to the
-partial constraint. The field-level index is unconditional.
+`email` relies on the `user_unique_email` partial constraint rather than a field-level
+`unique=True`, which allows soft-deleted accounts to be registered back with the same email.
+Django's `auth.E003` check is silenced in `settings/base.py` via `SILENCED_SYSTEM_CHECKS`.
 
 ### Locale defaults itself
 
