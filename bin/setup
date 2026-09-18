@@ -585,8 +585,38 @@ print_status "Activating virtual environment..."
 source "$VENV_PATH/bin/activate"
 print_success "Virtual environment activated"
 
+# Function to ensure poetry.lock exists and is in sync with pyproject.toml
+sync_poetry_lock() {
+    local lock_cmd=("poetry" "lock")
+    if poetry lock --help 2>/dev/null | grep -q -- '--no-update'; then
+        lock_cmd=("poetry" "lock" "--no-update")
+    fi
+
+    if [ ! -f "poetry.lock" ]; then
+        print_status "poetry.lock not found. Generating lock file..."
+        "${lock_cmd[@]}"
+        print_success "Lock file generated"
+    elif ! poetry check --lock &> /dev/null; then
+        print_warning "pyproject.toml has changed since poetry.lock was last generated."
+        print_status "Synchronizing poetry.lock with pyproject.toml..."
+        "${lock_cmd[@]}"
+        print_success "Lock file synchronized"
+    fi
+}
+
+print_status "Checking Poetry lock file..."
+sync_poetry_lock
+
 print_status "Installing dependencies with Poetry..."
-POETRY_VIRTUALENVS_CREATE=false poetry install --no-root
+if ! POETRY_VIRTUALENVS_CREATE=false poetry install --no-root; then
+    print_warning "Poetry install failed. Attempting to update lock file and retry..."
+    if poetry lock --help 2>/dev/null | grep -q -- '--no-update'; then
+        poetry lock --no-update
+    else
+        poetry lock
+    fi
+    POETRY_VIRTUALENVS_CREATE=false poetry install --no-root
+fi
 print_success "Dependencies installed"
 
 print_status "Upgrading pip..."
